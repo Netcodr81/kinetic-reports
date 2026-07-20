@@ -1,9 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\KineticReports.Core\KineticReports.Core.csproj" />
+    <ProjectReference Include="..\..\Core\KineticReports.Engine\KineticReports.Engine.csproj" />
+    <ProjectReference Include="..\..\Core\KineticReports.Layout\KineticReports.Layout.csproj" />
+    <ProjectReference Include="..\..\Rendering\KineticReports.Rendering\KineticReports.Rendering.csproj" />
+    <ProjectReference Include="..\..\Rendering\KineticReports.Rendering.Skia\KineticReports.Rendering.Skia.csproj" />
+    <ProjectReference Include="..\..\Export\KineticReports.Export.Html\KineticReports.Export.Html.csproj" />
+  </ItemGroup>
 
 </Project>
