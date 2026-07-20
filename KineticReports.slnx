@@ -1,2 +1,24 @@
 <Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Core/">
+    <Project Path="src/Core/KineticReports.Core/KineticReports.Core.csproj" />
+    <Project Path="src/Core/KineticReports.Engine/KineticReports.Engine.csproj" />
+    <Project Path="src/Core/KineticReports.Layout/KineticReports.Layout.csproj" />
+  </Folder>
+  <Folder Name="/src/Data/">
+    <Project Path="src/Data/KineticReports.Data.SqlServer/KineticReports.Data.SqlServer.csproj" />
+  </Folder>
+  <Folder Name="/src/Export/">
+    <Project Path="src/Export/KineticReports.Export.Excel/KineticReports.Export.Excel.csproj" />
+    <Project Path="src/Export/KineticReports.Export.Html/KineticReports.Export.Html.csproj" />
+    <Project Path="src/Export/KineticReports.Export.Pdf/KineticReports.Export.Pdf.csproj" />
+  </Folder>
+  <Folder Name="/src/Rendering/">
+    <Project Path="src/Rendering/KineticReports.Rendering.Skia/KineticReports.Rendering.Skia.csproj" />
+    <Project Path="src/Rendering/KineticReports.Rendering/KineticReports.Rendering.csproj" />
+  </Folder>
+  <Folder Name="/src/Viewer/">
+    <Project Path="src/Viewer/KineticReports.Viewer.Blazor/KineticReports.Viewer.Blazor.csproj" />
+    <Project Path="src/Viewer/KineticReports.Viewer.Web/KineticReports.Viewer.Web.csproj" />
+  </Folder>
 </Solution>
