@@ -13,9 +13,16 @@
     <Project Path="src/Export/KineticReports.Export.Html/KineticReports.Export.Html.csproj" />
     <Project Path="src/Export/KineticReports.Export.Pdf/KineticReports.Export.Pdf.csproj" />
   </Folder>
+  <Folder Name="/src/Plugins/">
+    <Project Path="src/Plugins/KineticReports.Plugins/KineticReports.Plugins.csproj" />
+  </Folder>
   <Folder Name="/src/Rendering/">
     <Project Path="src/Rendering/KineticReports.Rendering.Skia/KineticReports.Rendering.Skia.csproj" />
     <Project Path="src/Rendering/KineticReports.Rendering/KineticReports.Rendering.csproj" />
+  </Folder>
+  <Folder Name="/src/Samples/">
+    <Project Path="src/Samples/KineticReports.Samples.Blazor/KineticReports.Samples.Blazor.csproj" />
+    <Project Path="src/Samples/KineticReports.Samples.Plugins/KineticReports.Samples.Plugins.csproj" />
   </Folder>
   <Folder Name="/src/Viewer/">
     <Project Path="src/Viewer/KineticReports.Viewer.Blazor/KineticReports.Viewer.Blazor.csproj" />

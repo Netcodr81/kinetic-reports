@@ -1,0 +1,174 @@
+@page "/"
+@using KineticReports.Samples.Blazor.Services
+@using KineticReports.Samples.Blazor.Reports
+@using KineticReports.Plugins
+@using Microsoft.AspNetCore.Components.Web
+@inject IPluginService PluginService
+
+<PageTitle>KineticReports Samples</PageTitle>
+
+<div class="row">
+    <!-- Left Panel: Plugin Management -->
+    <div class="col-lg-3">
+        <div class="card">
+            <div class="card-header">
+                <h5>Plugin Management</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <button class="btn btn-primary w-100" @onclick="LoadPluginsAsync">
+                        @if (isLoadingPlugins)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            <span>Loading...</span>
+                        }
+                        else
+                        {
+                            <span>Load Plugins</span>
+                        }
+                    </button>
+                </div>
+
+                <div class="mb-3">
+                    <button class="btn btn-danger w-100" @onclick="UnloadPluginsAsync"
+                            disabled="@(PluginService.LoadedPlugins.Count == 0)">
+                        Unload All Plugins
+                    </button>
+                </div>
+
+                <hr />
+
+                <h6>Loaded Plugins:</h6>
+                @if (PluginService.LoadedPlugins.Count == 0)
+                {
+                    <p class="text-muted small">No plugins loaded</p>
+                }
+                else
+                {
+                    <div class="list-group">
+                        @foreach (var plugin in PluginService.LoadedPlugins)
+                        {
+                            <div class="list-group-item">
+                                <h6 class="mb-1">@plugin.Name</h6>
+                                <small class="text-muted">v@plugin.Version</small>
+                                @if (!string.IsNullOrEmpty(plugin.Author))
+                                {
+                                    <div class="small">by @plugin.Author</div>
+                                }
+                                @if (!string.IsNullOrEmpty(plugin.Description))
+                                {
+                                    <div class="small mt-1">@plugin.Description</div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel: Report Samples -->
+    <div class="col-lg-9">
+        <div class="card">
+            <div class="card-header">
+                <h5>Sample Reports</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @foreach (var report in SampleReports.GetAllSampleReports())
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">@report.Name</h6>
+                                    <p class="card-text text-muted small">ID: @report.Id</p>
+                                    <div class="btn-group w-100" role="group">
+                                        <button class="btn btn-outline-primary btn-sm"
+                                                @onclick="() => ViewReportAsync(report)">
+                                            View
+                                        </button>
+                                        <button class="btn btn-outline-success btn-sm"
+                                                @onclick="() => ExportReportAsync(report)">
+                                            Export
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="alert alert-info">
+                    <h6>About Sample Reports</h6>
+                    <ul class="mb-0">
+                        <li><strong>Simple Text Report:</strong> Basic layout with text elements</li>
+                        <li><strong>Sales Data Table:</strong> Demonstrates table and data grid components</li>
+                        <li><strong>Customer Report:</strong> Shows banded layout with repeating sections</li>
+                        <li><strong>Multi-Section Report:</strong> Demonstrates sections and grouping</li>
+                        <li><strong>Styled Report:</strong> Shows the style system in action</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(selectedReportId))
+        {
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5>Report Preview: @selectedReportName</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>Preview Not Yet Implemented</strong>
+                        <p class="mb-0">To view the report, you would need to:</p>
+                        <ol class="mb-0 mt-2">
+                            <li>Execute the report using ReportEngine</li>
+                            <li>Export to HTML using HtmlExporter</li>
+                            <li>Display the HTML in an iframe or report viewer component</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private bool isLoadingPlugins = false;
+    private string? selectedReportId;
+    private string? selectedReportName;
+
+    private async Task LoadPluginsAsync()
+    {
+        isLoadingPlugins = true;
+        try
+        {
+            await PluginService.InitializePluginAsync();
+        }
+        finally
+        {
+            isLoadingPlugins = false;
+        }
+    }
+
+    private async Task UnloadPluginsAsync()
+    {
+        await PluginService.UnloadAllAsync();
+    }
+
+    private Task ViewReportAsync(KineticReports.Core.Definition.ReportDefinition report)
+    {
+        selectedReportId = report.Id;
+        selectedReportName = report.Name;
+        return Task.CompletedTask;
+    }
+
+    private async Task ExportReportAsync(KineticReports.Core.Definition.ReportDefinition report)
+    {
+        // TODO: Implement export functionality
+        await Task.Delay(100);
+        System.Diagnostics.Debug.WriteLine($"Exporting report: {report.Name}");
+    }
+}
