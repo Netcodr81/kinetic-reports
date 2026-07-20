@@ -21,4 +21,15 @@
     <Project Path="src/Viewer/KineticReports.Viewer.Blazor/KineticReports.Viewer.Blazor.csproj" />
     <Project Path="src/Viewer/KineticReports.Viewer.Web/KineticReports.Viewer.Web.csproj" />
   </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/unit-tests/">
+    <Project Path="tests/unit-tests/KineticReports.Core.Tests/KineticReports.Core.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Data.SqlServer.Tests/KineticReports.Data.SqlServer.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Engine.Tests/KineticReports.Engine.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Export.Excel.Tests/KineticReports.Export.Excel.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Export.Html.Tests/KineticReports.Export.Html.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Layout.Tests/KineticReports.Layout.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Rendering.Skia.Tests/KineticReports.Rendering.Skia.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Rendering.Tests/KineticReports.Rendering.Tests.csproj" />
+  </Folder>
 </Solution>

@@ -80,3 +80,67 @@ ReportDefinition → Data Resolution → Expression Evaluation
 ## Style Cascade Order (spec §10)
 
 Theme → Report Defaults → Named Style → Parent Inheritance → Local Override → ResolvedStyle (immutable)
+
+## Testing Strategy
+
+### Test Organization
+- **Unit tests:** `tests/unit-tests/{ProjectName}.Tests/`
+- **Integration tests:** `tests/integration-tests/{ProjectName}.Tests/`
+- One unit test project per `src/` project
+- Integration test projects created for projects with external dependencies (data providers, exporters)
+
+### Test Framework & Assertions
+- **Framework:** xUnit v3 (`xunit` NuGet package)
+- **Assertion Library:** Shouldly v4.2.1
+- **Test Runner:** Microsoft.NET.Test.Sdk
+
+### Test Naming Convention
+- Test method names follow: `{MethodUnderTest}_{Scenario}_{ExpectedOutcome}`
+- Example: `Translate_WithPositiveDelta_ReturnsTranslatedPoint`
+
+### Test Structure
+```csharp
+public class ThingTests
+{
+    [Fact]
+    public void MethodName_Scenario_ExpectedResult()
+    {
+        // Arrange
+        var sut = new Thing();
+        
+        // Act
+        var result = sut.DoSomething();
+        
+        // Assert
+        result.ShouldBe(expected);
+    }
+    
+    [Theory]
+    [InlineData(1, 2, 3)]
+    public void MethodName_WithVariousInputs(int a, int b, int expected)
+    {
+        var sut = new Calculator();
+        var result = sut.Add(a, b);
+        result.ShouldBe(expected);
+    }
+}
+```
+
+### Golden Testing
+For layout and rendering, use snapshot-based golden tests:
+- Reference outputs stored in `tests/golden/` alongside integration tests
+- Renderers must produce deterministic output
+- Use pixel-perfect or document-structure validation
+
+### Running Tests
+```bash
+dotnet test .\KineticReports.slnx                    # Run all tests
+dotnet test .\tests\unit-tests                       # Run only unit tests
+dotnet test .\tests\unit-tests\KineticReports.Core.Tests  # Run specific project tests
+dotnet test --filter "Category=Integration"         # Run tests with trait
+```
+
+### Test Coverage Goals
+- Phase 1 (Core): Geometry, Styling, Rendering contracts, Definition — aim for >90% coverage
+- Phase 2 (Layout): Layout element hierarchy, Measure/Arrange passes — golden tests for determinism
+- Phase 3 (Exporters): Integration tests for each exporter format
