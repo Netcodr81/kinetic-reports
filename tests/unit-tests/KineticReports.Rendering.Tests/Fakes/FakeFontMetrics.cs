@@ -1,4 +1,4 @@
-namespace KineticReports.Engine.Tests.Fakes;
+namespace KineticReports.Rendering.Tests.Fakes;
 
 using KineticReports.Core.Geometry;
 using KineticReports.Core.Rendering;
@@ -6,7 +6,8 @@ using KineticReports.Core.Styling;
 using KineticReports.Core.Typography;
 
 /// <summary>
-/// Deterministic, dependency-free <see cref="IFontMetrics"/> for Engine tests.
+/// Deterministic fake font metrics for Rendering unit tests.
+/// charWidth = fontSize × 0.6, lineHeight = fontSize × 1.2, ascent = fontSize × 0.8
 /// </summary>
 public sealed class FakeFontMetrics : IFontMetrics
 {
