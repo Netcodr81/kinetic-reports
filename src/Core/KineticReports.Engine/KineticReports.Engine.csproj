@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\KineticReports.Core\KineticReports.Core.csproj" />
+    <ProjectReference Include="..\..\Core\KineticReports.Layout\KineticReports.Layout.csproj" />
+  </ItemGroup>
+
 </Project>
