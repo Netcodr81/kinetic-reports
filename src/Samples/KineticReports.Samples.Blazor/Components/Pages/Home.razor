@@ -1,9 +1,13 @@
-@page "/"
-@using KineticReports.Samples.Blazor.Services
+﻿@page "/"
+@using KineticReports.Core.Definition
 @using KineticReports.Samples.Blazor.Reports
-@using KineticReports.Plugins
+@using KineticReports.Samples.Blazor.Services
+
 @using Microsoft.AspNetCore.Components.Web
 @inject IPluginService PluginService
+@inject IReportRenderService ReportRenderService
+@rendermode InteractiveServer
+
 
 <PageTitle>KineticReports Samples</PageTitle>
 
@@ -17,7 +21,7 @@
             <div class="card-body">
                 <div class="mb-3">
                     <button class="btn btn-primary w-100" @onclick="LoadPluginsAsync">
-                        @if (isLoadingPlugins)
+                        @if (_isLoadingPlugins)
                         {
                             <span class="spinner-border spinner-border-sm me-2"></span>
                             <span>Loading...</span>
@@ -84,7 +88,12 @@
                                     <p class="card-text text-muted small">ID: @report.Id</p>
                                     <div class="btn-group w-100" role="group">
                                         <button class="btn btn-outline-primary btn-sm"
-                                                @onclick="() => ViewReportAsync(report)">
+                                                @onclick="() => ViewReportAsync(report)"
+                                                disabled="@(_isRenderingReport)">
+                                            @if (_isRenderingReport && _selectedReportId == report.Id)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-1"></span>
+                                            }
                                             View
                                         </button>
                                         <button class="btn btn-outline-success btn-sm"
@@ -113,22 +122,36 @@
             </div>
         </div>
 
-        @if (!string.IsNullOrEmpty(selectedReportId))
+        @if (!string.IsNullOrEmpty(_selectedReportId))
         {
             <div class="card mt-3">
-                <div class="card-header">
-                    <h5>Report Preview: @selectedReportName</h5>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Report Preview: @_selectedReportName</h5>
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="ClosePreview">
+                        ✕
+                    </button>
                 </div>
-                <div class="card-body">
-                    <div class="alert alert-warning">
-                        <strong>Preview Not Yet Implemented</strong>
-                        <p class="mb-0">To view the report, you would need to:</p>
-                        <ol class="mb-0 mt-2">
-                            <li>Execute the report using ReportEngine</li>
-                            <li>Export to HTML using HtmlExporter</li>
-                            <li>Display the HTML in an iframe or report viewer component</li>
-                        </ol>
-                    </div>
+                <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                    @if (_isRenderingReport)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Rendering report...</span>
+                            </div>
+                            <p class="mt-2">Rendering report...</p>
+                        </div>
+                    }
+                    else if (!string.IsNullOrEmpty(_reportHtml))
+                    {
+                        @((MarkupString)_reportHtml)
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <strong>Error</strong>
+                            <p class="mb-0">No preview available</p>
+                        </div>
+                    }
                 </div>
             </div>
         }
@@ -136,20 +159,22 @@
 </div>
 
 @code {
-    private bool isLoadingPlugins = false;
-    private string? selectedReportId;
-    private string? selectedReportName;
+    private bool _isLoadingPlugins;
+    private bool _isRenderingReport;
+    private string? _selectedReportId;
+    private string? _selectedReportName;
+    private string? _reportHtml;
 
     private async Task LoadPluginsAsync()
     {
-        isLoadingPlugins = true;
+        _isLoadingPlugins = true;
         try
         {
             await PluginService.InitializePluginAsync();
         }
         finally
         {
-            isLoadingPlugins = false;
+            _isLoadingPlugins = false;
         }
     }
 
@@ -158,14 +183,41 @@
         await PluginService.UnloadAllAsync();
     }
 
-    private Task ViewReportAsync(KineticReports.Core.Definition.ReportDefinition report)
+    private async Task ViewReportAsync(ReportDefinition report)
     {
-        selectedReportId = report.Id;
-        selectedReportName = report.Name;
-        return Task.CompletedTask;
+        _selectedReportId = report.Id;
+        _selectedReportName = report.Name;
+        _isRenderingReport = true;
+        _reportHtml = null;
+
+        try
+        {
+            // Execute report and export as HTML
+            var emptyParams = new Dictionary<string, object?>();
+            _reportHtml = await ReportRenderService.RenderReportAsHtmlAsync(report, emptyParams);
+        }
+        catch (Exception ex)
+        {
+            _reportHtml = $@"
+                <div class='alert alert-danger' role='alert'>
+                    <h4 class='alert-heading'>Error Rendering Report</h4>
+                    <p>{System.Net.WebUtility.HtmlEncode(ex.Message)}</p>
+                </div>";
+        }
+        finally
+        {
+            _isRenderingReport = false;
+        }
     }
 
-    private async Task ExportReportAsync(KineticReports.Core.Definition.ReportDefinition report)
+    private void ClosePreview()
+    {
+        _selectedReportId = null;
+        _selectedReportName = null;
+        _reportHtml = null;
+    }
+
+    private async Task ExportReportAsync(ReportDefinition report)
     {
         // TODO: Implement export functionality
         await Task.Delay(100);

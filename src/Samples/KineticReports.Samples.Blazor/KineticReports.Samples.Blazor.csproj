@@ -4,12 +4,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
   </PropertyGroup>
 
-  <ItemGroup>
-  </ItemGroup>
-
-  <ItemGroup>
+ <ItemGroup>
     <ProjectReference Include="..\..\Core\KineticReports.Core\KineticReports.Core.csproj" />
     <ProjectReference Include="..\..\Core\KineticReports.Engine\KineticReports.Engine.csproj" />
     <ProjectReference Include="..\..\Rendering\KineticReports.Rendering.Skia\KineticReports.Rendering.Skia.csproj" />
@@ -18,5 +16,4 @@
     <ProjectReference Include="..\..\Plugins\KineticReports.Plugins\KineticReports.Plugins.csproj" />
     <ProjectReference Include="..\KineticReports.Samples.Plugins\KineticReports.Samples.Plugins.csproj" />
   </ItemGroup>
-
 </Project>

@@ -21,8 +21,10 @@
     <Project Path="src/Rendering/KineticReports.Rendering/KineticReports.Rendering.csproj" />
   </Folder>
   <Folder Name="/src/Samples/">
-    <Project Path="src/Samples/KineticReports.Samples.Blazor/KineticReports.Samples.Blazor.csproj" />
+    <Project Path="src/Samples/KineticReports.Samples.Blazor/KineticReports.Samples.Blazor.csproj"  />
     <Project Path="src/Samples/KineticReports.Samples.Plugins/KineticReports.Samples.Plugins.csproj" />
+    <Project Path="src/Samples/KineticReports.Samples.Plugins/KineticReports.Samples.WebApi.csproj" />
+    <Project Path="src/Samples/KineticReports.Samples.Plugins/KineticReports.Samples.Console.csproj" />
   </Folder>
   <Folder Name="/src/Viewer/">
     <Project Path="src/Viewer/KineticReports.Viewer.Blazor/KineticReports.Viewer.Blazor.csproj" />
