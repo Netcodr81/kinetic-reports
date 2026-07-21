@@ -55,10 +55,7 @@ public sealed class ReportRenderService : IReportRenderService
 
         try
         {
-            // Use empty parameters if none provided
             var reportParameters = parameters ?? new Dictionary<string, object?>();
-
-            // Step 1: Execute the report to get layout tree
             var context = new MeasureContext(_fontMetrics);
             var layoutOptions = new LayoutOptions();
 
@@ -69,11 +66,9 @@ public sealed class ReportRenderService : IReportRenderService
                 layoutOptions,
                 cancellationToken).ConfigureAwait(false);
 
-            // Step 2: Export layout tree as HTML
             using var stream = new MemoryStream();
             await _exporter.ExportAsync(layoutTree, stream, cancellationToken).ConfigureAwait(false);
 
-            // Step 3: Convert stream to HTML string
             stream.Position = 0;
             using var reader = new StreamReader(stream);
             return await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(false);

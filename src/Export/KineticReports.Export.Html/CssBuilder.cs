@@ -20,7 +20,7 @@ public sealed class CssBuilder
             css.Append($"font-family: {style.FontFamily};");
 
         if (style.FontSize > 0)
-            css.Append($"font-size: {style.FontSize:F1}pt;");
+            css.Append($"font-size: {style.FontSize:F1}px;");
 
         if (style.FontWeight != FontWeight.Normal)
             css.Append($"font-weight: {FontWeightToCss(style.FontWeight)};");
@@ -32,8 +32,7 @@ public sealed class CssBuilder
             css.Append($"line-height: {style.LineHeight:F1};");
 
         // Colors
-        if (style.TextColor != Color.Black)
-            css.Append($"color: {ColorToCss(style.TextColor)};");
+        css.Append($"color: {ColorToCss(style.TextColor)};");
 
         if (style.Background != Color.Transparent)
             css.Append($"background-color: {ColorToCss(style.Background)};");

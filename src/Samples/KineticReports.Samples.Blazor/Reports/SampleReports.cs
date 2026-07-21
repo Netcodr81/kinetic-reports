@@ -7,6 +7,8 @@ using KineticReports.Core.Definition;
 /// </summary>
 public static class SampleReports
 {
+    private const string SampleProviderType = "SampleInMemory";
+
     /// <summary>
     /// A simple text-based report demonstrating basic layout.
     /// </summary>
@@ -19,7 +21,10 @@ public static class SampleReports
             Name = "Simple Text Report",
             Description = "Basic layout with text elements and styling",
             Parameters = [],
-            DataSources = [],
+            DataSources =
+            [
+                CreateDataSource("quote-daily", "Daily Quote")
+            ],
             Styles = []
         };
     }
@@ -36,7 +41,10 @@ public static class SampleReports
             Name = "Sales Data Table",
             Description = "Demonstrates table layout with columns and rows for tabular data",
             Parameters = [],
-            DataSources = [],
+            DataSources =
+            [
+                CreateDataSource("sales-orders", "Sales Orders")
+            ],
             Styles = []
         };
     }
@@ -53,7 +61,10 @@ public static class SampleReports
             Name = "Customer Report with Grouping",
             Description = "Shows banded layout with repeating sections for hierarchical data",
             Parameters = [],
-            DataSources = [],
+            DataSources =
+            [
+                CreateDataSource("customer-activity", "Customer Activity")
+            ],
             Styles = []
         };
     }
@@ -70,7 +81,11 @@ public static class SampleReports
             Name = "Company Report with Multiple Sections",
             Description = "Demonstrates multiple sections with grouping and pagination",
             Parameters = [],
-            DataSources = [],
+            DataSources =
+            [
+                CreateDataSource("kpi-summary", "KPI Summary"),
+                CreateDataSource("regional-performance", "Regional Performance")
+            ],
             Styles = []
         };
     }
@@ -87,7 +102,10 @@ public static class SampleReports
             Name = "Styled Report Example",
             Description = "Showcases typography, colors, borders, and the style cascade system",
             Parameters = [],
-            DataSources = [],
+            DataSources =
+            [
+                CreateDataSource("style-showcase", "Style Showcase Data")
+            ],
             Styles = []
         };
     }
@@ -97,13 +115,24 @@ public static class SampleReports
     /// </summary>
     public static IReadOnlyList<ReportDefinition> GetAllSampleReports()
     {
-        return new[]
-        {
+        return
+        [
             CreateSimpleTextReport(),
             CreateTableReport(),
             CreateBandedReport(),
             CreateMultiSectionReport(),
             CreateStyledReport()
+        ];
+    }
+
+    private static DataSourceDefinition CreateDataSource(string id, string name)
+    {
+        return new DataSourceDefinition
+        {
+            Id = id,
+            Name = name,
+            ProviderType = SampleProviderType,
+            Properties = new Dictionary<string, string>()
         };
     }
 }

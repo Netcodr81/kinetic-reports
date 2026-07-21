@@ -62,19 +62,19 @@ public sealed class HtmlExporter : IHtmlExporter
         // Render header if present
         if (page.Header != null)
         {
-            RenderElement(html, page.Header);
+            RenderElement(html, page.Header, 0f, 0f);
         }
 
         // Render body elements
         foreach (var child in page.Children)
         {
-            RenderElement(html, child);
+            RenderElement(html, child, 0f, 0f);
         }
 
         // Render footer if present
         if (page.Footer != null)
         {
-            RenderElement(html, page.Footer);
+            RenderElement(html, page.Footer, 0f, 0f);
         }
 
         html
@@ -82,9 +82,9 @@ public sealed class HtmlExporter : IHtmlExporter
             .CloseTag("div"); // kinetic-page
     }
 
-    private static void RenderElement(HtmlBuilder html, LayoutElement element)
+    private static void RenderElement(HtmlBuilder html, LayoutElement element, float parentX, float parentY)
     {
-        var style = BuildElementStyle(element);
+        var style = BuildElementStyle(element, parentX, parentY);
 
         html.OpenTag("div", style: style, id: element.Id, classAttr: $"element {GetElementClassName(element)}");
 
@@ -108,27 +108,27 @@ public sealed class HtmlExporter : IHtmlExporter
 
             case ContainerElement container:
                 foreach (var child in container.Children)
-                    RenderElement(html, child);
+                    RenderElement(html, child, element.Bounds.X, element.Bounds.Y);
                 break;
 
             case SectionElement section:
                 foreach (var child in section.Children)
-                    RenderElement(html, child);
+                    RenderElement(html, child, element.Bounds.X, element.Bounds.Y);
                 break;
 
             case BandElement band:
                 foreach (var child in band.Children)
-                    RenderElement(html, child);
+                    RenderElement(html, child, element.Bounds.X, element.Bounds.Y);
                 break;
 
             case RowElement row:
                 foreach (var cell in row.Cells)
-                    RenderElement(html, cell);
+                    RenderElement(html, cell, element.Bounds.X, element.Bounds.Y);
                 break;
 
             case CellElement cell:
                 foreach (var child in cell.Children)
-                    RenderElement(html, child);
+                    RenderElement(html, child, element.Bounds.X, element.Bounds.Y);
                 break;
 
             case ChartElement:
@@ -226,7 +226,7 @@ public sealed class HtmlExporter : IHtmlExporter
                 var cellStyle = $"width: {cell.Bounds.Width:F1}px; height: {cell.Bounds.Height:F1}px; {CssBuilder.BuildStyle(cell.Style)}";
                 html.OpenTag("td", style: cellStyle);
                 foreach (var child in cell.Children)
-                    RenderElement(html, child);
+                    RenderElement(html, child, cell.Bounds.X, cell.Bounds.Y);
                 html.CloseTag("td");
             }
             html.CloseTag("tr");
@@ -235,10 +235,13 @@ public sealed class HtmlExporter : IHtmlExporter
         html.CloseTag("table");
     }
 
-    private static string BuildElementStyle(LayoutElement element)
+    private static string BuildElementStyle(LayoutElement element, float parentX, float parentY)
     {
         var bounds = element.Bounds;
-        var css = $"position: absolute; left: {bounds.X:F1}px; top: {bounds.Y:F1}px; width: {bounds.Width:F1}px; height: {bounds.Height:F1}px; " +
+        var relativeX = bounds.X - parentX;
+        var relativeY = bounds.Y - parentY;
+
+        var css = $"position: absolute; left: {relativeX:F1}px; top: {relativeY:F1}px; width: {bounds.Width:F1}px; height: {bounds.Height:F1}px; " +
                   CssBuilder.BuildStyle(element.Style) +
                   (element.Style.Overflow == Overflow.Hidden ? "overflow: hidden;" : "overflow: visible;");
         return css;
