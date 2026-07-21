@@ -17,7 +17,7 @@ public enum ShapeKind
 }
 
 /// <summary>
-/// Represents a vector shape element (rectangle, ellipse, or line) in the layout tree.
+/// Represents a vector shape element (rectangle, ellipse, or line) in the report layout.
 /// </summary>
 public sealed class ShapeElement : LayoutElement
 {

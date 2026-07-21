@@ -4,8 +4,8 @@ using KineticReports.Core.Geometry;
 using KineticReports.Core.Styling;
 
 /// <summary>
-/// Abstract base class for all elements in the layout tree.
-/// The layout tree is produced by the Arrange pass and is immutable thereafter (ADR-011).
+/// Abstract base class for all elements in the report layout.
+/// The report layout is produced by the Arrange pass and is immutable thereafter (ADR-011).
 /// </summary>
 public abstract class LayoutElement
 {

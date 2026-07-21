@@ -48,10 +48,10 @@ public class SkiaRendererTests
 
     // -----
 
-    private static LayoutTree MakeSimpleLayoutTree() =>
+    private static ReportLayout MakeSimpleLayoutTree() =>
         new() { Pages = [MakePage(1)] };
 
-    private static LayoutTree MakeLayoutTreeWithPages(int count) =>
+    private static ReportLayout MakeLayoutTreeWithPages(int count) =>
         new() { Pages = Enumerable.Range(1, count).Select(MakePage).ToList() };
 
     private static PageElement MakePage(int pageNum)

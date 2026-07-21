@@ -6,27 +6,27 @@ using KineticReports.Core.Rendering;
 using KineticReports.Core.Styling;
 
 /// <summary>
-/// Exports an immutable LayoutTree to semantic HTML with inline CSS.
+/// Exports an immutable ReportLayout to semantic HTML with inline CSS.
 /// </summary>
 public sealed class HtmlExporter : IHtmlExporter
 {
     /// <summary>
-    /// Exports the layout tree to HTML.
+    /// Exports the report layout to HTML.
     /// </summary>
-    public async Task ExportAsync(LayoutTree tree, Stream output, CancellationToken ct = default)
+    public async Task ExportAsync(ReportLayout reportLayout, Stream output, CancellationToken ct = default)
     {
-        if (tree == null) throw new ArgumentNullException(nameof(tree));
+        if (reportLayout == null) throw new ArgumentNullException(nameof(reportLayout));
         if (output == null) throw new ArgumentNullException(nameof(output));
 
         var builder = new HtmlBuilder();
-        BuildHtmlDocument(builder, tree);
+        BuildHtmlDocument(builder, reportLayout);
 
         var html = builder.Build();
         var bytes = Encoding.UTF8.GetBytes(html);
         await output.WriteAsync(bytes, ct);
     }
 
-    private static void BuildHtmlDocument(HtmlBuilder html, LayoutTree tree)
+    private static void BuildHtmlDocument(HtmlBuilder html, ReportLayout reportLayout)
     {
         html
             .Raw("<!DOCTYPE html>\n")
@@ -41,7 +41,7 @@ public sealed class HtmlExporter : IHtmlExporter
             .OpenTag("body");
 
         // Render all pages
-        foreach (var page in tree.Pages)
+        foreach (var page in reportLayout.Pages)
         {
             RenderPage(html, page);
         }

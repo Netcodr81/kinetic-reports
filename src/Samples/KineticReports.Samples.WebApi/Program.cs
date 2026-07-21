@@ -23,7 +23,7 @@ var builder = WebApplication.CreateBuilder(args);
 // SkiaFontMetrics is used for text measurement during layout
 builder.Services.AddScoped<SkiaFontMetrics>(sp => new SkiaFontMetrics());
 
-// HtmlExporter exports layout trees to HTML format
+// HtmlExporter exports report layouts to HTML format
 builder.Services.AddScoped<HtmlExporter>();
 
 // IReportExecutor orchestrates the full report execution pipeline

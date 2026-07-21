@@ -99,6 +99,7 @@ internal sealed class SkiaGraphicsContext : IGraphicsContext
             run.Text,
             run.BaselineOrigin.X * _scale,
             run.BaselineOrigin.Y * _scale,
+            SKTextAlign.Left,
             font,
             paint);
     }

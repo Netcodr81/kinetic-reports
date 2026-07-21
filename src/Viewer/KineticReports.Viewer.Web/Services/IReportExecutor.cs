@@ -9,9 +9,9 @@ using KineticReports.Core.Layout;
 public interface IReportExecutor
 {
     /// <summary>
-    /// Executes a report and returns the immutable layout tree.
+    /// Executes a report and returns the immutable report layout.
     /// </summary>
-    Task<LayoutTree> ExecuteAsync(
+    Task<ReportLayout> ExecuteAsync(
         ReportDefinition definition,
         IReadOnlyDictionary<string, object?> parameters,
         CancellationToken ct = default);

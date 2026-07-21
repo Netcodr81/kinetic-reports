@@ -44,8 +44,8 @@ try
         Description = "Example report demonstrating report generation"
     };
 
-    // Create an empty layout tree for demonstration
-    Console.WriteLine("Step 3: Creating empty layout tree...");
+    // Create an empty report layout for demonstration
+    Console.WriteLine("Step 3: Creating empty report layout...");
     var page = new PageElement
     {
         Id = "page-1",
@@ -55,7 +55,7 @@ try
         Children = [],
         Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 12f }
     };
-    var layoutTree = new LayoutTree { Pages = [page] };
+    var ReportLayout = new ReportLayout { Pages = [page] };
 
     // Initialize exporter
     var htmlExporter = new HtmlExporter();
@@ -68,7 +68,7 @@ try
 
     using (var outputStream = File.Create(outputPath))
     {
-        await htmlExporter.ExportAsync(layoutTree, outputStream);
+        await htmlExporter.ExportAsync(ReportLayout, outputStream);
     }
 
     Console.WriteLine($"   ✓ Report exported to: {outputPath}");
@@ -78,7 +78,7 @@ try
     Console.WriteLine("Summary");
     Console.WriteLine(new string('=', 50));
     Console.WriteLine($"Report:           {report.Name}");
-    Console.WriteLine($"Pages:            {layoutTree.Pages.Count}");
+    Console.WriteLine($"Pages:            {ReportLayout.Pages.Count}");
     Console.WriteLine($"Output Format:    HTML");
     Console.WriteLine($"Output Location:  {outputPath}");
     Console.WriteLine("\nSample completed successfully!");

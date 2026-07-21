@@ -21,7 +21,7 @@ public static class ReportEndpoints
 
         group.MapPost("/execute", ExecuteReport)
             .WithName("ExecuteReport")
-            .WithSummary("Execute a report and get the layout tree")
+            .WithSummary("Execute a report and get the report layout")
             .Produces<ExecuteReportResponse>(StatusCodes.Status200OK);
 
         group.MapGet("/{operationId}/html", ExportHtml)
@@ -49,10 +49,10 @@ public static class ReportEndpoints
             var definition = JsonSerializer.Deserialize<ReportDefinition>(request.Definition)
                 ?? throw new InvalidOperationException("Failed to deserialize report definition");
 
-            var layoutTree = await executor.ExecuteAsync(definition, request.Parameters, ct);
+            var ReportLayout = await executor.ExecuteAsync(definition, request.Parameters, ct);
             var operationId = Guid.NewGuid().ToString("N");
 
-            await store.SaveAsync(operationId, layoutTree, ct);
+            await store.SaveAsync(operationId, ReportLayout, ct);
 
             var response = new ExecuteReportResponse
             {
@@ -74,7 +74,7 @@ public static class ReportEndpoints
     }
 
     /// <summary>
-    /// GET /api/reports/{operationId}/html — Export layout tree as HTML.
+    /// GET /api/reports/{operationId}/html — Export report layout as HTML.
     /// </summary>
     private static async Task<IResult> ExportHtml(
         string operationId,
@@ -82,12 +82,12 @@ public static class ReportEndpoints
         IHtmlExporter exporter,
         CancellationToken ct)
     {
-        var layoutTree = await store.RetrieveAsync(operationId, ct);
-        if (layoutTree == null)
+        var ReportLayout = await store.RetrieveAsync(operationId, ct);
+        if (ReportLayout == null)
             return Results.NotFound($"Report execution '{operationId}' not found");
 
         var stream = new MemoryStream();
-        await exporter.ExportAsync(layoutTree, stream, ct);
+        await exporter.ExportAsync(ReportLayout, stream, ct);
         stream.Position = 0;
 
         return Results.Stream(stream, "text/html; charset=utf-8");

@@ -13,7 +13,7 @@ internal sealed class PaginationEngine
 {
     /// <summary>
     /// Runs the full Measure → Arrange → Paginate pipeline and returns the ordered
-    /// list of pages that form the <see cref="LayoutTree"/>.
+    /// list of pages that form the <see cref="ReportLayout"/>.
     /// </summary>
     /// <param name="bands">All bands, including page-header and page-footer bands.</param>
     /// <param name="options">Page dimensions and margin configuration.</param>

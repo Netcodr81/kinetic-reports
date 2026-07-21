@@ -11,7 +11,7 @@ using KineticReports.Layout;
 public interface IReportEngine
 {
     /// <summary>
-    /// Executes the report pipeline and returns the immutable <see cref="LayoutTree"/>.
+    /// Executes the report pipeline and returns the immutable <see cref="ReportLayout"/>.
     /// </summary>
     /// <param name="definition">The immutable report definition.</param>
     /// <param name="parameters">
@@ -25,8 +25,8 @@ public interface IReportEngine
     /// when <see langword="null"/>.
     /// </param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The completed, immutable <see cref="LayoutTree"/>.</returns>
-    Task<LayoutTree> RunAsync(
+    /// <returns>The completed, immutable <see cref="ReportLayout"/>.</returns>
+    Task<ReportLayout> RunAsync(
         ReportDefinition definition,
         IReadOnlyDictionary<string, object?> parameters,
         IMeasureContext measureContext,

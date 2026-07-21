@@ -4,10 +4,10 @@ using KineticReports.Core.Layout;
 using KineticReports.Core.Rendering;
 using KineticReports.Rendering.Tests.Fakes;
 
-public class LayoutTreeRendererTests
+public class ReportLayoutRendererTests
 {
     private static readonly ResolvedStyle DefaultStyle = new() { FontFamily = "Arial", FontSize = 12f };
-    private readonly LayoutTreeRenderer _sut = new();
+    private readonly ReportLayoutRenderer _sut = new();
     private readonly RenderOptions _options = new() { Background = Color.White };
     private readonly FakeMeasureContext _measureContext = new();
 

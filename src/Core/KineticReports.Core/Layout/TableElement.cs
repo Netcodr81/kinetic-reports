@@ -27,7 +27,7 @@ public sealed record TableColumn
 }
 
 /// <summary>
-/// Represents a tabular data element in the layout tree.
+/// Represents a tabular data element in the report layout.
 /// The full table layout algorithm (column widths, row heights, spans, pagination)
 /// is implemented in <c>KineticReports.Layout</c>.
 /// </summary>

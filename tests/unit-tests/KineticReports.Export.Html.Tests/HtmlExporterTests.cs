@@ -41,7 +41,7 @@ public class HtmlExporterTests
         textElem.Arrange(new Rect(10, 10, 100, 20));
 
         var page = MakePage(1, [textElem]);
-        var tree = new LayoutTree { Pages = [page] };
+        var tree = new ReportLayout { Pages = [page] };
 
         var exporter = new HtmlExporter();
         using var output = new MemoryStream();
@@ -55,7 +55,7 @@ public class HtmlExporterTests
     public async Task ExportAsync_WithMultiplePages_IncludesAllPages()
     {
         var pages = Enumerable.Range(1, 3).Select(n => MakePage(n)).ToList();
-        var tree = new LayoutTree { Pages = pages };
+        var tree = new ReportLayout { Pages = pages };
 
         var exporter = new HtmlExporter();
         using var output = new MemoryStream();
@@ -82,7 +82,7 @@ public class HtmlExporterTests
         shapeElem.Arrange(new Rect(10, 10, 100, 50));
 
         var page = MakePage(1, [shapeElem]);
-        var tree = new LayoutTree { Pages = [page] };
+        var tree = new ReportLayout { Pages = [page] };
 
         var exporter = new HtmlExporter();
         using var output = new MemoryStream();
@@ -119,7 +119,7 @@ public class HtmlExporterTests
         tableElem.Arrange(new Rect(0, 0, 200, 50));
 
         var page = MakePage(1, [tableElem]);
-        var tree = new LayoutTree { Pages = [page] };
+        var tree = new ReportLayout { Pages = [page] };
 
         var exporter = new HtmlExporter();
         using var output = new MemoryStream();
@@ -143,7 +143,7 @@ public class HtmlExporterTests
 
     // -----
 
-    private static LayoutTree MakeSimpleLayoutTree() =>
+    private static ReportLayout MakeSimpleLayoutTree() =>
         new() { Pages = [MakePage(1)] };
 
     private static PageElement MakePage(int pageNum, List<LayoutElement>? children = null)

@@ -23,7 +23,7 @@ public enum ImageStretch
 }
 
 /// <summary>
-/// Represents an image element in the layout tree.
+/// Represents an image element in the report layout.
 /// </summary>
 public sealed class ImageElement : LayoutElement
 {

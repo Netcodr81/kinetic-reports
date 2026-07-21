@@ -9,17 +9,17 @@ using KineticReports.Core.Layout;
 public interface IReportService
 {
     /// <summary>
-    /// Executes a report and returns the layout tree.
+    /// Executes a report and returns the report layout.
     /// </summary>
-    Task<LayoutTree?> ExecuteAsync(
+    Task<ReportLayout?> ExecuteAsync(
         ReportDefinition definition,
         IReadOnlyDictionary<string, object?> parameters,
         CancellationToken ct = default);
 
     /// <summary>
-    /// Exports a layout tree to HTML.
+    /// Exports a report layout to HTML.
     /// </summary>
     Task<string> ExportHtmlAsync(
-        LayoutTree layoutTree,
+        ReportLayout ReportLayout,
         CancellationToken ct = default);
 }

@@ -43,7 +43,7 @@ public sealed class ReportEngine : IReportEngine
     }
 
     /// <inheritdoc/>
-    public async Task<LayoutTree> RunAsync(
+    public async Task<ReportLayout> RunAsync(
         ReportDefinition definition,
         IReadOnlyDictionary<string, object?> parameters,
         IMeasureContext measureContext,
@@ -71,8 +71,8 @@ public sealed class ReportEngine : IReportEngine
         var bands = _treeBuilder.Build(dataContext, _expressionEvaluator);
 
         // 3. Run the layout pipeline: Measure → Arrange → Pagination.
-        var layoutTree = _layoutEngine.Layout(bands, options, measureContext);
+        var ReportLayout = _layoutEngine.Layout(bands, options, measureContext);
 
-        return layoutTree;
+        return ReportLayout;
     }
 }

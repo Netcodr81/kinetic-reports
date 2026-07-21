@@ -3,7 +3,7 @@ namespace KineticReports.Core.Layout;
 using KineticReports.Core.Geometry;
 
 /// <summary>
-/// Represents a barcode or QR code element in the layout tree.
+/// Represents a barcode or QR code element in the report layout.
 /// </summary>
 public sealed class BarcodeElement : LayoutElement
 {

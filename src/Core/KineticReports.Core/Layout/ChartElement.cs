@@ -3,7 +3,7 @@ namespace KineticReports.Core.Layout;
 using KineticReports.Core.Geometry;
 
 /// <summary>
-/// Represents a chart element in the layout tree.
+/// Represents a chart element in the report layout.
 /// Chart-specific rendering is delegated to the renderer implementation
 /// via the opaque <see cref="ChartData"/> payload.
 /// </summary>

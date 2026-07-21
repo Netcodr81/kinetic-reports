@@ -6,7 +6,7 @@ namespace KineticReports.Viewer.Web.Tests;
 
 public class MemoryReportStoreTests
 {
-    private static LayoutTree CreateTestLayoutTree()
+    private static ReportLayout CreateTestLayoutTree()
     {
         var defaultStyle = new ResolvedStyle
         {
@@ -26,7 +26,7 @@ public class MemoryReportStoreTests
             Style = defaultStyle
         };
 
-        return new LayoutTree { Pages = [page] };
+        return new ReportLayout { Pages = [page] };
     }
 
     [Fact]
@@ -34,11 +34,11 @@ public class MemoryReportStoreTests
     {
         // Arrange
         var store = new MemoryReportStore();
-        var layoutTree = CreateTestLayoutTree();
+        var ReportLayout = CreateTestLayoutTree();
         var operationId = "test-op-1";
 
         // Act
-        await store.SaveAsync(operationId, layoutTree);
+        await store.SaveAsync(operationId, ReportLayout);
 
         // Assert
         var retrieved = await store.RetrieveAsync(operationId);
@@ -75,11 +75,11 @@ public class MemoryReportStoreTests
     {
         // Arrange
         var store = new MemoryReportStore();
-        var layoutTree = CreateTestLayoutTree();
+        var ReportLayout = CreateTestLayoutTree();
 
         // Act & Assert
         await Should.ThrowAsync<ArgumentException>(
-            () => store.SaveAsync("", layoutTree));
+            () => store.SaveAsync("", ReportLayout));
     }
 
     [Fact]
@@ -100,9 +100,9 @@ public class MemoryReportStoreTests
     {
         // Arrange
         var store = new MemoryReportStore();
-        var layoutTree = CreateTestLayoutTree();
+        var ReportLayout = CreateTestLayoutTree();
         var operationId = "test-op-2";
-        await store.SaveAsync(operationId, layoutTree);
+        await store.SaveAsync(operationId, ReportLayout);
 
         // Act
         await store.ClearAsync(operationId);
@@ -117,9 +117,9 @@ public class MemoryReportStoreTests
     {
         // Arrange
         var store = new MemoryReportStore(TimeSpan.FromMilliseconds(100));
-        var layoutTree = CreateTestLayoutTree();
+        var ReportLayout = CreateTestLayoutTree();
         var operationId = "test-op-3";
-        await store.SaveAsync(operationId, layoutTree);
+        await store.SaveAsync(operationId, ReportLayout);
 
         // Act
         await Task.Delay(150); // Wait for expiration
@@ -134,9 +134,9 @@ public class MemoryReportStoreTests
     {
         // Arrange
         var store = new MemoryReportStore(TimeSpan.FromSeconds(5));
-        var layoutTree = CreateTestLayoutTree();
+        var ReportLayout = CreateTestLayoutTree();
         var operationId = "test-op-4";
-        await store.SaveAsync(operationId, layoutTree);
+        await store.SaveAsync(operationId, ReportLayout);
 
         // Act
         var result = await store.RetrieveAsync(operationId);

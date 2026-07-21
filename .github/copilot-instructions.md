@@ -38,10 +38,10 @@ All projects have `<Nullable>enable</Nullable>` and `<ImplicitUsings>enable</Imp
 
 ## Architecture Rules
 
-- **Renderers never perform layout.** Renderers receive an immutable `LayoutTree` only.
+- **Renderers never perform layout.** Renderers receive an immutable `ReportLayout` only.
 - **Layout is immutable after Arrange** (ADR-011).
 - **Pagination occurs after Arrange** (ADR-012).
-- **Exporters consume `LayoutTree` only** (ADR-013).
+- **Exporters consume `ReportLayout` only** (ADR-013).
 - **All coordinates are Device Independent Pixels (DIPs)** — 1 DIP = 1/96 inch (ADR-014).
 - **Font metrics are centralized** via `IFontMetrics` (ADR-015).
 - **`ReportDefinition` is immutable** during engine execution.
@@ -52,7 +52,7 @@ All projects have `<Nullable>enable</Nullable>` and `<ImplicitUsings>enable</Imp
 KineticReports.Core.Geometry      — Point, Size, Rect, Thickness
 KineticReports.Core.Styling       — Color, Typography, Border, StyleDefinition, ResolvedStyle
 KineticReports.Core.Typography    — IFontMetrics, FontDescriptor
-KineticReports.Core.Layout        — LayoutElement, all 12 element types, LayoutTree, IMeasureContext
+KineticReports.Core.Layout        — LayoutElement, all 12 element types, ReportLayout, IMeasureContext
 KineticReports.Core.Rendering     — TextRun, PathGeometry, ImageReference, IRenderer
 KineticReports.Core.Definition    — ReportDefinition, ParameterDefinition, DataSourceDefinition
 ```
@@ -74,7 +74,7 @@ KineticReports.Core.Definition    — ReportDefinition, ParameterDefinition, Dat
 ```
 ReportDefinition → Data Resolution → Expression Evaluation
   → Logical Object Tree → Measure Pass → Arrange Pass
-  → Pagination → LayoutTree → Renderer
+  → Pagination → ReportLayout → Renderer
 ```
 
 ## Style Cascade Order (spec §10)

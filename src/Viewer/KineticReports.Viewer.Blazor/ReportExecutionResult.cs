@@ -13,8 +13,8 @@ public sealed class ReportExecutionResult
     /// <summary>Gets the timestamp of execution.</summary>
     public required DateTime ExecutedAt { get; set; }
 
-    /// <summary>Gets the resulting layout tree (null if unsuccessful).</summary>
-    public LayoutTree? LayoutTree { get; set; }
+    /// <summary>Gets the resulting report layout (null if unsuccessful).</summary>
+    public ReportLayout? ReportLayout { get; set; }
 
     /// <summary>Gets the error message if execution failed.</summary>
     public string? ErrorMessage { get; set; }

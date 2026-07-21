@@ -59,7 +59,7 @@ public sealed class ReportRenderService : IReportRenderService
             var context = new MeasureContext(_fontMetrics);
             var layoutOptions = new LayoutOptions();
 
-            var layoutTree = await _engine.RunAsync(
+            var ReportLayout = await _engine.RunAsync(
                 definition,
                 reportParameters,
                 context,
@@ -67,7 +67,7 @@ public sealed class ReportRenderService : IReportRenderService
                 cancellationToken).ConfigureAwait(false);
 
             using var stream = new MemoryStream();
-            await _exporter.ExportAsync(layoutTree, stream, cancellationToken).ConfigureAwait(false);
+            await _exporter.ExportAsync(ReportLayout, stream, cancellationToken).ConfigureAwait(false);
 
             stream.Position = 0;
             using var reader = new StreamReader(stream);

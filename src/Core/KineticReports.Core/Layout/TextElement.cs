@@ -4,7 +4,7 @@ using KineticReports.Core.Geometry;
 using KineticReports.Core.Rendering;
 
 /// <summary>
-/// Represents a text element in the layout tree.
+/// Represents a text element in the report layout.
 /// After the Arrange pass, the element holds the shaped and wrapped <see cref="TextRuns"/>
 /// ready for the renderer to consume.
 /// </summary>

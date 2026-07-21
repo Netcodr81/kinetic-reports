@@ -31,7 +31,7 @@ using SkiaSharp;
 public sealed class SkiaRenderer : IRenderer
 {
     private readonly RenderOptions _options;
-    private readonly LayoutTreeRenderer _treeRenderer = new();
+    private readonly ReportLayoutRenderer _treeRenderer = new();
 
     /// <summary>
     /// Initialises a new <see cref="SkiaRenderer"/> with the given render options.
@@ -45,16 +45,16 @@ public sealed class SkiaRenderer : IRenderer
     }
 
     /// <inheritdoc/>
-    public Task RenderAsync(LayoutTree tree, Stream output, CancellationToken cancellationToken = default)
+    public Task RenderAsync(ReportLayout reportLayout, Stream output, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         return Task.Run(() =>
         {
             if (_options.Format == RenderFormat.Pdf)
-                RenderPdf(tree, output, cancellationToken);
+                RenderPdf(reportLayout, output, cancellationToken);
             else
-                RenderPng(tree, output, cancellationToken);
+                RenderPng(reportLayout, output, cancellationToken);
         }, cancellationToken);
     }
 
@@ -62,12 +62,12 @@ public sealed class SkiaRenderer : IRenderer
     // PDF rendering
     // -------------------------------------------------------------------------
 
-    private void RenderPdf(LayoutTree tree, Stream output, CancellationToken ct)
+    private void RenderPdf(ReportLayout reportLayout, Stream output, CancellationToken ct)
     {
         using var imageCache = new SkiaImageCache();
         using var document = SKDocument.CreatePdf(output);
 
-        foreach (var page in tree.Pages)
+        foreach (var page in reportLayout.Pages)
         {
             ct.ThrowIfCancellationRequested();
 
@@ -84,13 +84,13 @@ public sealed class SkiaRenderer : IRenderer
     // PNG rendering (page 1 only)
     // -------------------------------------------------------------------------
 
-    private void RenderPng(LayoutTree tree, Stream output, CancellationToken ct)
+    private void RenderPng(ReportLayout reportLayout, Stream output, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
 
-        if (tree.PageCount == 0) return;
+        if (reportLayout.PageCount == 0) return;
 
-        var page = tree.Pages[0];
+        var page = reportLayout.Pages[0];
         float scale = _options.Dpi / 96f;
         int pixelWidth = (int)(page.PageWidth * scale);
         int pixelHeight = (int)(page.PageHeight * scale);
