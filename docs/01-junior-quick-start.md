@@ -39,7 +39,7 @@ KineticReports is a deterministic reporting engine for .NET 10.
 - Layout is immutable after Arrange.
 - Pagination happens after Arrange.
 - Exporters consume `ReportLayout` only.
-- Font metrics are centralized via `IFontMetrics`.
+- Text layout is centralized via `ITextLayout`.
 
 ## What to Read Next
 

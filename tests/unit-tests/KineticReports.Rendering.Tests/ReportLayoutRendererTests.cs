@@ -233,10 +233,10 @@ public class ReportLayoutRendererTests
         return shape;
     }
 
-    // Minimal ILayoutSizingContext backed by FakeFontMetrics
+    // Minimal ILayoutSizingContext backed by FakeTextLayout
     private sealed class FakeMeasureContext : KineticReports.Core.Layout.ILayoutSizingContext
     {
-        public KineticReports.Core.Typography.IFontMetrics FontMetrics { get; } = new FakeFontMetrics();
+        public KineticReports.Core.Typography.ITextLayout TextLayout { get; } = new FakeTextLayout();
         public Size? ResolveImageSize(string imageKey) => null;
     }
 }

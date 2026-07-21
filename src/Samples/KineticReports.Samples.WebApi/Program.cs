@@ -20,8 +20,8 @@ using KineticReports.Viewer.Web.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services
-// SkiaFontMetrics is used for text measurement during layout
-builder.Services.AddScoped<SkiaFontMetrics>(sp => new SkiaFontMetrics());
+// SkiaTextLayout is used for text measurement during layout
+builder.Services.AddScoped<SkiaTextLayout>(sp => new SkiaTextLayout());
 
 // HtmlExporter exports report layouts to HTML format
 builder.Services.AddScoped<HtmlExporter>();
@@ -31,7 +31,7 @@ builder.Services.AddScoped<HtmlExporter>();
 builder.Services.AddScoped<IReportExecutor>(sp =>
     new ReportExecutor(
         null!,  // Would need IReportEngine here
-        sp.GetRequiredService<SkiaFontMetrics>()));
+        sp.GetRequiredService<SkiaTextLayout>()));
 
 // In-memory report cache with 1-hour TTL
 builder.Services.AddSingleton<IReportStore>(sp =>

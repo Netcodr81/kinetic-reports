@@ -6,17 +6,17 @@ using KineticReports.Layout.Tests.Fakes;
 public class MeasureContextTests
 {
     [Fact]
-    public void Constructor_SetsFontMetrics()
+    public void Constructor_SetsTextLayout()
     {
-        var metrics = new FakeFontMetrics();
+        var metrics = new FakeTextLayout();
         var sut = new LayoutSizingContext(metrics);
-        sut.FontMetrics.ShouldBeSameAs(metrics);
+        sut.TextLayout.ShouldBeSameAs(metrics);
     }
 
     [Fact]
     public void ResolveImageSize_WithNoResolver_ReturnsNull()
     {
-        var sut = new LayoutSizingContext(new FakeFontMetrics());
+        var sut = new LayoutSizingContext(new FakeTextLayout());
         var result = sut.ResolveImageSize("logo.png");
         result.ShouldBeNull();
     }
@@ -25,7 +25,7 @@ public class MeasureContextTests
     public void ResolveImageSize_WithResolver_InvokesDelegate()
     {
         var expectedSize = new Size(200f, 100f);
-        var sut = new LayoutSizingContext(new FakeFontMetrics(), key => expectedSize);
+        var sut = new LayoutSizingContext(new FakeTextLayout(), key => expectedSize);
         var result = sut.ResolveImageSize("logo.png");
         result.ShouldBe(expectedSize);
     }
@@ -34,7 +34,7 @@ public class MeasureContextTests
     public void ResolveImageSize_WithResolver_PassesKeyToDelegate()
     {
         string? capturedKey = null;
-        var sut = new LayoutSizingContext(new FakeFontMetrics(), key =>
+        var sut = new LayoutSizingContext(new FakeTextLayout(), key =>
         {
             capturedKey = key;
             return null;

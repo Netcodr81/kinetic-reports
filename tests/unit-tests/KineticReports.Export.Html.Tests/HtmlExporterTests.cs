@@ -38,7 +38,7 @@ public class HtmlExporterTests
             Style = DefaultStyle,
             Text = "Hello World"
         };
-        textElem.LayoutSize(new Size(200f, 100f), new LayoutSizingContext(new FakeFontMetrics()));
+        textElem.LayoutSize(new Size(200f, 100f), new LayoutSizingContext(new FakeTextLayout()));
         textElem.Arrange(new Rect(10, 10, 100, 20));
 
         var page = MakePage(1, [textElem]);
@@ -193,7 +193,7 @@ public class HtmlExporterTests
         };
 
         var page = MakePage(1, [tableElem]);
-        tableElem.LayoutSize(new Size(180f, 200f), new LayoutSizingContext(new FakeFontMetrics()));
+        tableElem.LayoutSize(new Size(180f, 200f), new LayoutSizingContext(new FakeTextLayout()));
         tableElem.Arrange(new Rect(0, 0, 180, tableElem.DesiredSize.Height));
 
         var tree = new ReportLayout { Pages = [page] };

@@ -14,7 +14,7 @@ public sealed class LocalReportService : IReportService
 {
     private readonly IReportEngine _engine;
     private readonly IHtmlExporter _exporter;
-    private readonly IFontMetrics _fontMetrics;
+    private readonly ITextLayout _textLayout;
 
     /// <summary>
     /// Initializes the service with required dependencies.
@@ -22,11 +22,11 @@ public sealed class LocalReportService : IReportService
     public LocalReportService(
         IReportEngine engine,
         IHtmlExporter exporter,
-        IFontMetrics fontMetrics)
+        ITextLayout textLayout)
     {
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
         _exporter = exporter ?? throw new ArgumentNullException(nameof(exporter));
-        _fontMetrics = fontMetrics ?? throw new ArgumentNullException(nameof(fontMetrics));
+        _textLayout = textLayout ?? throw new ArgumentNullException(nameof(textLayout));
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ public sealed class LocalReportService : IReportService
 
         try
         {
-            var context = new LayoutSizingContext(_fontMetrics);
+            var context = new LayoutSizingContext(_textLayout);
             var layoutOptions = new LayoutOptions();
             return await _engine.RunAsync(definition, parameters, context, layoutOptions, ct);
         }

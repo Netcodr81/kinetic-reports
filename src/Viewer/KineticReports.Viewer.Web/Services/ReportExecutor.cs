@@ -12,15 +12,15 @@ using KineticReports.Layout;
 public sealed class ReportExecutor : IReportExecutor
 {
     private readonly IReportEngine _engine;
-    private readonly IFontMetrics _fontMetrics;
+    private readonly ITextLayout _textLayout;
 
     /// <summary>
-    /// Initializes the executor with the report engine and font metrics.
+    /// Initializes the executor with the report engine and text layout service.
     /// </summary>
-    public ReportExecutor(IReportEngine engine, IFontMetrics fontMetrics)
+    public ReportExecutor(IReportEngine engine, ITextLayout textLayout)
     {
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
-        _fontMetrics = fontMetrics ?? throw new ArgumentNullException(nameof(fontMetrics));
+        _textLayout = textLayout ?? throw new ArgumentNullException(nameof(textLayout));
     }
 
     /// <summary>
@@ -34,7 +34,7 @@ public sealed class ReportExecutor : IReportExecutor
         if (definition == null) throw new ArgumentNullException(nameof(definition));
         if (parameters == null) throw new ArgumentNullException(nameof(parameters));
 
-        var context = new LayoutSizingContext(_fontMetrics);
+        var context = new LayoutSizingContext(_textLayout);
         var layoutOptions = new LayoutOptions();
 
         return await _engine.RunAsync(definition, parameters, context, layoutOptions, ct);

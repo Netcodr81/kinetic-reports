@@ -90,7 +90,7 @@ internal sealed class SkiaGraphicsContext : IGraphicsContext
 
     public void DrawText(TextRun run)
     {
-        using var font = SkiaFontMetrics.CreateFont(run.Style);
+        using var font = SkiaTextLayout.CreateFont(run.Style);
         font.Size *= _scale;
 
         using var paint = new SKPaint { Color = run.Style.TextColor.ToSkia(), IsAntialias = true };

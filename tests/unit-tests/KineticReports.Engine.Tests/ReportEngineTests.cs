@@ -110,7 +110,7 @@ public class ReportEngineTests
 
     private sealed class MeasureContextFake : KineticReports.Core.Layout.ILayoutSizingContext
     {
-        public KineticReports.Core.Typography.IFontMetrics FontMetrics { get; } = new FakeFontMetrics();
+        public KineticReports.Core.Typography.ITextLayout TextLayout { get; } = new FakeTextLayout();
         public KineticReports.Core.Geometry.Size? ResolveImageSize(string imageKey) => null;
     }
 }

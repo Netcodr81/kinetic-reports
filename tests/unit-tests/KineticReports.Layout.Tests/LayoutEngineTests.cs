@@ -7,7 +7,7 @@ using KineticReports.Layout.Tests.Fakes;
 public class LayoutEngineTests
 {
     private static readonly ResolvedStyle DefaultStyle = new() { FontFamily = "Arial", FontSize = 12f };
-    private readonly LayoutSizingContext _context = new(new FakeFontMetrics());
+    private readonly LayoutSizingContext _context = new(new FakeTextLayout());
     private readonly LayoutOptions _options = new();
     private readonly LayoutEngine _sut = new();
 

@@ -6,9 +6,9 @@ using KineticReports.Core.Styling;
 using KineticReports.Core.Typography;
 
 /// <summary>
-/// Deterministic, dependency-free <see cref="IFontMetrics"/> for Engine tests.
+/// Deterministic, dependency-free <see cref="ITextLayout"/> for Engine tests.
 /// </summary>
-public sealed class FakeFontMetrics : IFontMetrics
+public sealed class FakeTextLayout : ITextLayout
 {
     public Size MeasureText(string text, ResolvedStyle style, float maxWidth)
         => new Size(text.Length * style.FontSize * 0.6f, style.FontSize * 1.2f);

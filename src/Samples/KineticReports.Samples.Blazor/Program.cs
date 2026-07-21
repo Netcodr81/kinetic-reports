@@ -38,7 +38,7 @@ builder.Services.AddScoped<IPluginService, PluginService>();
 builder.Services.AddScoped<IPluginExecutionTraceStore, PluginExecutionTraceStore>();
 
 // Register report execution services
-builder.Services.AddScoped<IFontMetrics, SkiaFontMetrics>();
+builder.Services.AddScoped<ITextLayout, SkiaTextLayout>();
 
 // Register report engine dependencies
 builder.Services.AddScoped<IExpressionEvaluator, LiteralEvaluator>();

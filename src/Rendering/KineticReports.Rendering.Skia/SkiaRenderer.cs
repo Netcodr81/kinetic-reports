@@ -24,7 +24,7 @@ using SkiaSharp;
 ///     </description>
 ///   </item>
 /// </list>
-/// The <see cref="SkiaFontMetrics"/> instance supplied to the layout engine
+/// The <see cref="SkiaTextLayout"/> instance supplied to the layout engine
 /// must be the same instance referenced here to guarantee that text runs fit
 /// exactly in their measured bounds (ADR-015).
 /// </remarks>

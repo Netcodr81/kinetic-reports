@@ -13,7 +13,7 @@ namespace KineticReports.Viewer.Blazor.Tests;
 
 public class LocalReportServiceTests
 {
-    private sealed class MockFontMetrics : IFontMetrics
+    private sealed class MockTextLayout : ITextLayout
     {
         public Size MeasureText(string text, ResolvedStyle style, float maxWidth)
         {
@@ -71,8 +71,8 @@ public class LocalReportServiceTests
         // Arrange
         var engine = new MockReportEngine();
         var exporter = new HtmlExporter();
-        var fontMetrics = new MockFontMetrics();
-        var service = new LocalReportService(engine, exporter, fontMetrics);
+        var TextLayout = new MockTextLayout();
+        var service = new LocalReportService(engine, exporter, TextLayout);
 
         var definition = new ReportDefinition
         {
@@ -96,8 +96,8 @@ public class LocalReportServiceTests
         // Arrange
         var engine = new MockReportEngine();
         var exporter = new HtmlExporter();
-        var fontMetrics = new MockFontMetrics();
-        var service = new LocalReportService(engine, exporter, fontMetrics);
+        var TextLayout = new MockTextLayout();
+        var service = new LocalReportService(engine, exporter, TextLayout);
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(async () =>
@@ -110,8 +110,8 @@ public class LocalReportServiceTests
         // Arrange
         var engine = new MockReportEngine();
         var exporter = new HtmlExporter();
-        var fontMetrics = new MockFontMetrics();
-        var service = new LocalReportService(engine, exporter, fontMetrics);
+        var TextLayout = new MockTextLayout();
+        var service = new LocalReportService(engine, exporter, TextLayout);
 
         var definition = new ReportDefinition
         {
@@ -131,8 +131,8 @@ public class LocalReportServiceTests
         // Arrange
         var engine = new MockReportEngine();
         var exporter = new HtmlExporter();
-        var fontMetrics = new MockFontMetrics();
-        var service = new LocalReportService(engine, exporter, fontMetrics);
+        var TextLayout = new MockTextLayout();
+        var service = new LocalReportService(engine, exporter, TextLayout);
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(async () =>
@@ -145,8 +145,8 @@ public class LocalReportServiceTests
         // Arrange
         var engine = new MockReportEngine();
         var exporter = new HtmlExporter();
-        var fontMetrics = new MockFontMetrics();
-        var service = new LocalReportService(engine, exporter, fontMetrics);
+        var TextLayout = new MockTextLayout();
+        var service = new LocalReportService(engine, exporter, TextLayout);
 
         var definition = new ReportDefinition
         {

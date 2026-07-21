@@ -38,7 +38,7 @@ public abstract class LayoutElement
     /// The size available to this element. Pass <see cref="Size.Infinity"/> for
     /// unconstrained measurement.
     /// </param>
-    /// <param name="context">Font metrics and image resolution services.</param>
+    /// <param name="context">Text layout and image resolution services.</param>
     public abstract void LayoutSize(Size availableSize, ILayoutSizingContext context);
 
     /// <summary>

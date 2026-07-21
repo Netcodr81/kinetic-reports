@@ -17,7 +17,7 @@ internal sealed class PaginationEngine
     /// </summary>
     /// <param name="bands">All bands, including page-header and page-footer bands.</param>
     /// <param name="options">Page dimensions and margin configuration.</param>
-    /// <param name="context">Font metrics and image-resolution services.</param>
+    /// <param name="context">Text layout and image-resolution services.</param>
     /// <returns>An ordered, non-empty list of fully arranged pages.</returns>
     internal IReadOnlyList<PageElement> Paginate(
         IReadOnlyList<BandElement> bands,

@@ -16,4 +16,4 @@
 | Plugin | Optional module loaded by plugin manager |
 | `IDataResolver` | Resolves report data sources to row sets |
 | `IDataProvider` | Provider abstraction for backend query execution |
-| `IFontMetrics` | Shared font measurement + shaping service |
+| `ITextLayout` | Shared text measurement + shaping service |

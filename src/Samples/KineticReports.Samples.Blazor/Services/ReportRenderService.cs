@@ -54,7 +54,7 @@ public sealed record ReportExportResult(
 public sealed class ReportRenderService : IReportRenderService
 {
     private readonly IReportEngine _engine;
-    private readonly IFontMetrics _fontMetrics;
+    private readonly ITextLayout _textLayout;
     private readonly IReportLayoutExporterRegistry _exporterRegistry;
     private readonly IPluginService _pluginService;
     private readonly IPluginExecutionTraceStore _traceStore;
@@ -64,13 +64,13 @@ public sealed class ReportRenderService : IReportRenderService
     /// </summary>
     public ReportRenderService(
         IReportEngine engine,
-        IFontMetrics fontMetrics,
+        ITextLayout textLayout,
         IReportLayoutExporterRegistry exporterRegistry,
         IPluginService pluginService,
         IPluginExecutionTraceStore traceStore)
     {
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
-        _fontMetrics = fontMetrics ?? throw new ArgumentNullException(nameof(fontMetrics));
+        _textLayout = textLayout ?? throw new ArgumentNullException(nameof(textLayout));
         _exporterRegistry = exporterRegistry ?? throw new ArgumentNullException(nameof(exporterRegistry));
         _pluginService = pluginService ?? throw new ArgumentNullException(nameof(pluginService));
         _traceStore = traceStore ?? throw new ArgumentNullException(nameof(traceStore));
@@ -140,7 +140,7 @@ public sealed class ReportRenderService : IReportRenderService
                     $"Requested export format '{finalFormat}' is not available.");
             }
 
-            var context = new LayoutSizingContext(_fontMetrics);
+            var context = new LayoutSizingContext(_textLayout);
             var layoutOptions = new LayoutOptions();
 
             var reportLayout = await _engine.RunAsync(

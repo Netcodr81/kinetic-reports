@@ -14,7 +14,7 @@
 |---|---|---|
 | `SkiaRenderer` | `KineticReports.Rendering.Skia` | Skia-backed renderer |
 | `SkiaGraphicsContext` | `KineticReports.Rendering.Skia` | Skia implementation of draw primitives |
-| `SkiaFontMetrics` | `KineticReports.Rendering.Skia` | `IFontMetrics` implementation |
+| `SkiaTextLayout` | `KineticReports.Rendering.Skia` | `ITextLayout` implementation |
 
 ## Export Contracts
 
@@ -53,4 +53,4 @@
 ## Junior Tips
 
 - Exporters and renderers should **never** re-layout elements.
-- If text rendering is off, verify `IFontMetrics` and CSS unit consistency.
+- If text rendering is off, verify `ITextLayout` and CSS unit consistency.

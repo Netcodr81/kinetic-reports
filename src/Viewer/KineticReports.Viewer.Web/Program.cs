@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Register core report engine components
 builder.Services
-    .AddSingleton<IFontMetrics, SkiaFontMetrics>()
+    .AddSingleton<ITextLayout, SkiaTextLayout>()
     .AddSingleton<IReportEngine, ReportEngine>();
 
 // Register export implementations

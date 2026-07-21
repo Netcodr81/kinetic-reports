@@ -30,7 +30,7 @@ public sealed class TextElement : LayoutElement
     public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
     {
         _layoutSizingContext = context;
-        DesiredSize = context.FontMetrics.MeasureText(Text, Style, availableSize.Width);
+        DesiredSize = context.TextLayout.MeasureText(Text, Style, availableSize.Width);
     }
 
     /// <inheritdoc/>
@@ -40,7 +40,7 @@ public sealed class TextElement : LayoutElement
 
         if (_layoutSizingContext != null && !string.IsNullOrEmpty(Text))
         {
-            SetTextRuns(_layoutSizingContext.FontMetrics.ShapeText(Text, Style, finalRect));
+            SetTextRuns(_layoutSizingContext.TextLayout.ShapeText(Text, Style, finalRect));
             _layoutSizingContext = null;
         }
     }

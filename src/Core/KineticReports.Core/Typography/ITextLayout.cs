@@ -5,11 +5,11 @@ using KineticReports.Core.Rendering;
 using KineticReports.Core.Styling;
 
 /// <summary>
-/// Provides font measurement and text-shaping services used during the layout passes.
+/// Provides text layout services used during the layout passes.
 /// Implementations are backed by a specific font engine (e.g. SkiaSharp, DirectWrite).
-/// Font metrics are centralized (ADR-015) so all renderers share identical measurements.
+/// Text layout is centralized (ADR-015) so all renderers share identical measurements.
 /// </summary>
-public interface IFontMetrics
+public interface ITextLayout
 {
     /// <summary>
     /// Measures the bounding box of <paramref name="text"/> constrained to <paramref name="maxWidth"/> DIPs.

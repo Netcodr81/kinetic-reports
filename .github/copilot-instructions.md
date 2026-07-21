@@ -43,7 +43,7 @@ All projects have `<Nullable>enable</Nullable>` and `<ImplicitUsings>enable</Imp
 - **Pagination occurs after Arrange** (ADR-012).
 - **Exporters consume `ReportLayout` only** (ADR-013).
 - **All coordinates are Device Independent Pixels (DIPs)** — 1 DIP = 1/96 inch (ADR-014).
-- **Font metrics are centralized** via `IFontMetrics` (ADR-015).
+- **Text layout is centralized** via `ITextLayout` (ADR-015).
 - **`ReportDefinition` is immutable** during engine execution.
 
 ## Namespace Conventions
@@ -51,7 +51,7 @@ All projects have `<Nullable>enable</Nullable>` and `<ImplicitUsings>enable</Imp
 ```
 KineticReports.Core.Geometry      — Point, Size, Rect, Thickness
 KineticReports.Core.Styling       — Color, Typography, Border, StyleDefinition, ResolvedStyle
-KineticReports.Core.Typography    — IFontMetrics, FontDescriptor
+KineticReports.Core.Typography    — ITextLayout, FontDescriptor
 KineticReports.Core.Layout        — LayoutElement, all 12 element types, ReportLayout, IMeasureContext
 KineticReports.Core.Rendering     — TextRun, PathGeometry, ImageReference, IRenderer
 KineticReports.Core.Definition    — ReportDefinition, ParameterDefinition, DataSourceDefinition

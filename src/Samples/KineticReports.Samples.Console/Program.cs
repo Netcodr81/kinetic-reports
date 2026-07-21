@@ -29,9 +29,9 @@ Console.WriteLine("==============================\n");
 
 try
 {
-    // Initialize font metrics (required for layout)
+    // Initialize text layout service (required for layout)
     Console.WriteLine("Step 1: Initializing components...");
-    var fontMetrics = new SkiaFontMetrics();
+    var textLayout = new SkiaTextLayout();
 
     // Create a sample report definition
     Console.WriteLine("Step 2: Creating report definition...");

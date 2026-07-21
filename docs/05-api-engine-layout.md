@@ -27,7 +27,7 @@ This page documents how orchestration and layout contracts work.
 | `ILayoutEngine`       | interface | Turns bands into`ReportLayout` | `Layout(...)`                                |
 | `LayoutEngine`        | class     | Default implementation           | delegates to pagination engine                 |
 | `LayoutOptions`       | record    | Page setup and margins           | `PageWidth`, `PageHeight`, `PageMargins` |
-| `LayoutSizingContext` | class     | Default LayoutSizing context     | `FontMetrics`, image-size resolver           |
+| `LayoutSizingContext` | class     | Default LayoutSizing context     | `TextLayout`, image-size resolver           |
 | `ReportLayout`        | record    | Final immutable output           | `Pages`                                      |
 
 ## Pagination Behavior

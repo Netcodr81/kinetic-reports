@@ -14,8 +14,8 @@ This page documents key Core contracts and base abstractions.
 
 | Interface | Purpose | Methods |
 |---|---|---|
-| `ILayoutSizingContext` | Supplies measurement services during layout | `IFontMetrics FontMetrics`, `ResolveImageSize(...)` |
-| `IFontMetrics` | Text measurement + shaping contract | `MeasureText`, `ShapeText`, `GetAscent/Descent/LineGap` |
+| `ILayoutSizingContext` | Supplies measurement services during layout | `ITextLayout TextLayout`, `ResolveImageSize(...)` |
+| `ITextLayout` | Text measurement + shaping contract | `MeasureText`, `ShapeText`, `GetAscent/Descent/LineGap` |
 | `IRenderer` | Renders `ReportLayout` to stream | `RenderAsync(ReportLayout, Stream, RenderOptions, CancellationToken)` |
 | `IDataProvider` | Executes backend query for provider implementations | `ExecuteAsync(QueryRequest, CancellationToken)` |
 
@@ -62,5 +62,5 @@ This page documents key Core contracts and base abstractions.
 
 ## Junior Tips
 
-- If an element appears but text is wrong, check `IFontMetrics` + `ResolvedStyle` first.
+- If an element appears but text is wrong, check `ITextLayout` + `ResolvedStyle` first.
 - If an element is missing, verify it exists in report bands before checking layout/exporter/renderer.

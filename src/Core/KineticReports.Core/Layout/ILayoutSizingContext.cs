@@ -3,13 +3,13 @@ namespace KineticReports.Core.Layout;
 using KineticReports.Core.Typography;
 
 /// <summary>
-/// Provides services required during the LayoutSizing pass, including font metrics
+/// Provides services required during the LayoutSizing pass, including text layout
 /// and image size resolution.
 /// </summary>
 public interface ILayoutSizingContext
 {
-    /// <summary>Gets the font metrics provider used to measure text glyphs.</summary>
-    IFontMetrics FontMetrics { get; }
+    /// <summary>Gets the text layout provider used to measure and shape text.</summary>
+    ITextLayout TextLayout { get; }
 
     /// <summary>
     /// Resolves the intrinsic (natural) pixel size of an image identified by

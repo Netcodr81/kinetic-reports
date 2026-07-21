@@ -6,10 +6,10 @@ using KineticReports.Core.Styling;
 using KineticReports.Core.Typography;
 
 /// <summary>
-/// A deterministic, dependency-free <see cref="IFontMetrics"/> for layout tests.
+/// A deterministic, dependency-free <see cref="ITextLayout"/> for layout tests.
 /// charWidth = fontSize * 0.6, lineHeight = fontSize * 1.2, ascent = fontSize * 0.8
 /// </summary>
-public sealed class FakeFontMetrics : IFontMetrics
+public sealed class FakeTextLayout : ITextLayout
 {
     public Size MeasureText(string text, ResolvedStyle style, float maxWidth)
     {

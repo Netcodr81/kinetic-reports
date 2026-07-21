@@ -56,12 +56,12 @@ public class CellElementTests
 
     private sealed class TestLayoutSizingContext : ILayoutSizingContext
     {
-        public IFontMetrics FontMetrics { get; } = new StubFontMetrics();
+        public ITextLayout TextLayout { get; } = new StubTextLayout();
 
         public Size? ResolveImageSize(string imageKey) => null;
     }
 
-    private sealed class StubFontMetrics : IFontMetrics
+    private sealed class StubTextLayout : ITextLayout
     {
         public Size MeasureText(string text, ResolvedStyle style, float maxWidth) => new(0f, 0f);
 

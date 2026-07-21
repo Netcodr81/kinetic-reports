@@ -10,7 +10,7 @@ This document maps repository projects to responsibilities.
 | `KineticReports.Engine` | Report orchestration pipeline |
 | `KineticReports.Layout` | LayoutSizing/Arrange/Pagination implementation |
 | `KineticReports.Rendering` | Backend-agnostic render traversal |
-| `KineticReports.Rendering.Skia` | Skia implementation for rendering and font metrics |
+| `KineticReports.Rendering.Skia` | Skia implementation for rendering and text layout |
 | `KineticReports.Export.Html` | HTML exporter |
 | `KineticReports.Export.Excel` | Excel exporter |
 | `KineticReports.Data.SqlServer` | SQL provider implementation |
@@ -52,4 +52,4 @@ flowchart TB
 - Renderer/exporter does not perform layout.
 - `ReportLayout` is immutable after arrange/pagination.
 - All dimensions are DIPs.
-- Shared `IFontMetrics` instance should be used across layout and rendering.
+- Shared `ITextLayout` instance should be used across layout and rendering.

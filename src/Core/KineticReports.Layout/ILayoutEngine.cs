@@ -18,7 +18,7 @@ public interface ILayoutEngine
     /// from the body bands used for content pagination.
     /// </param>
     /// <param name="options">Page dimensions and margin configuration.</param>
-    /// <param name="context">Font metrics and image-resolution services.</param>
+    /// <param name="context">Text layout and image-resolution services.</param>
     /// <returns>The fully laid-out, immutable <see cref="ReportLayout"/>.</returns>
     ReportLayout Layout(IReadOnlyList<BandElement> bands, LayoutOptions options, ILayoutSizingContext context);
 }
