@@ -1,5 +1,6 @@
 using KineticReports.Samples.Blazor.Components;
 using KineticReports.Samples.Blazor.Services;
+using KineticReports.Authoring.DependencyInjection;
 using KineticReports.Core.Typography;
 using KineticReports.Engine;
 using KineticReports.Engine.Building;
@@ -28,6 +29,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Register authoring contracts/services for JSON-first and drag-and-drop flows.
+builder.Services.AddKineticReportsAuthoring();
 
 // Register custom services
 builder.Services.AddScoped<IPluginService, PluginService>();

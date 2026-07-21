@@ -25,6 +25,7 @@ Welcome. This documentation explains **how KineticReports works end-to-end** and
 
 11. [11 - Troubleshooting and Debugging](./11-troubleshooting-and-debugging.md)
 12. [12 - Glossary](./12-glossary.md)
+13. [13 - Report Authoring, Data Binding, and JSON Workflow](./13-report-authoring-and-json-workflow.md)
 
 ---
 

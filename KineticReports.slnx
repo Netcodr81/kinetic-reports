@@ -1,5 +1,8 @@
 <Solution>
   <Folder Name="/src/" />
+  <Folder Name="/src/Authoring/">
+    <Project Path="src/Authoring/KineticReports.Authoring/KineticReports.Authoring.csproj" />
+  </Folder>
   <Folder Name="/src/Core/">
     <Project Path="src/Core/KineticReports.Core/KineticReports.Core.csproj" />
     <Project Path="src/Core/KineticReports.Engine/KineticReports.Engine.csproj" />
@@ -21,7 +24,7 @@
     <Project Path="src/Rendering/KineticReports.Rendering/KineticReports.Rendering.csproj" />
   </Folder>
   <Folder Name="/src/Samples/">
-    <Project Path="src/Samples/KineticReports.Samples.Blazor/KineticReports.Samples.Blazor.csproj"  />
+    <Project Path="src/Samples/KineticReports.Samples.Blazor/KineticReports.Samples.Blazor.csproj" />
     <Project Path="src/Samples/KineticReports.Samples.Plugins/KineticReports.Samples.Plugins.csproj" />
     <Project Path="src/Samples/KineticReports.Samples.WebApi/KineticReports.Samples.WebApi.csproj" />
     <Project Path="src/Samples/KineticReports.Samples.Console/KineticReports.Samples.Console.csproj" />

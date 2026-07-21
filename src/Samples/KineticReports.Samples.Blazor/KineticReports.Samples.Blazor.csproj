@@ -8,6 +8,7 @@
   </PropertyGroup>
 
  <ItemGroup>
+   <ProjectReference Include="..\..\Authoring\KineticReports.Authoring\KineticReports.Authoring.csproj" />
     <ProjectReference Include="..\..\Core\KineticReports.Core\KineticReports.Core.csproj" />
     <ProjectReference Include="..\..\Core\KineticReports.Engine\KineticReports.Engine.csproj" />
     <ProjectReference Include="..\..\Rendering\KineticReports.Rendering.Skia\KineticReports.Rendering.Skia.csproj" />
