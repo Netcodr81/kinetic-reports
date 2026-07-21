@@ -30,6 +30,7 @@ builder.Services.AddRazorComponents()
 
 // Register custom services
 builder.Services.AddScoped<IPluginService, PluginService>();
+builder.Services.AddScoped<IPluginExecutionTraceStore, PluginExecutionTraceStore>();
 
 // Register report execution services
 builder.Services.AddScoped<IFontMetrics, SkiaFontMetrics>();
@@ -37,7 +38,8 @@ builder.Services.AddScoped<IFontMetrics, SkiaFontMetrics>();
 // Register report engine dependencies
 builder.Services.AddScoped<IExpressionEvaluator, LiteralEvaluator>();
 builder.Services.AddScoped<IDataResolver, SampleDataResolver>();
-builder.Services.AddScoped<IReportBuilder, SampleReportBuilder>();
+builder.Services.AddScoped<SampleReportBuilder>();
+builder.Services.AddScoped<IReportBuilder, PluginAwareReportBuilder>();
 builder.Services.AddScoped<ILayoutEngine, LayoutEngine>();
 
 // Register report engine and exporters

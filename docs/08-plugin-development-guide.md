@@ -31,6 +31,30 @@ Inside `OnInitializeAsync`, register/resolve services required by your plugin be
 
 Use `IPluginManager.DiscoverAndLoadPluginsAsync(...)` or `LoadPluginAsync(...)`.
 
+## Pipeline Seams for Plugins
+
+Plugins can participate in two deterministic seams:
+
+1. **Before layout:** `IReportBandsPostProcessorPlugin`
+2. **After HTML export:** `IHtmlReportPostProcessorPlugin`
+
+```mermaid
+flowchart LR
+	A[IReportBuilder.Build] --> B[Report Bands]
+	B --> C[IReportBandsPostProcessorPlugin]
+	C --> D[ILayoutEngine.Layout]
+	D --> E[ReportLayout]
+	E --> F[IHtmlExporter.ExportAsync]
+	F --> G[IHtmlReportPostProcessorPlugin]
+	G --> H[Final HTML]
+```
+
+Ordering rules for both seams:
+
+- Plugins run by ascending `Order`.
+- Ties are resolved by `Id` using ordinal string comparison.
+- This guarantees deterministic output for the same input/plugin set.
+
 ## Reference: Plugin API
 
 | Type | Member | Description |
@@ -42,8 +66,16 @@ Use `IPluginManager.DiscoverAndLoadPluginsAsync(...)` or `LoadPluginAsync(...)`.
 | `IPlugin` | `UnloadAsync()` | Called before unload |
 | `PluginBase` | `OnInitializeAsync()` | Override hook for startup logic |
 | `PluginBase` | `OnUnloadAsync()` | Override hook for cleanup logic |
+| `IReportBandsPostProcessorPlugin` | `ProcessBands(...)` | Mutates/extends report bands before layout |
+| `IHtmlReportPostProcessorPlugin` | `ProcessHtmlAsync(...)` | Post-processes exported HTML |
 | `IPluginManager` | `DiscoverAndLoadPluginsAsync(...)` | Bulk load from folder |
 | `IPluginManager` | `UnloadPluginAsync(pluginId)` | Unload one plugin |
+
+## Example: Implement both seams in one plugin
+
+- Implement `IReportBandsPostProcessorPlugin` to add or transform `BandElement`s.
+- Implement `IHtmlReportPostProcessorPlugin` to inject HTML/CSS overlays or policies.
+- Keep transformations idempotent where possible (safe on repeated runs).
 
 ## Example Plugin Ideas
 
