@@ -11,10 +11,17 @@
    <ProjectReference Include="..\..\Authoring\KineticReports.Authoring\KineticReports.Authoring.csproj" />
     <ProjectReference Include="..\..\Core\KineticReports.Core\KineticReports.Core.csproj" />
     <ProjectReference Include="..\..\Core\KineticReports.Engine\KineticReports.Engine.csproj" />
+    <ProjectReference Include="..\..\Data\KineticReports.Data.SqlLite\KineticReports.Data.SqlLite.csproj" />
     <ProjectReference Include="..\..\Rendering\KineticReports.Rendering.Skia\KineticReports.Rendering.Skia.csproj" />
     <ProjectReference Include="..\..\Export\KineticReports.Export.Html\KineticReports.Export.Html.csproj" />
     <ProjectReference Include="..\..\Viewer\KineticReports.Viewer.Blazor\KineticReports.Viewer.Blazor.csproj" />
     <ProjectReference Include="..\..\Plugins\KineticReports.Plugins\KineticReports.Plugins.csproj" />
     <ProjectReference Include="..\KineticReports.Samples.Plugins\KineticReports.Samples.Plugins.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Data\sample-reports.seed.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

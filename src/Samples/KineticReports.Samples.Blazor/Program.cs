@@ -26,6 +26,14 @@ using KineticReports.Rendering.Skia;
 
 var builder = WebApplication.CreateBuilder(args);
 
+SampleSqlLiteDatabaseInitializer.EnsureSeeded(builder.Environment.ContentRootPath);
+
+if (args.Any(arg => string.Equals(arg, "--seed-sqlite", StringComparison.OrdinalIgnoreCase)))
+{
+    Console.WriteLine("SQLite sample database seeded.");
+    return;
+}
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
