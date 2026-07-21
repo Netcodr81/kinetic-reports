@@ -4,13 +4,13 @@ using KineticReports.Core.Geometry;
 
 /// <summary>
 /// Represents a fully resolved, immutable style produced by the style cascade.
-/// The layout engine and renderers consume only <see cref="ResolvedStyle"/> instances.
+/// The layout engine and renderers consume only <see cref="AppliedStyle"/> instances.
 /// </summary>
 /// <remarks>
 /// Style resolution order (spec §10):
-/// Theme → Report Defaults → Named Style → Parent Inheritance → Local Override → ResolvedStyle.
+/// Theme → Report Defaults → Named Style → Parent Inheritance → Local Override → AppliedStyle.
 /// </remarks>
-public sealed record ResolvedStyle
+public sealed record AppliedStyle
 {
     /// <summary>Gets the resolved font family name.</summary>
     public required string FontFamily { get; init; }

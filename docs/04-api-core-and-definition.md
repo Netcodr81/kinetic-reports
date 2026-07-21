@@ -30,7 +30,7 @@ This page documents key Core contracts and base abstractions.
 | Element | Role |
 |---|---|
 | `PageElement` | Represents one final page |
-| `BandElement` | Header/detail/footer grouping and repetition |
+| `ReportBlock` | Header/detail/footer grouping and repetition |
 | `SectionElement` | Structural grouping (header/body/footer areas) |
 | `ContainerElement` | Generic children container |
 | `TextElement` | Text content and text runs |
@@ -46,7 +46,7 @@ This page documents key Core contracts and base abstractions.
 
 | Type | Kind | Purpose |
 |---|---|---|
-| `ResolvedStyle` | sealed record | Fully computed style consumed by layout/render/export |
+| `AppliedStyle` | sealed record | Fully computed style consumed by layout/render/export |
 | `StyleDefinition` | record | Named style inputs before resolution |
 | `Color` | readonly record struct | ARGB color |
 | `Border`/`BorderSide` | record(s) | Border model |
@@ -62,5 +62,5 @@ This page documents key Core contracts and base abstractions.
 
 ## Junior Tips
 
-- If an element appears but text is wrong, check `ITextLayout` + `ResolvedStyle` first.
-- If an element is missing, verify it exists in report bands before checking layout/exporter/renderer.
+- If an element appears but text is wrong, check `ITextLayout` + `AppliedStyle` first.
+- If an element is missing, verify it exists in report blocks before checking layout/exporter/renderer.

@@ -11,7 +11,7 @@ using KineticReports.Plugins;
 public sealed class WatermarkPlugin :
     PluginBase,
     IHtmlReportPostProcessorPlugin,
-    IReportBandsPostProcessorPlugin,
+    IReportBlocksPostProcessorPlugin,
     IExportFormatRegistryPlugin,
     IExportNegotiationPlugin,
     IExportArtifactPostProcessorPlugin
@@ -28,11 +28,11 @@ public sealed class WatermarkPlugin :
     public int Order => 100;
 
     /// <inheritdoc/>
-    public IReadOnlyList<BandElement> ProcessBands(IReadOnlyList<BandElement> bands)
+    public IReadOnlyList<ReportBlock> ProcessBlocks(IReadOnlyList<ReportBlock> blocks)
     {
-        if (bands == null) throw new ArgumentNullException(nameof(bands));
+        if (blocks == null) throw new ArgumentNullException(nameof(blocks));
 
-        var result = bands.ToList();
+        var result = blocks.ToList();
         result.Add(CreateFooterBand());
         return result;
     }
@@ -133,19 +133,18 @@ public sealed class WatermarkPlugin :
         return Task.FromResult(System.Text.Encoding.UTF8.GetBytes(html));
     }
 
-    private static BandElement CreateFooterBand()
+    private static PageFooterBlock CreateFooterBand()
     {
-        var bandStyle = new ResolvedStyle
+        var bandStyle = new AppliedStyle
         {
             FontFamily = "Arial",
             FontSize = 10f,
             TextColor = Color.FromRgb(110, 110, 110)
         };
 
-        return new BandElement
+        return new PageFooterBlock
         {
             Id = "plugin-watermark-footer",
-            Kind = BandKind.PageFooter,
             Style = bandStyle,
             Children =
             [

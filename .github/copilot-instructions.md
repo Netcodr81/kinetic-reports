@@ -50,7 +50,7 @@ All projects have `<Nullable>enable</Nullable>` and `<ImplicitUsings>enable</Imp
 
 ```
 KineticReports.Core.Geometry      — Point, Size, Rect, Thickness
-KineticReports.Core.Styling       — Color, Typography, Border, StyleDefinition, ResolvedStyle
+KineticReports.Core.Styling       — Color, Typography, Border, StyleDefinition, AppliedStyle
 KineticReports.Core.Typography    — ITextLayout, FontDescriptor
 KineticReports.Core.Layout        — LayoutElement, all 12 element types, ReportLayout, IMeasureContext
 KineticReports.Core.Rendering     — TextRun, PathGeometry, ImageReference, IRenderer
@@ -61,7 +61,7 @@ KineticReports.Core.Definition    — ReportDefinition, ParameterDefinition, Dat
 
 - All public APIs **must have XML doc comments** (`<summary>` at minimum; `<param>` and `<returns>` where applicable).
 - Use `readonly record struct` for geometry value types (Point, Size, Rect, Thickness).
-- Use `sealed record` for immutable reference types (ResolvedStyle, TextRun, etc.).
+- Use `sealed record` for immutable reference types (AppliedStyle, TextRun, etc.).
 - Use `sealed class` for concrete layout element types.
 - Use `abstract class` for `LayoutElement` base.
 - Use `required` properties instead of constructor parameters for complex init types.
@@ -79,7 +79,7 @@ ReportDefinition → Data Resolution → Expression Evaluation
 
 ## Style Cascade Order (spec §10)
 
-Theme → Report Defaults → Named Style → Parent Inheritance → Local Override → ResolvedStyle (immutable)
+Theme → Report Defaults → Named Style → Parent Inheritance → Local Override → AppliedStyle (immutable)
 
 ## Testing Strategy
 

@@ -8,7 +8,7 @@ using KineticReports.Plugins;
 
 /// <summary>
 /// Decorates an <see cref="IReportBuilder"/> and applies loaded
-/// <see cref="IReportBandsPostProcessorPlugin"/> instances before layout.
+/// <see cref="IReportBlocksPostProcessorPlugin"/> instances before layout.
 /// </summary>
 internal sealed class PluginAwareReportBuilder : IReportBuilder
 {
@@ -27,24 +27,24 @@ internal sealed class PluginAwareReportBuilder : IReportBuilder
     }
 
     /// <inheritdoc/>
-    public IReadOnlyList<BandElement> Build(DataContext dataContext, IExpressionEvaluator evaluator)
+    public IReadOnlyList<ReportBlock> Build(DataContext dataContext, IExpressionEvaluator evaluator)
     {
-        IReadOnlyList<BandElement> bands = _inner.Build(dataContext, evaluator);
+        IReadOnlyList<ReportBlock> blocks = _inner.Build(dataContext, evaluator);
 
         var postProcessors = _pluginService.LoadedPlugins
-            .OfType<IReportBandsPostProcessorPlugin>()
+            .OfType<IReportBlocksPostProcessorPlugin>()
             .OrderBy(p => p.Order)
             .ThenBy(p => p.Id, StringComparer.Ordinal);
 
-        _traceStore.Add($"[Bands] Initial band count: {bands.Count}");
+        _traceStore.Add($"[Blocks] Initial block count: {blocks.Count}");
 
         foreach (var postProcessor in postProcessors)
         {
-            var before = bands.Count;
-            bands = postProcessor.ProcessBands(bands);
-            _traceStore.Add($"[Bands] {postProcessor.Id} (Order {postProcessor.Order}) transformed {before} -> {bands.Count} band(s)");
+            var before = blocks.Count;
+            blocks = postProcessor.ProcessBlocks(blocks);
+            _traceStore.Add($"[Blocks] {postProcessor.Id} (Order {postProcessor.Order}) transformed {before} -> {blocks.Count} block(s)");
         }
 
-        return bands;
+        return blocks;
     }
 }

@@ -8,24 +8,24 @@ using KineticReports.Engine.Data;
 using KineticReports.Engine.Expressions;
 
 /// <summary>
-/// Builds simple, data-backed report bands for the Blazor sample reports.
+/// Builds simple, data-backed report blocks for the Blazor sample reports.
 /// </summary>
 internal sealed class SampleReportBuilder : IReportBuilder
 {
-    private const float HeaderBandBottomSpacing = 12f;
-    private const float SectionTitleBandTopSpacing = 4f;
-    private const float SectionTitleBandBottomSpacing = 8f;
-    private const float DetailBandBottomSpacing = 6f;
-    private const float TableBandBottomSpacing = 12f;
+    private const float HeaderBlockBottomSpacing = 12f;
+    private const float SectionTitleBlockTopSpacing = 4f;
+    private const float SectionTitleBlockBottomSpacing = 8f;
+    private const float DetailBlockBottomSpacing = 6f;
+    private const float TableBlockBottomSpacing = 12f;
 
-    private static readonly ResolvedStyle HeaderTextStyle = new()
+    private static readonly AppliedStyle HeaderTextStyle = new()
     {
         FontFamily = "Arial",
         FontSize = 20f,
         FontWeight = FontWeight.Bold
     };
 
-    private static readonly ResolvedStyle SectionTitleStyle = new()
+    private static readonly AppliedStyle SectionTitleStyle = new()
     {
         FontFamily = "Arial",
         FontSize = 14f,
@@ -33,14 +33,14 @@ internal sealed class SampleReportBuilder : IReportBuilder
         TextColor = Color.FromRgb(36, 70, 140)
     };
 
-    private static readonly ResolvedStyle DetailTextStyle = new()
+    private static readonly AppliedStyle DetailTextStyle = new()
     {
         FontFamily = "Consolas",
         FontSize = 11f,
         LineHeight = 1.45f
     };
 
-    private static readonly ResolvedStyle GroupHeaderTextStyle = new()
+    private static readonly AppliedStyle GroupHeaderTextStyle = new()
     {
         FontFamily = "Arial",
         FontSize = 12f,
@@ -48,7 +48,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
         TextColor = Color.FromRgb(31, 58, 111)
     };
 
-    private static readonly ResolvedStyle EmphasisTextStyle = new()
+    private static readonly AppliedStyle EmphasisTextStyle = new()
     {
         FontFamily = "Arial",
         FontSize = 12f,
@@ -56,14 +56,14 @@ internal sealed class SampleReportBuilder : IReportBuilder
         TextColor = Color.FromRgb(44, 94, 69)
     };
 
-    private static readonly ResolvedStyle SubtleTextStyle = new()
+    private static readonly AppliedStyle SubtleTextStyle = new()
     {
         FontFamily = "Arial",
         FontSize = 11f,
         TextColor = Color.FromRgb(80, 88, 102)
     };
 
-    private static readonly ResolvedStyle TableHeaderCellStyle = new()
+    private static readonly AppliedStyle TableHeaderCellStyle = new()
     {
         FontFamily = "Arial",
         FontSize = 11f,
@@ -74,7 +74,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
         Border = Border.Uniform(1f, Color.FromRgb(199, 210, 230))
     };
 
-    private static readonly ResolvedStyle TableCellStyle = new()
+    private static readonly AppliedStyle TableCellStyle = new()
     {
         FontFamily = "Consolas",
         FontSize = 11f,
@@ -84,13 +84,13 @@ internal sealed class SampleReportBuilder : IReportBuilder
     };
 
     /// <inheritdoc/>
-    public IReadOnlyList<BandElement> Build(DataContext dataContext, IExpressionEvaluator evaluator)
+    public IReadOnlyList<ReportBlock> Build(DataContext dataContext, IExpressionEvaluator evaluator)
     {
-        var bands = new List<BandElement>
+        var blocks = new List<ReportBlock>
         {
-            CreateSingleTextBand(
+            CreateSingleTextBlock(
                 "sample-header",
-                BandKind.PageHeader,
+                BlockType.PageHeader,
                 HeaderTextStyle,
                 "KineticReports Sample Data Preview")
         };
@@ -100,17 +100,17 @@ internal sealed class SampleReportBuilder : IReportBuilder
             var sourceId = dataSource.Key;
             var rows = dataSource.Value;
 
-            bands.Add(CreateSingleTextBand(
+            blocks.Add(CreateSingleTextBlock(
                 $"source-{sourceId}-title",
-                BandKind.ReportHeader,
+                BlockType.ReportHeader,
                 SectionTitleStyle,
                 $"Data Source: {sourceId} ({rows.Count} row(s))"));
 
             if (rows.Count == 0)
             {
-                bands.Add(CreateSingleTextBand(
+                blocks.Add(CreateSingleTextBlock(
                     $"source-{sourceId}-empty",
-                    BandKind.Detail,
+                    BlockType.Detail,
                     DetailTextStyle,
                     "No rows returned."));
 
@@ -119,86 +119,99 @@ internal sealed class SampleReportBuilder : IReportBuilder
 
             if (string.Equals(sourceId, "sales-orders", StringComparison.OrdinalIgnoreCase))
             {
-                bands.Add(CreateSalesOrdersTableBand(sourceId, rows));
+                blocks.Add(CreateSalesOrdersTableBlock(sourceId, rows));
                 continue;
             }
 
             if (string.Equals(sourceId, "quote-daily", StringComparison.OrdinalIgnoreCase))
             {
-                bands.AddRange(CreateQuoteDailyBands(sourceId, rows));
+                blocks.AddRange(CreateQuoteDailyBands(sourceId, rows));
                 continue;
             }
 
             if (string.Equals(sourceId, "customer-activity", StringComparison.OrdinalIgnoreCase))
             {
-                bands.AddRange(CreateCustomerActivityGroupedBands(sourceId, rows));
+                blocks.AddRange(CreateCustomerActivityGroupedBlocks(sourceId, rows));
                 continue;
             }
 
             if (string.Equals(sourceId, "kpi-summary", StringComparison.OrdinalIgnoreCase))
             {
-                bands.AddRange(CreateKpiSummaryBands(sourceId, rows));
+                blocks.AddRange(CreateKpiSummaryBlocks(sourceId, rows));
                 continue;
             }
 
             if (string.Equals(sourceId, "regional-performance", StringComparison.OrdinalIgnoreCase))
             {
-                bands.Add(CreateRegionalPerformanceTableBand(sourceId, rows));
+                blocks.Add(CreateRegionalPerformanceTableBlock(sourceId, rows));
                 continue;
             }
 
             if (string.Equals(sourceId, "style-showcase", StringComparison.OrdinalIgnoreCase))
             {
-                bands.AddRange(CreateStyleShowcaseBands(sourceId, rows));
+                blocks.AddRange(CreateStyleShowcaseBlocks(sourceId, rows));
                 continue;
             }
 
             if (string.Equals(sourceId, "expression-demo", StringComparison.OrdinalIgnoreCase))
             {
-                bands.Add(CreateExpressionDemoTableBand(sourceId, rows, evaluator));
+                blocks.Add(CreateExpressionDemoTableBlock(sourceId, rows, evaluator));
 
                 continue;
             }
 
-            bands.Add(CreateGenericTableBand(sourceId, rows));
+            blocks.Add(CreateGenericTableBlock(sourceId, rows));
         }
 
         if (dataContext.DataSources.Count == 0)
         {
-            bands.Add(CreateSingleTextBand(
+            blocks.Add(CreateSingleTextBlock(
                 "sample-empty",
-                BandKind.Detail,
+                BlockType.Detail,
                 DetailTextStyle,
                 "No data sources were resolved for this report."));
         }
 
-        return bands;
+        return blocks;
     }
 
-    private static BandElement CreateSingleTextBand(
+    private static ReportBlock CreateSingleTextBlock(
         string id,
-        BandKind kind,
-        ResolvedStyle textStyle,
+        BlockType blockType,
+        AppliedStyle textStyle,
         string text)
     {
-        return new BandElement
+        return CreateBlock(blockType, id, CreateBlockStyle(blockType),
+        [
+            new TextElement
+            {
+                Id = $"{id}-text",
+                Style = textStyle,
+                Text = text
+            }
+        ]);
+    }
+
+    private static ReportBlock CreateBlock(
+        BlockType blockType,
+        string id,
+        AppliedStyle style,
+        IReadOnlyList<LayoutElement> children)
+    {
+        return blockType switch
         {
-            Id = id,
-            Kind = kind,
-            Style = CreateBandStyle(kind),
-            Children =
-            [
-                new TextElement
-                {
-                    Id = $"{id}-text",
-                    Style = textStyle,
-                    Text = text
-                }
-            ]
+            BlockType.PageHeader => new PageHeaderBlock { Id = id, Style = style, Children = children },
+            BlockType.ReportHeader => new HeaderBlock { Id = id, Style = style, Children = children },
+            BlockType.GroupHeader => new GroupHeaderBlock { Id = id, Style = style, Children = children },
+            BlockType.Detail => new DetailBlock { Id = id, Style = style, Children = children },
+            BlockType.GroupFooter => new GroupFooterBlock { Id = id, Style = style, Children = children },
+            BlockType.ReportFooter => new FooterBlock { Id = id, Style = style, Children = children },
+            BlockType.PageFooter => new PageFooterBlock { Id = id, Style = style, Children = children },
+            _ => new DetailBlock { Id = id, Style = style, Children = children }
         };
     }
 
-    private static IReadOnlyList<BandElement> CreateQuoteDailyBands(
+    private static IReadOnlyList<ReportBlock> CreateQuoteDailyBands(
         string sourceId,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
     {
@@ -206,29 +219,29 @@ internal sealed class SampleReportBuilder : IReportBuilder
 
         return
         [
-            CreateSingleTextBand(
+            CreateSingleTextBlock(
                 $"source-{sourceId}-heading",
-                BandKind.Detail,
+                BlockType.Detail,
                 HeaderTextStyle,
                 GetRowValue(row, "Heading")),
-            CreateSingleTextBand(
+            CreateSingleTextBlock(
                 $"source-{sourceId}-quote",
-                BandKind.Detail,
+                BlockType.Detail,
                 EmphasisTextStyle,
                 GetRowValue(row, "Quote")),
-            CreateSingleTextBand(
+            CreateSingleTextBlock(
                 $"source-{sourceId}-meta",
-                BandKind.Detail,
+                BlockType.Detail,
                 SubtleTextStyle,
                 $"Generated: {GetRowValue(row, "GeneratedOn")} | Author: {GetRowValue(row, "Author")}")
         ];
     }
 
-    private static IReadOnlyList<BandElement> CreateCustomerActivityGroupedBands(
+    private static IReadOnlyList<ReportBlock> CreateCustomerActivityGroupedBlocks(
         string sourceId,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
     {
-        var bands = new List<BandElement>();
+        var bands = new List<ReportBlock>();
 
         var groupedRows = rows
             .GroupBy(row => GetRowValue(row, "Tier"), StringComparer.OrdinalIgnoreCase)
@@ -236,9 +249,9 @@ internal sealed class SampleReportBuilder : IReportBuilder
 
         foreach (var group in groupedRows)
         {
-            bands.Add(CreateSingleTextBand(
+            bands.Add(CreateSingleTextBlock(
                 $"source-{sourceId}-group-{SanitizeForId(group.Key)}",
-                BandKind.GroupHeader,
+                BlockType.GroupHeader,
                 GroupHeaderTextStyle,
                 $"Tier: {group.Key} ({group.Count()} customer(s))"));
 
@@ -255,9 +268,9 @@ internal sealed class SampleReportBuilder : IReportBuilder
                     $"Balance: {GetRowValue(row, "Balance")} | " +
                     $"Last Invoice: {GetRowValue(row, "LastInvoice")}";
 
-                bands.Add(CreateSingleTextBand(
+                bands.Add(CreateSingleTextBlock(
                     $"source-{sourceId}-{SanitizeForId(group.Key)}-row-{index + 1}",
-                    BandKind.Detail,
+                    BlockType.Detail,
                     DetailTextStyle,
                     detail));
             }
@@ -266,21 +279,21 @@ internal sealed class SampleReportBuilder : IReportBuilder
         return bands;
     }
 
-    private static IReadOnlyList<BandElement> CreateKpiSummaryBands(
+    private static IReadOnlyList<ReportBlock> CreateKpiSummaryBlocks(
         string sourceId,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
     {
         return rows
             .Select((row, index) =>
-                CreateSingleTextBand(
+                CreateSingleTextBlock(
                     $"source-{sourceId}-kpi-{index + 1}",
-                    BandKind.Detail,
+                    BlockType.Detail,
                     EmphasisTextStyle,
                     $"{GetRowValue(row, "Metric")}: {GetRowValue(row, "Value")} ({GetRowValue(row, "Trend")})"))
             .ToList();
     }
 
-    private static BandElement CreateRegionalPerformanceTableBand(
+    private static DetailBlock CreateRegionalPerformanceTableBlock(
         string sourceId,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
     {
@@ -295,8 +308,8 @@ internal sealed class SampleReportBuilder : IReportBuilder
         var headerRow = new RowElement
         {
             Id = $"source-{sourceId}-header-row",
-            Kind = RowKind.Header,
-            Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 11f },
+            RowType = RowType.Header,
+            Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
             Cells =
             [
                 CreateTableCell($"source-{sourceId}-header-region", 0, "Region", TableHeaderCellStyle),
@@ -311,8 +324,8 @@ internal sealed class SampleReportBuilder : IReportBuilder
                 new RowElement
                 {
                     Id = $"source-{sourceId}-row-{rowIndex + 1}",
-                    Kind = RowKind.Data,
-                    Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 11f },
+                    RowType = RowType.Data,
+                    Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
                     Cells =
                     [
                         CreateTableCell($"source-{sourceId}-row-{rowIndex + 1}-region", 0, GetRowValue(row, "Region"), TableCellStyle),
@@ -326,22 +339,21 @@ internal sealed class SampleReportBuilder : IReportBuilder
         var tableRows = new List<RowElement> { headerRow };
         tableRows.AddRange(dataRows);
 
-        return new BandElement
+        return new DetailBlock
         {
             Id = $"source-{sourceId}-table",
-            Kind = BandKind.Detail,
-            Style = new ResolvedStyle
+            Style = new AppliedStyle
             {
                 FontFamily = "Arial",
                 FontSize = 12f,
-                Padding = new Core.Geometry.Thickness(0f, 0f, 0f, TableBandBottomSpacing)
+                Padding = new Core.Geometry.Thickness(0f, 0f, 0f, TableBlockBottomSpacing)
             },
             Children =
             [
                 new TableElement
                 {
                     Id = $"source-{sourceId}-table-element",
-                    Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 11f },
+                    Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
                     Columns = columns,
                     Rows = tableRows,
                     RepeatHeaders = true
@@ -350,11 +362,11 @@ internal sealed class SampleReportBuilder : IReportBuilder
         };
     }
 
-    private static IReadOnlyList<BandElement> CreateStyleShowcaseBands(
+    private static IReadOnlyList<ReportBlock> CreateStyleShowcaseBlocks(
         string sourceId,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
     {
-        var bands = new List<BandElement>();
+        var bands = new List<ReportBlock>();
 
         for (var index = 0; index < rows.Count; index++)
         {
@@ -362,15 +374,15 @@ internal sealed class SampleReportBuilder : IReportBuilder
             var label = GetRowValue(row, "Label");
             var preview = GetRowValue(row, "Preview");
 
-            bands.Add(CreateSingleTextBand(
+            bands.Add(CreateSingleTextBlock(
                 $"source-{sourceId}-label-{index + 1}",
-                BandKind.Detail,
+                BlockType.Detail,
                 ResolveShowcaseLabelStyle(label),
                 label));
 
-            bands.Add(CreateSingleTextBand(
+            bands.Add(CreateSingleTextBlock(
                 $"source-{sourceId}-preview-{index + 1}",
-                BandKind.Detail,
+                BlockType.Detail,
                 ResolveShowcasePreviewStyle(label),
                 preview));
         }
@@ -378,7 +390,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
         return bands;
     }
 
-    private static BandElement CreateSalesOrdersTableBand(
+    private static DetailBlock CreateSalesOrdersTableBlock(
         string sourceId,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
     {
@@ -394,8 +406,8 @@ internal sealed class SampleReportBuilder : IReportBuilder
         var headerRow = new RowElement
         {
             Id = $"source-{sourceId}-header-row",
-            Kind = RowKind.Header,
-            Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 11f },
+            RowType = RowType.Header,
+            Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
             Cells =
             [
                 CreateTableCell($"source-{sourceId}-header-order-id", 0, "OrderId", TableHeaderCellStyle),
@@ -411,8 +423,8 @@ internal sealed class SampleReportBuilder : IReportBuilder
                 new RowElement
                 {
                     Id = $"source-{sourceId}-row-{rowIndex + 1}",
-                    Kind = RowKind.Data,
-                    Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 11f },
+                    RowType = RowType.Data,
+                    Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
                     Cells =
                     [
                         CreateTableCell($"source-{sourceId}-row-{rowIndex + 1}-order-id", 0, GetRowValue(row, "OrderId"), TableCellStyle),
@@ -427,22 +439,21 @@ internal sealed class SampleReportBuilder : IReportBuilder
         var tableRows = new List<RowElement> { headerRow };
         tableRows.AddRange(dataRows);
 
-        return new BandElement
+        return new DetailBlock
         {
             Id = $"source-{sourceId}-table",
-            Kind = BandKind.Detail,
-            Style = new ResolvedStyle
+            Style = new AppliedStyle
             {
                 FontFamily = "Arial",
                 FontSize = 12f,
-                Padding = new Core.Geometry.Thickness(0f, 0f, 0f, TableBandBottomSpacing)
+                Padding = new Core.Geometry.Thickness(0f, 0f, 0f, TableBlockBottomSpacing)
             },
             Children =
             [
                 new TableElement
                 {
                     Id = $"source-{sourceId}-table-element",
-                    Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 11f },
+                    Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
                     Columns = columns,
                     Rows = tableRows,
                     RepeatHeaders = true
@@ -451,7 +462,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
         };
     }
 
-    private static BandElement CreateExpressionDemoTableBand(
+    private static DetailBlock CreateExpressionDemoTableBlock(
         string sourceId,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows,
         IExpressionEvaluator evaluator)
@@ -484,10 +495,10 @@ internal sealed class SampleReportBuilder : IReportBuilder
             });
         }
 
-        return CreateGenericTableBand(sourceId, expressionRows);
+        return CreateGenericTableBlock(sourceId, expressionRows);
     }
 
-    private static BandElement CreateGenericTableBand(
+    private static DetailBlock CreateGenericTableBlock(
         string sourceId,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
     {
@@ -500,8 +511,8 @@ internal sealed class SampleReportBuilder : IReportBuilder
         var headerRow = new RowElement
         {
             Id = $"source-{sourceId}-header-row",
-            Kind = RowKind.Header,
-            Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 11f },
+            RowType = RowType.Header,
+            Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
             Cells = columnNames
                 .Select((columnName, columnIndex) =>
                     CreateTableCell(
@@ -517,8 +528,8 @@ internal sealed class SampleReportBuilder : IReportBuilder
                 new RowElement
                 {
                     Id = $"source-{sourceId}-row-{rowIndex + 1}",
-                    Kind = RowKind.Data,
-                    Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 11f },
+                    RowType = RowType.Data,
+                    Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
                     Cells = columnNames
                         .Select((columnName, columnIndex) =>
                             CreateTableCell(
@@ -533,22 +544,21 @@ internal sealed class SampleReportBuilder : IReportBuilder
         var tableRows = new List<RowElement> { headerRow };
         tableRows.AddRange(dataRows);
 
-        return new BandElement
+        return new DetailBlock
         {
             Id = $"source-{sourceId}-table",
-            Kind = BandKind.Detail,
-            Style = new ResolvedStyle
+            Style = new AppliedStyle
             {
                 FontFamily = "Arial",
                 FontSize = 12f,
-                Padding = new Core.Geometry.Thickness(0f, 0f, 0f, TableBandBottomSpacing)
+                Padding = new Core.Geometry.Thickness(0f, 0f, 0f, TableBlockBottomSpacing)
             },
             Children =
             [
                 new TableElement
                 {
                     Id = $"source-{sourceId}-table-element",
-                    Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 11f },
+                    Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
                     Columns = columns,
                     Rows = tableRows,
                     RepeatHeaders = true
@@ -557,7 +567,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
         };
     }
 
-    private static CellElement CreateTableCell(string id, int columnIndex, string text, ResolvedStyle style)
+    private static CellElement CreateTableCell(string id, int columnIndex, string text, AppliedStyle style)
     {
         var textStyle = style with
         {
@@ -602,11 +612,11 @@ internal sealed class SampleReportBuilder : IReportBuilder
         return string.Join(string.Empty, chars).Trim('-');
     }
 
-    private static ResolvedStyle ResolveShowcaseLabelStyle(string label)
+    private static AppliedStyle ResolveShowcaseLabelStyle(string label)
     {
         if (string.Equals(label, "Primary Heading", StringComparison.OrdinalIgnoreCase))
         {
-            return new ResolvedStyle
+            return new AppliedStyle
             {
                 FontFamily = "Arial",
                 FontSize = 18f,
@@ -617,7 +627,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
 
         if (string.Equals(label, "Accent Note", StringComparison.OrdinalIgnoreCase))
         {
-            return new ResolvedStyle
+            return new AppliedStyle
             {
                 FontFamily = "Arial",
                 FontSize = 13f,
@@ -629,11 +639,11 @@ internal sealed class SampleReportBuilder : IReportBuilder
         return GroupHeaderTextStyle;
     }
 
-    private static ResolvedStyle ResolveShowcasePreviewStyle(string label)
+    private static AppliedStyle ResolveShowcasePreviewStyle(string label)
     {
         if (string.Equals(label, "Primary Heading", StringComparison.OrdinalIgnoreCase))
         {
-            return new ResolvedStyle
+            return new AppliedStyle
             {
                 FontFamily = "Georgia",
                 FontSize = 12f,
@@ -644,7 +654,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
 
         if (string.Equals(label, "Accent Note", StringComparison.OrdinalIgnoreCase))
         {
-            return new ResolvedStyle
+            return new AppliedStyle
             {
                 FontFamily = "Arial",
                 FontSize = 12f,
@@ -655,27 +665,27 @@ internal sealed class SampleReportBuilder : IReportBuilder
         return SubtleTextStyle;
     }
 
-    private static ResolvedStyle CreateBandStyle(BandKind kind)
+    private static AppliedStyle CreateBlockStyle(BlockType kind)
     {
-        var baseStyle = new ResolvedStyle { FontFamily = "Arial", FontSize = 12f };
+        var baseStyle = new AppliedStyle { FontFamily = "Arial", FontSize = 12f };
 
         return kind switch
         {
-            BandKind.PageHeader => baseStyle with
+            BlockType.PageHeader => baseStyle with
             {
-                Padding = new Core.Geometry.Thickness(0f, 0f, 0f, HeaderBandBottomSpacing)
+                Padding = new Core.Geometry.Thickness(0f, 0f, 0f, HeaderBlockBottomSpacing)
             },
-            BandKind.ReportHeader => baseStyle with
+            BlockType.ReportHeader => baseStyle with
             {
-                Padding = new Core.Geometry.Thickness(0f, SectionTitleBandTopSpacing, 0f, SectionTitleBandBottomSpacing)
+                Padding = new Core.Geometry.Thickness(0f, SectionTitleBlockTopSpacing, 0f, SectionTitleBlockBottomSpacing)
             },
-            BandKind.GroupHeader => baseStyle with
+            BlockType.GroupHeader => baseStyle with
             {
                 Padding = new Core.Geometry.Thickness(0f, 8f, 0f, 4f)
             },
-            BandKind.Detail => baseStyle with
+            BlockType.Detail => baseStyle with
             {
-                Padding = new Core.Geometry.Thickness(0f, 0f, 0f, DetailBandBottomSpacing)
+                Padding = new Core.Geometry.Thickness(0f, 0f, 0f, DetailBlockBottomSpacing)
             },
             _ => baseStyle
         };

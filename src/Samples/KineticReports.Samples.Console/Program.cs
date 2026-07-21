@@ -53,7 +53,7 @@ try
         PageHeight = 600,
         PageNumber = 1,
         Children = [],
-        Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 12f }
+        Style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f }
     };
     var ReportLayout = new ReportLayout { Pages = [page] };
 

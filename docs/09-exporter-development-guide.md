@@ -51,7 +51,7 @@ Example:
 | Geometry | Use `Bounds` from report layout | Recalculate bounds |
 | Text | Use text runs/style where available | Reflow paragraphs independently |
 | Pagination | Iterate pages in order | Repaginate content |
-| Styling | Map `ResolvedStyle` safely | Invent unrelated style cascade |
+| Styling | Map `AppliedStyle` safely | Invent unrelated style cascade |
 
 ## Suggested Exporter API Table
 
@@ -59,7 +59,7 @@ Example:
 |---|---|
 | `IYourExporter` | Output format contract |
 | `YourExporter` | Concrete implementation |
-| `YourStyleMapper` | Map `ResolvedStyle` to format-specific style |
+| `YourStyleMapper` | Map `AppliedStyle` to format-specific style |
 | `YourElementWriter` | Per-element serialization helper |
 
 ## Validation Checklist

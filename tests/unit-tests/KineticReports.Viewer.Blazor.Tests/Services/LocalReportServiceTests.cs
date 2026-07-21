@@ -15,12 +15,12 @@ public class LocalReportServiceTests
 {
     private sealed class MockTextLayout : ITextLayout
     {
-        public Size MeasureText(string text, ResolvedStyle style, float maxWidth)
+        public Size MeasureText(string text, AppliedStyle style, float maxWidth)
         {
             return new Size(text.Length * 8f, 12f);
         }
 
-        public IReadOnlyList<TextRun> ShapeText(string text, ResolvedStyle style, Rect bounds)
+        public IReadOnlyList<TextRun> ShapeText(string text, AppliedStyle style, Rect bounds)
         {
             return
             [
@@ -58,7 +58,7 @@ public class LocalReportServiceTests
                 Header = null,
                 Footer = null,
                 Children = [],
-                Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 12f }
+                Style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f }
             };
 
             return Task.FromResult(new ReportLayout { Pages = [page] });

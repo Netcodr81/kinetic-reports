@@ -4,14 +4,14 @@ using System.Text;
 using KineticReports.Core.Styling;
 
 /// <summary>
-/// Converts <see cref="ResolvedStyle"/> to inline CSS string.
+/// Converts <see cref="AppliedStyle"/> to inline CSS string.
 /// </summary>
 public sealed class CssBuilder
 {
     /// <summary>
     /// Generates inline CSS from a resolved style.
     /// </summary>
-    public static string BuildStyle(ResolvedStyle style)
+    public static string BuildStyle(AppliedStyle style)
     {
         var css = new StringBuilder();
 

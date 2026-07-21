@@ -8,7 +8,7 @@ public class MemoryReportStoreTests
 {
     private static ReportLayout CreateTestLayoutTree()
     {
-        var defaultStyle = new ResolvedStyle
+        var defaultStyle = new AppliedStyle
         {
             FontFamily = "Arial",
             FontSize = 12f

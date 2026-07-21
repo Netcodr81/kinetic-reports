@@ -4,7 +4,7 @@
 |---|---|
 | `ReportDefinition` | Source definition of a report before execution |
 | `DataContext` | Resolved data rows for all data sources in one run |
-| Report Bands | Ordered report content (`BandElement` list) before physical layout |
+| Report Blocks | Ordered report content (`ReportBlock` list) before physical layout |
 | LayoutSizing | Stage that computes desired sizes |
 | Arrange | Stage that assigns final bounds |
 | Pagination | Stage that splits arranged content across pages |
@@ -12,7 +12,7 @@
 | DIP | Device Independent Pixel, `1/96` inch |
 | Exporter | Converts `ReportLayout` to a format (HTML/XLSX/etc.) |
 | Renderer | Draws `ReportLayout` using graphics context (PDF/PNG/etc.) |
-| `ResolvedStyle` | Final style object after cascade/inheritance/overrides |
+| `AppliedStyle` | Final style object after cascade/inheritance/overrides |
 | Plugin | Optional module loaded by plugin manager |
 | `IDataResolver` | Resolves report data sources to row sets |
 | `IDataProvider` | Provider abstraction for backend query execution |

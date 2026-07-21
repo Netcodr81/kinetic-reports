@@ -86,8 +86,8 @@ public sealed class ReportLayoutRenderer
                     RenderElement(child, context);
                 break;
 
-            case BandElement band:
-                foreach (var child in band.Children)
+            case ReportBlock block:
+                foreach (var child in block.Children)
                     RenderElement(child, context);
                 break;
 

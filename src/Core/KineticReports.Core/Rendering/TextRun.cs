@@ -23,7 +23,7 @@ public sealed record TextRun
     public required Rect Bounds { get; init; }
 
     /// <summary>Gets the fully resolved style used to draw this run.</summary>
-    public required ResolvedStyle Style { get; init; }
+    public required AppliedStyle Style { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether this run is rendered right-to-left

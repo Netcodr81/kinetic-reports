@@ -24,7 +24,7 @@ flowchart LR
     C --> D[Deserialize to ReportDefinition]
     D --> E[RunAsync(definition, parameters, context)]
     E --> F[DataResolver resolves rows per DataSource]
-    F --> G[ReportBuilder creates bands/elements]
+    F --> G[ReportBuilder creates blocks/elements]
     G --> H[Layout engine computes ReportLayout]
     H --> I[Exporter renders HTML/PDF/etc]
 ```
@@ -103,7 +103,7 @@ For each `DataSourceDefinition` in the report:
 1. `ReportEngine.RunAsync(...)` calls `IDataResolver.ResolveAsync(dataSource, parameters, ct)`.
 2. Resolver returns rows (`IReadOnlyList<IReadOnlyDictionary<string, object?>>`).
 3. Rows are stored in `DataContext.DataSources[dataSource.Id]`.
-4. `IReportBuilder` consumes those rows and emits layout elements/bands.
+4. `IReportBuilder` consumes those rows and emits layout elements/blocks.
 
 ```mermaid
 sequenceDiagram
@@ -118,7 +118,7 @@ sequenceDiagram
       Resolver-->>Engine: rows for dataSource.Id
     end
     Engine->>Builder: Build(DataContext, evaluator)
-    Builder-->>Engine: Bands/Elements
+    Builder-->>Engine: Blocks/Elements
 ```
 
 ### Practical Rule

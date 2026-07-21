@@ -13,7 +13,7 @@ public abstract class LayoutElement
     public required string Id { get; init; }
 
     /// <summary>Gets the fully resolved, immutable style for this element.</summary>
-    public required ResolvedStyle Style { get; init; }
+    public required AppliedStyle Style { get; init; }
 
     /// <summary>
     /// Gets the final axis-aligned bounds assigned during the Arrange pass,

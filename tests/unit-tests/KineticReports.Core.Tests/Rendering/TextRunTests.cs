@@ -10,7 +10,7 @@ public class TextRunTests
     [Fact]
     public void TextRun_WithRequiredProperties_IsCreated()
     {
-        var style = new ResolvedStyle { FontFamily = "Arial", FontSize = 12f };
+        var style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f };
         var run = new TextRun
         {
             Text = "Hello",
@@ -27,7 +27,7 @@ public class TextRunTests
     [Fact]
     public void TextRun_IsRightToLeft_DefaultsFalse()
     {
-        var style = new ResolvedStyle { FontFamily = "Arial", FontSize = 12f };
+        var style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f };
         var run = new TextRun
         {
             Text = "Test",
@@ -41,7 +41,7 @@ public class TextRunTests
     [Fact]
     public void TextRun_WithRightToLeft_IsSet()
     {
-        var style = new ResolvedStyle { FontFamily = "Arial", FontSize = 12f };
+        var style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f };
         var run = new TextRun
         {
             Text = "مرحبا",

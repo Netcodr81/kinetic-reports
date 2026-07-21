@@ -10,10 +10,10 @@ using KineticReports.Core.Typography;
 /// </summary>
 public sealed class FakeTextLayout : ITextLayout
 {
-    public Size MeasureText(string text, ResolvedStyle style, float maxWidth)
+    public Size MeasureText(string text, AppliedStyle style, float maxWidth)
         => new Size(text.Length * style.FontSize * 0.6f, style.FontSize * 1.2f);
 
-    public IReadOnlyList<TextRun> ShapeText(string text, ResolvedStyle style, Rect bounds)
+    public IReadOnlyList<TextRun> ShapeText(string text, AppliedStyle style, Rect bounds)
     {
         if (string.IsNullOrEmpty(text))
             return [];

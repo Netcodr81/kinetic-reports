@@ -10,7 +10,7 @@ using KineticReports.Rendering.Tests.Fakes;
 
 public class HtmlExporterTests
 {
-    private static readonly ResolvedStyle DefaultStyle = new() { FontFamily = "Arial", FontSize = 12f };
+    private static readonly AppliedStyle DefaultStyle = new() { FontFamily = "Arial", FontSize = 12f };
 
     [Fact]
     public async Task ExportAsync_WithSinglePage_ProducesValidHtml()
@@ -171,7 +171,7 @@ public class HtmlExporterTests
         var headerRow = new RowElement
         {
             Id = "header-row-1",
-            Kind = RowKind.Header,
+            RowType = RowType.Header,
             Style = DefaultStyle,
             Cells = [headerCell]
         };
@@ -179,7 +179,7 @@ public class HtmlExporterTests
         var dataRow = new RowElement
         {
             Id = "data-row-1",
-            Kind = RowKind.Data,
+            RowType = RowType.Data,
             Style = DefaultStyle,
             Cells = [dataCell]
         };

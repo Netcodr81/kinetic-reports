@@ -20,8 +20,8 @@ sequenceDiagram
 		Resolver-->>Engine: rows
 	end
 	Engine->>Builder: Build(dataContext, evaluator)
-	Builder-->>Engine: bands (BandElement list)
-	Engine->>Layout: Layout(bands, layoutOptions, LayoutSizingContext)
+	Builder-->>Engine: blocks (ReportBlock list)
+	Engine->>Layout: Layout(blocks, layoutOptions, LayoutSizingContext)
 	Layout-->>Engine: ReportLayout
 	Engine-->>Caller: ReportLayout
 	Caller->>Export: ExportAsync(ReportLayout, stream)
@@ -35,9 +35,9 @@ sequenceDiagram
 - For each source, `IDataResolver.ResolveAsync(...)` is called.
 - Returned rows are stored into `DataContext` keyed by data-source ID.
 
-## 2) Report Bands Build
+## 2) Report Blocks Build
 
-- `IReportBuilder.Build(dataContext, evaluator)` transforms data into ordered report bands.
+- `IReportBuilder.Build(dataContext, evaluator)` transforms data into ordered report blocks.
 - This is where row iteration and expression-aware content shaping happen.
 
 ## 3) Layout
@@ -58,7 +58,7 @@ Result is an immutable `ReportLayout`.
 ## Where Bugs Usually Happen
 
 1. Data resolver returns no rows.
-2. Report Builder returns empty bands.
+2. Report Builder returns empty blocks.
 3. Unit mismatch in HTML/CSS sizing.
 4. Incorrect coordinate model for nested elements.
 

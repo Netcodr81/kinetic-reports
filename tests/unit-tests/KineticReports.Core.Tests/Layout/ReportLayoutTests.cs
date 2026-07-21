@@ -10,7 +10,7 @@ public class ReportLayoutTests
     [Fact]
     public void LayoutTree_WithPages_CountsCorrectly()
     {
-        var style = new ResolvedStyle { FontFamily = "Arial", FontSize = 12f };
+        var style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f };
         var pages = new[]
         {
             new PageElement { Id = "Page1", Style = style, PageNumber = 1, PageWidth = 612f, PageHeight = 792f },
@@ -30,7 +30,7 @@ public class ReportLayoutTests
     [Fact]
     public void LayoutTree_PagesAreReadOnly()
     {
-        var style = new ResolvedStyle { FontFamily = "Arial", FontSize = 12f };
+        var style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f };
         var page = new PageElement { Id = "Page1", Style = style, PageWidth = 612f, PageHeight = 792f };
         var tree = new ReportLayout { Pages = new[] { page } };
         tree.Pages.ShouldBeAssignableTo<IReadOnlyList<PageElement>>();

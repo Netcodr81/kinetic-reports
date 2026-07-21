@@ -11,7 +11,7 @@ using KineticReports.Core.Typography;
 /// </summary>
 public sealed class FakeTextLayout : ITextLayout
 {
-    public Size MeasureText(string text, ResolvedStyle style, float maxWidth)
+    public Size MeasureText(string text, AppliedStyle style, float maxWidth)
     {
         float charWidth = style.FontSize * 0.6f;
         float lineHeight = style.FontSize * 1.2f;
@@ -25,7 +25,7 @@ public sealed class FakeTextLayout : ITextLayout
         return new Size(maxWidth, lines * lineHeight);
     }
 
-    public IReadOnlyList<TextRun> ShapeText(string text, ResolvedStyle style, Rect bounds)
+    public IReadOnlyList<TextRun> ShapeText(string text, AppliedStyle style, Rect bounds)
     {
         if (string.IsNullOrEmpty(text))
             return [];

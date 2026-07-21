@@ -13,7 +13,7 @@ using SkiaSharp;
 public sealed class SkiaTextLayout : ITextLayout
 {
     /// <inheritdoc/>
-    public Size MeasureText(string text, ResolvedStyle style, float maxWidth)
+    public Size MeasureText(string text, AppliedStyle style, float maxWidth)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -34,7 +34,7 @@ public sealed class SkiaTextLayout : ITextLayout
     }
 
     /// <inheritdoc/>
-    public IReadOnlyList<TextRun> ShapeText(string text, ResolvedStyle style, Rect bounds)
+    public IReadOnlyList<TextRun> ShapeText(string text, AppliedStyle style, Rect bounds)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -95,7 +95,7 @@ public sealed class SkiaTextLayout : ITextLayout
         return font.Metrics.Leading;
     }
 
-    internal static SKFont CreateFont(ResolvedStyle style)
+    internal static SKFont CreateFont(AppliedStyle style)
     {
         var typeface = SKTypeface.FromFamilyName(
             style.FontFamily,
@@ -113,7 +113,7 @@ public sealed class SkiaTextLayout : ITextLayout
         return new SKFont(typeface, descriptor.Size);
     }
 
-    private static float GetLineHeight(ResolvedStyle style, SKFont font)
+    private static float GetLineHeight(AppliedStyle style, SKFont font)
     {
         var metrics = font.Metrics;
         var natural = (-metrics.Ascent) + metrics.Descent + metrics.Leading;

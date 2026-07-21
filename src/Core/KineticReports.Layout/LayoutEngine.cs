@@ -11,9 +11,9 @@ using KineticReports.Layout.Pagination;
 public sealed class LayoutEngine : ILayoutEngine
 {
     /// <inheritdoc/>
-    public ReportLayout Layout(IReadOnlyList<BandElement> bands, LayoutOptions options, ILayoutSizingContext context)
+    public ReportLayout Layout(IReadOnlyList<ReportBlock> blocks, LayoutOptions options, ILayoutSizingContext context)
     {
-        var pages = new PaginationEngine().Paginate(bands, options, context);
+        var pages = new PaginationEngine().Paginate(blocks, options, context);
         return new ReportLayout { Pages = pages };
     }
 }

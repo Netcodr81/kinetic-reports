@@ -8,8 +8,8 @@ This is the fastest way to decide where to extend KineticReports.
 |---|---|---|---|
 | Pull data from new backend | `IDataResolver` and/or `IDataProvider` | App startup | Resolver maps report data-source definitions to provider calls |
 | Add custom expression language features | `IExpressionEvaluator` | App startup | Keep deterministic behavior |
-| Build custom report content model | `IReportBuilder` | App startup | Must return ordered `BandElement` list |
-| Transform report bands before layout | `IReportBandsPostProcessorPlugin` | Plugin load | Runs after `IReportBuilder.Build(...)`, ordered by `Order` then `Id` |
+| Build custom report content model | `IReportBuilder` | App startup | Must return ordered `ReportBlock` list |
+| Transform report blocks before layout | `IReportBlocksPostProcessorPlugin` | Plugin load | Runs after `IReportBuilder.Build(...)`, ordered by `Order` then `Id` |
 | Change page sizing/margins behavior | `LayoutOptions` or custom `ILayoutEngine` | App startup | Respect DIP units |
 | Add new render output (PNG/PDF/etc.) | `IRenderer` | App startup | Consume immutable `ReportLayout` only |
 | Add new export format | `IReportLayoutExporter` | App startup | Register one or more exporters in `IReportLayoutExporterRegistry`; formats appear in export discovery |
@@ -25,7 +25,7 @@ This is the fastest way to decide where to extend KineticReports.
 flowchart TB
 	A[Definition] --> B[Data Resolver]
 	B --> C[Report Builder]
-	C --> D[Band Post-Processor Plugins]
+	C --> D[Block Post-Processor Plugins]
 	D --> E[Layout Engine]
 	E --> F[ReportLayout]
 	F --> G[Renderer/Exporter]
@@ -41,4 +41,4 @@ flowchart TB
 1. Doing layout in exporter/renderer.
 2. Mutating layout elements after Arrange.
 3. Using mismatched units (pt vs px/DIP).
-4. Returning empty bands because IDs do not match resolved data keys.
+4. Returning empty blocks because IDs do not match resolved data keys.

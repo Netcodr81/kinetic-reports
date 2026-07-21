@@ -14,14 +14,14 @@ public interface ITextLayout
     /// <summary>
     /// Measures the bounding box of <paramref name="text"/> constrained to <paramref name="maxWidth"/> DIPs.
     /// </summary>
-    Size MeasureText(string text, ResolvedStyle style, float maxWidth);
+    Size MeasureText(string text, AppliedStyle style, float maxWidth);
 
     /// <summary>
     /// Shapes <paramref name="text"/> into word-wrapped <see cref="TextRun"/> objects
     /// positioned within <paramref name="bounds"/>, accounting for padding.
     /// Returns an empty list when <paramref name="text"/> is empty.
     /// </summary>
-    IReadOnlyList<TextRun> ShapeText(string text, ResolvedStyle style, Rect bounds);
+    IReadOnlyList<TextRun> ShapeText(string text, AppliedStyle style, Rect bounds);
 
     /// <summary>Returns the ascent (baseline to cap-height) of the descriptor font in DIPs.</summary>
     float GetAscent(FontDescriptor descriptor);

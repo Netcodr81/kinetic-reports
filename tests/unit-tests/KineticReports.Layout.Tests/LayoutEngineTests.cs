@@ -6,7 +6,7 @@ using KineticReports.Layout.Tests.Fakes;
 
 public class LayoutEngineTests
 {
-    private static readonly ResolvedStyle DefaultStyle = new() { FontFamily = "Arial", FontSize = 12f };
+    private static readonly AppliedStyle DefaultStyle = new() { FontFamily = "Arial", FontSize = 12f };
     private readonly LayoutSizingContext _context = new(new FakeTextLayout());
     private readonly LayoutOptions _options = new();
     private readonly LayoutEngine _sut = new();
@@ -39,7 +39,7 @@ public class LayoutEngineTests
     [Fact]
     public void Layout_WithSingleSmallBand_FitsOnOnePage()
     {
-        var band = MakeBand(BandKind.Detail, 100f);
+        var band = MakeBand(BlockType.Detail, 100f);
         var tree = _sut.Layout([band], _options, _context);
         tree.PageCount.ShouldBe(1);
     }
@@ -47,7 +47,7 @@ public class LayoutEngineTests
     [Fact]
     public void Layout_WithSingleBand_ArrangesBandWithinBodyArea()
     {
-        var band = MakeBand(BandKind.Detail, 100f);
+        var band = MakeBand(BlockType.Detail, 100f);
         var tree = _sut.Layout([band], _options, _context);
         var page = tree.Pages[0];
 
@@ -69,9 +69,9 @@ public class LayoutEngineTests
         // Body area = 1056 - 96*2 = 864. Each band = 300, so 3 bands = 900 > 864.
         var bands = new[]
         {
-            MakeBand(BandKind.Detail, 300f),
-            MakeBand(BandKind.Detail, 300f),
-            MakeBand(BandKind.Detail, 300f)
+            MakeBand(BlockType.Detail, 300f),
+            MakeBand(BlockType.Detail, 300f),
+            MakeBand(BlockType.Detail, 300f)
         };
         var tree = _sut.Layout(bands, _options, _context);
         tree.PageCount.ShouldBe(2);
@@ -83,8 +83,8 @@ public class LayoutEngineTests
         // Body area = 864. Two bands totalling exactly 864.
         var bands = new[]
         {
-            MakeBand(BandKind.Detail, 432f),
-            MakeBand(BandKind.Detail, 432f)
+            MakeBand(BlockType.Detail, 432f),
+            MakeBand(BlockType.Detail, 432f)
         };
         var tree = _sut.Layout(bands, _options, _context);
         tree.PageCount.ShouldBe(1);
@@ -97,8 +97,8 @@ public class LayoutEngineTests
     [Fact]
     public void Layout_WithForcePageBreakBefore_StartsNewPage()
     {
-        var first = MakeBand(BandKind.Detail, 100f);
-        var forced = MakeBand(BandKind.Detail, 100f, forceBreak: true);
+        var first = MakeBand(BlockType.Detail, 100f);
+        var forced = MakeBand(BlockType.Detail, 100f, forceBreak: true);
         var tree = _sut.Layout([first, forced], _options, _context);
         tree.PageCount.ShouldBe(2);
     }
@@ -107,7 +107,7 @@ public class LayoutEngineTests
     public void Layout_ForcePageBreakOnFirstBand_DoesNotCreateEmptyPage()
     {
         // ForcePageBreakBefore on the very first band should not emit an empty page.
-        var forced = MakeBand(BandKind.Detail, 100f, forceBreak: true);
+        var forced = MakeBand(BlockType.Detail, 100f, forceBreak: true);
         var tree = _sut.Layout([forced], _options, _context);
         tree.PageCount.ShouldBe(1);
     }
@@ -119,9 +119,9 @@ public class LayoutEngineTests
     [Fact]
     public void Layout_WithPageHeaderBand_HeaderAppearsOnEveryPage()
     {
-        var header = MakeBand(BandKind.PageHeader, 50f);
-        var detail1 = MakeBand(BandKind.Detail, 500f);
-        var detail2 = MakeBand(BandKind.Detail, 500f);
+        var header = MakeBand(BlockType.PageHeader, 50f);
+        var detail1 = MakeBand(BlockType.Detail, 500f);
+        var detail2 = MakeBand(BlockType.Detail, 500f);
         var tree = _sut.Layout([header, detail1, detail2], _options, _context);
 
         foreach (var page in tree.Pages)
@@ -131,9 +131,9 @@ public class LayoutEngineTests
     [Fact]
     public void Layout_WithPageFooterBand_FooterAppearsOnEveryPage()
     {
-        var footer = MakeBand(BandKind.PageFooter, 50f);
-        var detail1 = MakeBand(BandKind.Detail, 500f);
-        var detail2 = MakeBand(BandKind.Detail, 500f);
+        var footer = MakeBand(BlockType.PageFooter, 50f);
+        var detail1 = MakeBand(BlockType.Detail, 500f);
+        var detail2 = MakeBand(BlockType.Detail, 500f);
         var tree = _sut.Layout([footer, detail1, detail2], _options, _context);
 
         foreach (var page in tree.Pages)
@@ -146,9 +146,9 @@ public class LayoutEngineTests
         // Header = 100. Body area = 864 - 100 = 764.
         // Three detail bands × 300 = 900. Without header: 2 pages. With header: still 2.
         // But two bands × 400 = 800 > 764 → should require 2 pages.
-        var header = MakeBand(BandKind.PageHeader, 100f);
-        var detail1 = MakeBand(BandKind.Detail, 400f);
-        var detail2 = MakeBand(BandKind.Detail, 400f);
+        var header = MakeBand(BlockType.PageHeader, 100f);
+        var detail1 = MakeBand(BlockType.Detail, 400f);
+        var detail2 = MakeBand(BlockType.Detail, 400f);
         var tree = _sut.Layout([header, detail1, detail2], _options, _context);
         tree.PageCount.ShouldBe(2);
     }
@@ -162,9 +162,9 @@ public class LayoutEngineTests
     {
         var bands = new[]
         {
-            MakeBand(BandKind.Detail, 500f),
-            MakeBand(BandKind.Detail, 500f),
-            MakeBand(BandKind.Detail, 500f)
+            MakeBand(BlockType.Detail, 500f),
+            MakeBand(BlockType.Detail, 500f),
+            MakeBand(BlockType.Detail, 500f)
         };
         var tree = _sut.Layout(bands, _options, _context);
 
@@ -187,17 +187,63 @@ public class LayoutEngineTests
     // Helpers
     // -------------------------------------------------------------------------
 
-    private static BandElement MakeBand(BandKind kind, float height, bool forceBreak = false)
+    private static ReportBlock MakeBand(BlockType kind, float height, bool forceBreak = false)
     {
-        var band = new BandElement
+        var style = DefaultStyle;
+        var id = Guid.NewGuid().ToString();
+
+        return kind switch
         {
-            Id = Guid.NewGuid().ToString(),
-            Style = DefaultStyle,
-            Kind = kind,
-            ForcePageBreakBefore = forceBreak,
-            Children = [new FixedHeightElement(height, DefaultStyle)]
+            BlockType.PageHeader => new PageHeaderBlock
+            {
+                Id = id,
+                Style = style,
+                ForcePageBreakBefore = forceBreak,
+                Children = [new FixedHeightElement(height, style)]
+            },
+            BlockType.PageFooter => new PageFooterBlock
+            {
+                Id = id,
+                Style = style,
+                ForcePageBreakBefore = forceBreak,
+                Children = [new FixedHeightElement(height, style)]
+            },
+            BlockType.GroupHeader => new GroupHeaderBlock
+            {
+                Id = id,
+                Style = style,
+                ForcePageBreakBefore = forceBreak,
+                Children = [new FixedHeightElement(height, style)]
+            },
+            BlockType.GroupFooter => new GroupFooterBlock
+            {
+                Id = id,
+                Style = style,
+                ForcePageBreakBefore = forceBreak,
+                Children = [new FixedHeightElement(height, style)]
+            },
+            BlockType.ReportHeader => new HeaderBlock
+            {
+                Id = id,
+                Style = style,
+                ForcePageBreakBefore = forceBreak,
+                Children = [new FixedHeightElement(height, style)]
+            },
+            BlockType.ReportFooter => new FooterBlock
+            {
+                Id = id,
+                Style = style,
+                ForcePageBreakBefore = forceBreak,
+                Children = [new FixedHeightElement(height, style)]
+            },
+            _ => new DetailBlock
+            {
+                Id = id,
+                Style = style,
+                ForcePageBreakBefore = forceBreak,
+                Children = [new FixedHeightElement(height, style)]
+            }
         };
-        return band;
     }
 
     /// <summary>
@@ -209,7 +255,7 @@ public class LayoutEngineTests
         private readonly float _height;
 
         [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
-        public FixedHeightElement(float height, ResolvedStyle style)
+        public FixedHeightElement(float height, AppliedStyle style)
         {
             _height = height;
             Id = Guid.NewGuid().ToString();

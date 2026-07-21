@@ -5,9 +5,9 @@ using KineticReports.Core.Layout;
 using KineticReports.Core.Styling;
 
 /// <summary>
-/// Distributes a flat list of measured <see cref="BandElement"/> objects across
+/// Distributes a flat list of measured <see cref="ReportBlock"/> objects across
 /// one or more <see cref="PageElement"/> instances, respecting page breaks,
-/// <see cref="BandElement.KeepTogether"/>, and <see cref="BandElement.ForcePageBreakBefore"/>.
+/// <see cref="ReportBlock.KeepTogether"/>, and <see cref="ReportBlock.ForcePageBreakBefore"/>.
 /// </summary>
 internal sealed class PaginationEngine
 {
@@ -15,32 +15,32 @@ internal sealed class PaginationEngine
     /// Runs the full LayoutSizing → Arrange → Paginate pipeline and returns the ordered
     /// list of pages that form the <see cref="ReportLayout"/>.
     /// </summary>
-    /// <param name="bands">All bands, including page-header and page-footer bands.</param>
+    /// <param name="blocks">All blocks, including page-header and page-footer blocks.</param>
     /// <param name="options">Page dimensions and margin configuration.</param>
     /// <param name="context">Text layout and image-resolution services.</param>
     /// <returns>An ordered, non-empty list of fully arranged pages.</returns>
     internal IReadOnlyList<PageElement> Paginate(
-        IReadOnlyList<BandElement> bands,
+        IReadOnlyList<ReportBlock> blocks,
         LayoutOptions options,
         ILayoutSizingContext context)
     {
         // Default style used for structural page/section elements created by the engine.
-        var engineStyle = new ResolvedStyle { FontFamily = "Arial", FontSize = 12f };
+        var engineStyle = new AppliedStyle { FontFamily = "Arial", FontSize = 12f };
 
-        // --- Partition bands ---
-        var pageHeaderBands = bands.Where(b => b.Kind == BandKind.PageHeader).ToList();
-        var pageFooterBands = bands.Where(b => b.Kind == BandKind.PageFooter).ToList();
-        var bodyBands = bands.Where(b => b.Kind != BandKind.PageHeader && b.Kind != BandKind.PageFooter).ToList();
+        // --- Partition blocks ---
+        var pageHeaderBlocks = blocks.Where(b => b.Kind == BlockType.PageHeader).ToList();
+        var pageFooterBlocks = blocks.Where(b => b.Kind == BlockType.PageFooter).ToList();
+        var bodyBlocks = blocks.Where(b => b.Kind != BlockType.PageHeader && b.Kind != BlockType.PageFooter).ToList();
 
         // --- LayoutSizing ---
         float contentWidth = options.PageWidth - options.PageMargins.Horizontal;
         var measureSize = new Size(contentWidth, float.PositiveInfinity);
 
-        float pageHeaderHeight = MeasureBandsVertical(pageHeaderBands, measureSize, context);
-        float pageFooterHeight = MeasureBandsVertical(pageFooterBands, measureSize, context);
+        float pageHeaderHeight = MeasureBlocksVertical(pageHeaderBlocks, measureSize, context);
+        float pageFooterHeight = MeasureBlocksVertical(pageFooterBlocks, measureSize, context);
 
-        foreach (var band in bodyBands)
-            band.LayoutSize(measureSize, context);
+        foreach (var block in bodyBlocks)
+            block.LayoutSize(measureSize, context);
 
         // --- Compute available body height ---
         float bodyAreaHeight = options.PageHeight
@@ -52,22 +52,22 @@ internal sealed class PaginationEngine
         if (bodyAreaHeight <= 0f)
             bodyAreaHeight = options.PageHeight - options.PageMargins.Vertical;
 
-        // --- Distribute body bands across pages ---
+        // --- Distribute body blocks across pages ---
         var pages = new List<PageElement>();
         int pageNumber = 1;
         float accumulatedHeight = 0f;
-        var currentPage = new List<BandElement>();
+        var currentPage = new List<ReportBlock>();
 
-        foreach (var band in bodyBands)
+        foreach (var block in bodyBlocks)
         {
-            bool forceBreak = band.ForcePageBreakBefore && currentPage.Count > 0;
-            bool doesNotFit = accumulatedHeight + band.DesiredSize.Height > bodyAreaHeight;
+            bool forceBreak = block.ForcePageBreakBefore && currentPage.Count > 0;
+            bool doesNotFit = accumulatedHeight + block.DesiredSize.Height > bodyAreaHeight;
 
             if ((forceBreak || doesNotFit) && currentPage.Count > 0)
             {
                 pages.Add(BuildPage(
                     pageNumber++, currentPage,
-                    pageHeaderBands, pageFooterBands,
+                    pageHeaderBlocks, pageFooterBlocks,
                     options, pageHeaderHeight, pageFooterHeight,
                     engineStyle));
 
@@ -75,14 +75,14 @@ internal sealed class PaginationEngine
                 accumulatedHeight = 0f;
             }
 
-            currentPage.Add(band);
-            accumulatedHeight += band.DesiredSize.Height;
+            currentPage.Add(block);
+            accumulatedHeight += block.DesiredSize.Height;
         }
 
         // Always produce at least one page (even an empty report emits a blank page).
         pages.Add(BuildPage(
             pageNumber, currentPage,
-            pageHeaderBands, pageFooterBands,
+            pageHeaderBlocks, pageFooterBlocks,
             options, pageHeaderHeight, pageFooterHeight,
             engineStyle));
 
@@ -93,43 +93,43 @@ internal sealed class PaginationEngine
     // Helpers
     // -------------------------------------------------------------------------
 
-    private static float MeasureBandsVertical(
-        List<BandElement> bands, Size measureSize, ILayoutSizingContext context)
+    private static float MeasureBlocksVertical(
+        List<ReportBlock> blocks, Size measureSize, ILayoutSizingContext context)
     {
         float total = 0f;
-        foreach (var b in bands)
+        foreach (var block in blocks)
         {
-            b.LayoutSize(measureSize, context);
-            total += b.DesiredSize.Height;
+            block.LayoutSize(measureSize, context);
+            total += block.DesiredSize.Height;
         }
         return total;
     }
 
     private static PageElement BuildPage(
         int pageNumber,
-        List<BandElement> bodyBands,
-        List<BandElement> pageHeaderBands,
-        List<BandElement> pageFooterBands,
+        List<ReportBlock> bodyBlocks,
+        List<ReportBlock> pageHeaderBlocks,
+        List<ReportBlock> pageFooterBlocks,
         LayoutOptions options,
         float pageHeaderHeight,
         float pageFooterHeight,
-        ResolvedStyle engineStyle)
+        AppliedStyle engineStyle)
     {
         float marginLeft = options.PageMargins.Left;
         float marginTop = options.PageMargins.Top;
         float contentWidth = options.PageWidth - options.PageMargins.Horizontal;
 
-        // --- Arrange page-header bands ---
+        // --- Arrange page-header blocks ---
         SectionElement? header = null;
-        if (pageHeaderBands.Count > 0)
+        if (pageHeaderBlocks.Count > 0)
         {
             float y = marginTop;
-            var arranged = new List<LayoutElement>(pageHeaderBands.Count);
-            foreach (var band in pageHeaderBands)
+            var arranged = new List<LayoutElement>(pageHeaderBlocks.Count);
+            foreach (var block in pageHeaderBlocks)
             {
-                band.Arrange(new Rect(marginLeft, y, contentWidth, band.DesiredSize.Height));
-                arranged.Add(band);
-                y += band.DesiredSize.Height;
+                block.Arrange(new Rect(marginLeft, y, contentWidth, block.DesiredSize.Height));
+                arranged.Add(block);
+                y += block.DesiredSize.Height;
             }
 
             header = new SectionElement
@@ -141,18 +141,18 @@ internal sealed class PaginationEngine
             header.Arrange(new Rect(marginLeft, marginTop, contentWidth, pageHeaderHeight));
         }
 
-        // --- Arrange page-footer bands ---
+        // --- Arrange page-footer blocks ---
         SectionElement? footer = null;
-        if (pageFooterBands.Count > 0)
+        if (pageFooterBlocks.Count > 0)
         {
             float footerTop = options.PageHeight - options.PageMargins.Bottom - pageFooterHeight;
             float y = footerTop;
-            var arranged = new List<LayoutElement>(pageFooterBands.Count);
-            foreach (var band in pageFooterBands)
+            var arranged = new List<LayoutElement>(pageFooterBlocks.Count);
+            foreach (var block in pageFooterBlocks)
             {
-                band.Arrange(new Rect(marginLeft, y, contentWidth, band.DesiredSize.Height));
-                arranged.Add(band);
-                y += band.DesiredSize.Height;
+                block.Arrange(new Rect(marginLeft, y, contentWidth, block.DesiredSize.Height));
+                arranged.Add(block);
+                y += block.DesiredSize.Height;
             }
 
             footer = new SectionElement
@@ -164,15 +164,15 @@ internal sealed class PaginationEngine
             footer.Arrange(new Rect(marginLeft, footerTop, contentWidth, pageFooterHeight));
         }
 
-        // --- Arrange body bands ---
+        // --- Arrange body blocks ---
         float bodyTop = marginTop + pageHeaderHeight;
         float bodyY = bodyTop;
-        var children = new List<LayoutElement>(bodyBands.Count);
-        foreach (var band in bodyBands)
+        var children = new List<LayoutElement>(bodyBlocks.Count);
+        foreach (var block in bodyBlocks)
         {
-            band.Arrange(new Rect(marginLeft, bodyY, contentWidth, band.DesiredSize.Height));
-            children.Add(band);
-            bodyY += band.DesiredSize.Height;
+            block.Arrange(new Rect(marginLeft, bodyY, contentWidth, block.DesiredSize.Height));
+            children.Add(block);
+            bodyY += block.DesiredSize.Height;
         }
 
         // --- Build and finalise the page ---

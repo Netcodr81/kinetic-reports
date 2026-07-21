@@ -8,7 +8,7 @@ public class ResolvedStyleTests
     [Fact]
     public void DefaultValues_AreSet()
     {
-        var style = new ResolvedStyle
+        var style = new AppliedStyle
         {
             FontFamily = "Arial",
             FontSize = 12f
@@ -29,7 +29,7 @@ public class ResolvedStyleTests
     [Fact]
     public void CustomValues_ArePreserved()
     {
-        var style = new ResolvedStyle
+        var style = new AppliedStyle
         {
             FontFamily = "Inter",
             FontSize = 16f,
@@ -57,7 +57,7 @@ public class ResolvedStyleTests
     [Fact]
     public void IsImmutable_AsRecord()
     {
-        var style1 = new ResolvedStyle
+        var style1 = new AppliedStyle
         {
             FontFamily = "Arial",
             FontSize = 12f

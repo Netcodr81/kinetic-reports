@@ -116,8 +116,8 @@ public sealed class HtmlExporter : IHtmlExporter
                     RenderElement(html, child, element.Bounds.X, element.Bounds.Y);
                 break;
 
-            case BandElement band:
-                foreach (var child in band.Children)
+            case ReportBlock block:
+                foreach (var child in block.Children)
                     RenderElement(html, child, element.Bounds.X, element.Bounds.Y);
                 break;
 
@@ -218,8 +218,8 @@ public sealed class HtmlExporter : IHtmlExporter
     {
         html.OpenTag("table", classAttr: "kinetic-table");
 
-        var headerRows = tableElem.Rows.Where(r => r.Kind == RowKind.Header).ToList();
-        var bodyRows = tableElem.Rows.Where(r => r.Kind != RowKind.Header).ToList();
+        var headerRows = tableElem.Rows.Where(r => r.RowType == RowType.Header).ToList();
+        var bodyRows = tableElem.Rows.Where(r => r.RowType != RowType.Header).ToList();
 
         if (headerRows.Count > 0)
         {
@@ -243,7 +243,7 @@ public sealed class HtmlExporter : IHtmlExporter
 
     private static void RenderTableRow(HtmlBuilder html, RowElement row, string cellTag)
     {
-        html.OpenTag("tr", classAttr: row.Kind == RowKind.Header ? "kinetic-table-header-row" : "kinetic-table-row");
+        html.OpenTag("tr", classAttr: row.RowType == RowType.Header ? "kinetic-table-header-row" : "kinetic-table-row");
 
         foreach (var cell in row.Cells)
         {

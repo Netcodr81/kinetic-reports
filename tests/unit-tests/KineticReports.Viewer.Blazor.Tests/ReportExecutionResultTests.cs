@@ -18,7 +18,7 @@ public class ReportExecutionResultTests
             Header = null,
             Footer = null,
             Children = [],
-            Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 12f }
+            Style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f }
         };
         var ReportLayout = new ReportLayout { Pages = [page] };
 

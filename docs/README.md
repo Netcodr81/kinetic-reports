@@ -35,7 +35,7 @@ Welcome. This documentation explains **how KineticReports works end-to-end** and
 flowchart LR
 	A[ReportDefinition] --> B[Data Resolution]
 	B --> C[Expression Evaluation]
-	C --> D[Report Bands Build]
+	C --> D[Report Blocks Build]
 	D --> E[LayoutSizing]
 	E --> F[Arrange]
 	F --> G[Pagination]

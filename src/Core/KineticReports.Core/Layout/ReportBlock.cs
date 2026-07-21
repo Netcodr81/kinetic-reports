@@ -2,8 +2,8 @@ namespace KineticReports.Core.Layout;
 
 using KineticReports.Core.Geometry;
 
-/// <summary>Specifies the functional role of a <see cref="BandElement"/>.</summary>
-public enum BandKind
+/// <summary>Specifies the functional role of a <see cref="ReportBlock"/>.</summary>
+public enum BlockType
 {
     /// <summary>Page header — repeated at the top of every page.</summary>
     PageHeader,
@@ -28,28 +28,28 @@ public enum BandKind
 }
 
 /// <summary>
-/// Represents a data-driven horizontal band in the report layout.
-/// Bands are the primary mechanism for repeating data rows and group summaries.
+/// Represents a data-driven horizontal report block in the report layout.
+/// Blocks are the primary mechanism for repeating data rows and group summaries.
 /// </summary>
-public sealed class BandElement : LayoutElement
+public abstract class ReportBlock : LayoutElement
 {
     /// <inheritdoc/>
     public override LayoutElementType ElementType => LayoutElementType.Band;
 
-    /// <summary>Gets the functional role of this band.</summary>
-    public BandKind Kind { get; init; }
+    /// <summary>Gets the functional role of this block.</summary>
+    public virtual BlockType Kind { get; init; } = BlockType.Detail;
 
     /// <summary>
-    /// Gets a value indicating whether a page break is forced before this band.
+    /// Gets a value indicating whether a page break is forced before this block.
     /// </summary>
     public bool ForcePageBreakBefore { get; init; }
 
     /// <summary>
-    /// Gets a value indicating whether this band must not be split across pages.
+    /// Gets a value indicating whether this block must not be split across pages.
     /// </summary>
     public bool KeepTogether { get; init; }
 
-    /// <summary>Gets the child elements within this band.</summary>
+    /// <summary>Gets the child elements within this block.</summary>
     public IReadOnlyList<LayoutElement> Children { get; init; } = [];
 
     /// <inheritdoc/>
@@ -92,4 +92,53 @@ public sealed class BandElement : LayoutElement
     private float GetBorderBottomWidth() => Style.Border?.Bottom?.Width ?? 0f;
 
     private float GetBorderLeftWidth() => Style.Border?.Left?.Width ?? 0f;
+}
+
+/// <summary>Represents a report-header block rendered once at report start.</summary>
+public sealed class HeaderBlock : ReportBlock
+{
+    /// <inheritdoc/>
+    public override BlockType Kind { get; init; } = BlockType.ReportHeader;
+}
+
+/// <summary>Represents a detail block rendered for each data row.</summary>
+public sealed class DetailBlock : ReportBlock
+{
+    /// <inheritdoc/>
+    public override BlockType Kind { get; init; } = BlockType.Detail;
+}
+
+/// <summary>Represents a report-footer block rendered once at report end.</summary>
+public sealed class FooterBlock : ReportBlock
+{
+    /// <inheritdoc/>
+    public override BlockType Kind { get; init; } = BlockType.ReportFooter;
+}
+
+/// <summary>Represents a page-header block repeated at the top of each page.</summary>
+public sealed class PageHeaderBlock : ReportBlock
+{
+    /// <inheritdoc/>
+    public override BlockType Kind { get; init; } = BlockType.PageHeader;
+}
+
+/// <summary>Represents a page-footer block repeated at the bottom of each page.</summary>
+public sealed class PageFooterBlock : ReportBlock
+{
+    /// <inheritdoc/>
+    public override BlockType Kind { get; init; } = BlockType.PageFooter;
+}
+
+/// <summary>Represents a group-header block rendered at group boundaries.</summary>
+public sealed class GroupHeaderBlock : ReportBlock
+{
+    /// <inheritdoc/>
+    public override BlockType Kind { get; init; } = BlockType.GroupHeader;
+}
+
+/// <summary>Represents a group-footer block rendered at group boundaries.</summary>
+public sealed class GroupFooterBlock : ReportBlock
+{
+    /// <inheritdoc/>
+    public override BlockType Kind { get; init; } = BlockType.GroupFooter;
 }

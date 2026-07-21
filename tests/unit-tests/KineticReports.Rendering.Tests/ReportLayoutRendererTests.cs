@@ -6,7 +6,7 @@ using KineticReports.Rendering.Tests.Fakes;
 
 public class ReportLayoutRendererTests
 {
-    private static readonly ResolvedStyle DefaultStyle = new() { FontFamily = "Arial", FontSize = 12f };
+    private static readonly AppliedStyle DefaultStyle = new() { FontFamily = "Arial", FontSize = 12f };
     private readonly ReportLayoutRenderer _sut = new();
     private readonly RenderOptions _options = new() { Background = Color.White };
     private readonly FakeMeasureContext _measureContext = new();
@@ -117,7 +117,7 @@ public class ReportLayoutRendererTests
     public void RenderPage_ElementWithOpacityLessThanOne_PushesAndPopsOpacity()
     {
         var ctx = new RecordingGraphicsContext();
-        var container = ArrangeContainer(new ResolvedStyle
+        var container = ArrangeContainer(new AppliedStyle
         {
             FontFamily = "Arial",
             FontSize = 12f,
@@ -220,7 +220,7 @@ public class ReportLayoutRendererTests
         return elem;
     }
 
-    private static ContainerElement ArrangeContainer(ResolvedStyle style)
+    private static ContainerElement ArrangeContainer(AppliedStyle style)
     {
         var c = new ContainerElement { Id = "c1", Style = style, Children = [] };
         c.Arrange(new Rect(0, 0, 100, 50));

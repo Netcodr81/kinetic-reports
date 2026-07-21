@@ -7,7 +7,7 @@ using KineticReports.Rendering.Skia;
 
 public class SkiaRendererTests
 {
-    private static readonly ResolvedStyle DefaultStyle = new() { FontFamily = "Arial", FontSize = 12f };
+    private static readonly AppliedStyle DefaultStyle = new() { FontFamily = "Arial", FontSize = 12f };
 
     [Fact]
     public async Task RenderAsync_WithSinglePage_CompletesSuccessfully()

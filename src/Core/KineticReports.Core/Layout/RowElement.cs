@@ -3,7 +3,7 @@ namespace KineticReports.Core.Layout;
 using KineticReports.Core.Geometry;
 
 /// <summary>Specifies the functional role of a <see cref="RowElement"/>.</summary>
-public enum RowKind
+public enum RowType
 {
     /// <summary>A header row; repeated at the top of each page when the table paginates.</summary>
     Header,
@@ -24,7 +24,7 @@ public sealed class RowElement : LayoutElement
     public override LayoutElementType ElementType => LayoutElementType.Row;
 
     /// <summary>Gets the functional role of this row.</summary>
-    public RowKind Kind { get; init; } = RowKind.Data;
+    public RowType RowType { get; init; } = RowType.Data;
 
     /// <summary>
     /// Gets a value indicating whether this row must not be split across pages.

@@ -6,7 +6,7 @@ using KineticReports.Core.Rendering;
 using KineticReports.Core.Styling;
 using KineticReports.Core.Typography;
 
-public class BandElementTests
+public class ReportBlockTests
 {
     [Fact]
     public void LayoutSize_WithPadding_IncludesInsetsInDesiredHeight()
@@ -14,15 +14,14 @@ public class BandElementTests
         var child = new FixedSizeElement
         {
             Id = "child-1",
-            Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 12f },
+            Style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f },
             FixedDesiredSize = new Size(50f, 10f)
         };
 
-        var band = new BandElement
+        var block = new DetailBlock
         {
             Id = "band-1",
-            Kind = BandKind.Detail,
-            Style = new ResolvedStyle
+            Style = new AppliedStyle
             {
                 FontFamily = "Arial",
                 FontSize = 12f,
@@ -31,10 +30,10 @@ public class BandElementTests
             Children = [child]
         };
 
-        band.LayoutSize(new Size(100f, 200f), new TestLayoutSizingContext());
+        block.LayoutSize(new Size(100f, 200f), new TestLayoutSizingContext());
 
         // Child height (10) + top/bottom padding (2+4)
-        band.DesiredSize.Height.ShouldBe(16f);
+        block.DesiredSize.Height.ShouldBe(16f);
     }
 
     [Fact]
@@ -43,15 +42,14 @@ public class BandElementTests
         var child = new FixedSizeElement
         {
             Id = "child-2",
-            Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 12f },
+            Style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f },
             FixedDesiredSize = new Size(40f, 8f)
         };
 
-        var band = new BandElement
+        var block = new DetailBlock
         {
             Id = "band-2",
-            Kind = BandKind.Detail,
-            Style = new ResolvedStyle
+            Style = new AppliedStyle
             {
                 FontFamily = "Arial",
                 FontSize = 12f,
@@ -60,8 +58,8 @@ public class BandElementTests
             Children = [child]
         };
 
-        band.LayoutSize(new Size(100f, 200f), new TestLayoutSizingContext());
-        band.Arrange(new Rect(10f, 20f, 100f, band.DesiredSize.Height));
+        block.LayoutSize(new Size(100f, 200f), new TestLayoutSizingContext());
+        block.Arrange(new Rect(10f, 20f, 100f, block.DesiredSize.Height));
 
         child.Bounds.X.ShouldBe(15f);
         child.Bounds.Y.ShouldBe(26f);
@@ -94,9 +92,9 @@ public class BandElementTests
 
     private sealed class StubTextLayout : ITextLayout
     {
-        public Size MeasureText(string text, ResolvedStyle style, float maxWidth) => new(0f, 0f);
+        public Size MeasureText(string text, AppliedStyle style, float maxWidth) => new(0f, 0f);
 
-        public IReadOnlyList<TextRun> ShapeText(string text, ResolvedStyle style, Rect bounds) => [];
+        public IReadOnlyList<TextRun> ShapeText(string text, AppliedStyle style, Rect bounds) => [];
 
         public float GetAscent(FontDescriptor descriptor) => 0f;
 

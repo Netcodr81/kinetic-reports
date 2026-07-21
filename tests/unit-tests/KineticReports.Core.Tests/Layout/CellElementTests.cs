@@ -14,14 +14,14 @@ public class CellElementTests
         var child = new FixedSizeElement
         {
             Id = "child-1",
-            Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 12f },
+            Style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f },
             FixedDesiredSize = new Size(50f, 10f)
         };
 
         var cell = new CellElement
         {
             Id = "cell-1",
-            Style = new ResolvedStyle
+            Style = new AppliedStyle
             {
                 FontFamily = "Arial",
                 FontSize = 12f,
@@ -63,9 +63,9 @@ public class CellElementTests
 
     private sealed class StubTextLayout : ITextLayout
     {
-        public Size MeasureText(string text, ResolvedStyle style, float maxWidth) => new(0f, 0f);
+        public Size MeasureText(string text, AppliedStyle style, float maxWidth) => new(0f, 0f);
 
-        public IReadOnlyList<TextRun> ShapeText(string text, ResolvedStyle style, Rect bounds) => [];
+        public IReadOnlyList<TextRun> ShapeText(string text, AppliedStyle style, Rect bounds) => [];
 
         public float GetAscent(FontDescriptor descriptor) => 0f;
 

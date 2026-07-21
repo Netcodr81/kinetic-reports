@@ -5,7 +5,7 @@
 Check in this order:
 
 1. Does resolver return rows?
-2. Does Report Builder create bands?
+2. Does Report Builder create blocks?
 3. Does report layout contain pages and children?
 4. Does exporter/renderer map styles/coordinates correctly?
 
@@ -28,7 +28,7 @@ Common causes:
 ```mermaid
 flowchart TB
 	A[Start with failing report] --> B[Log resolved rows per source]
-	B --> C[Log band count and ids]
+	B --> C[Log block count and ids]
 	C --> D[Inspect first page bounds]
 	D --> E[Inspect exported output style units]
 	E --> F[Fix at earliest failing stage]
@@ -37,7 +37,7 @@ flowchart TB
 ## What to Log
 
 - Data-source ID and row count.
-- Band IDs and kinds.
+- Block IDs and kinds.
 - Element bounds (`x,y,w,h`) for first page.
 - Final HTML/CSS units for text size and line height.
 

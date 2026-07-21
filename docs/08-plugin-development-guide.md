@@ -35,7 +35,7 @@ Use `IPluginManager.DiscoverAndLoadPluginsAsync(...)` or `LoadPluginAsync(...)`.
 
 Plugins can participate in deterministic seams:
 
-1. **Before layout:** `IReportBandsPostProcessorPlugin`
+1. **Before layout:** `IReportBlocksPostProcessorPlugin`
 2. **Export registry:** `IExportFormatRegistryPlugin`
 3. **Export negotiation:** `IExportNegotiationPlugin`
 4. **After exporter output:** `IExportArtifactPostProcessorPlugin`
@@ -43,8 +43,8 @@ Plugins can participate in deterministic seams:
 
 ```mermaid
 flowchart LR
-	A[IReportBuilder.Build] --> B[Report Bands]
-	B --> C[IReportBandsPostProcessorPlugin]
+	A[IReportBuilder.Build] --> B[Report Blocks]
+	B --> C[IReportBlocksPostProcessorPlugin]
 	C --> D[ILayoutEngine.Layout]
 	D --> E[ReportLayout]
 	E --> F[IHtmlExporter.ExportAsync]
@@ -70,7 +70,7 @@ Ordering rules for both seams:
 | `IPlugin` | `UnloadAsync()` | Called before unload |
 | `PluginBase` | `OnInitializeAsync()` | Override hook for startup logic |
 | `PluginBase` | `OnUnloadAsync()` | Override hook for cleanup logic |
-| `IReportBandsPostProcessorPlugin` | `ProcessBands(...)` | Mutates/extends report bands before layout |
+| `IReportBlocksPostProcessorPlugin` | `ProcessBlocks(...)` | Transforms or extends report blocks before layout |
 | `IExportFormatRegistryPlugin` | `GetFormats()` | Contributes export format descriptors |
 | `IExportNegotiationPlugin` | `Negotiate(...)` | Maps requested format to final format |
 | `IExportArtifactPostProcessorPlugin` | `ProcessArtifactAsync(...)` | Transforms exported bytes |
@@ -86,7 +86,7 @@ Sample host note:
 
 ## Example: Implement multiple seams in one plugin
 
-- Implement `IReportBandsPostProcessorPlugin` to add or transform `BandElement`s.
+- Implement `IReportBlocksPostProcessorPlugin` to add or transform `ReportBlock`s.
 - Implement `IHtmlReportPostProcessorPlugin` to inject HTML/CSS overlays or policies.
 - Keep transformations idempotent where possible (safe on repeated runs).
 
