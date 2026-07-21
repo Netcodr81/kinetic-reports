@@ -33,10 +33,13 @@ Use `IPluginManager.DiscoverAndLoadPluginsAsync(...)` or `LoadPluginAsync(...)`.
 
 ## Pipeline Seams for Plugins
 
-Plugins can participate in two deterministic seams:
+Plugins can participate in deterministic seams:
 
 1. **Before layout:** `IReportBandsPostProcessorPlugin`
-2. **After HTML export:** `IHtmlReportPostProcessorPlugin`
+2. **Export registry:** `IExportFormatRegistryPlugin`
+3. **Export negotiation:** `IExportNegotiationPlugin`
+4. **After exporter output:** `IExportArtifactPostProcessorPlugin`
+5. **After HTML export:** `IHtmlReportPostProcessorPlugin`
 
 ```mermaid
 flowchart LR
@@ -45,8 +48,9 @@ flowchart LR
 	C --> D[ILayoutEngine.Layout]
 	D --> E[ReportLayout]
 	E --> F[IHtmlExporter.ExportAsync]
-	F --> G[IHtmlReportPostProcessorPlugin]
-	G --> H[Final HTML]
+	F --> G[IExportArtifactPostProcessorPlugin]
+	G --> H[IHtmlReportPostProcessorPlugin]
+	H --> I[Final HTML]
 ```
 
 Ordering rules for both seams:
@@ -67,11 +71,20 @@ Ordering rules for both seams:
 | `PluginBase` | `OnInitializeAsync()` | Override hook for startup logic |
 | `PluginBase` | `OnUnloadAsync()` | Override hook for cleanup logic |
 | `IReportBandsPostProcessorPlugin` | `ProcessBands(...)` | Mutates/extends report bands before layout |
+| `IExportFormatRegistryPlugin` | `GetFormats()` | Contributes export format descriptors |
+| `IExportNegotiationPlugin` | `Negotiate(...)` | Maps requested format to final format |
+| `IExportArtifactPostProcessorPlugin` | `ProcessArtifactAsync(...)` | Transforms exported bytes |
 | `IHtmlReportPostProcessorPlugin` | `ProcessHtmlAsync(...)` | Post-processes exported HTML |
 | `IPluginManager` | `DiscoverAndLoadPluginsAsync(...)` | Bulk load from folder |
 | `IPluginManager` | `UnloadPluginAsync(pluginId)` | Unload one plugin |
+| `IReportLayoutExporter` | `Format` + `ExportAsync(...)` | Host-registered exporter for a concrete format |
+| `IReportLayoutExporterRegistry` | `TryGetExporter(...)` | Resolves exporter without host conditionals |
 
-## Example: Implement both seams in one plugin
+Sample host note:
+
+- The Blazor sample registers both `HtmlReportLayoutExporter` and `MarkdownReportLayoutExporter` as `IReportLayoutExporter` implementations.
+
+## Example: Implement multiple seams in one plugin
 
 - Implement `IReportBandsPostProcessorPlugin` to add or transform `BandElement`s.
 - Implement `IHtmlReportPostProcessorPlugin` to inject HTML/CSS overlays or policies.

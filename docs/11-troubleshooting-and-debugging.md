@@ -44,6 +44,6 @@ flowchart TB
 ## Safe Fix Priority
 
 1. Data resolver correctness.
-2. Tree builder correctness.
+2. Report builder correctness.
 3. Layout engine correctness.
 4. Exporter/renderer mapping.

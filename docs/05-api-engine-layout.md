@@ -4,31 +4,31 @@ This page documents how orchestration and layout contracts work.
 
 ## Engine Interfaces
 
-| Interface | Purpose | Key Methods |
-|---|---|---|
-| `IReportEngine` | Main orchestration entry point | `RunAsync(...)` |
-| `IDataResolver` | Resolves rows for each `DataSourceDefinition` | `ResolveAsync(...)` |
-| `IExpressionEvaluator` | Evaluates expression strings | `Evaluate(expression, context)` |
-| `IReportBuilder` | Builds ordered report bands from resolved data | `Build(dataContext, evaluator)` |
+| Interface                | Purpose                                        | Key Methods                       |
+| ------------------------ | ---------------------------------------------- | --------------------------------- |
+| `IReportEngine`        | Main orchestration entry point                 | `RunAsync(...)`                 |
+| `IDataResolver`        | Resolves rows for each`DataSourceDefinition` | `ResolveAsync(...)`             |
+| `IExpressionEvaluator` | Evaluates expression strings                   | `Evaluate(expression, context)` |
+| `IReportBuilder`       | Builds ordered report bands from resolved data | `Build(dataContext, evaluator)` |
 
 ## Engine Runtime Types
 
-| Type | Purpose |
-|---|---|
-| `ReportEngine` | Default `IReportEngine` implementation |
-| `DataContext` | Stores resolved rows keyed by data-source id |
+| Type                  | Purpose                                          |
+| --------------------- | ------------------------------------------------ |
+| `ReportEngine`      | Default`IReportEngine` implementation          |
+| `DataContext`       | Stores resolved rows keyed by data-source id     |
 | `ExpressionContext` | Evaluation context with current row + parameters |
-| `LiteralEvaluator` | Default evaluator behavior |
+| `LiteralEvaluator`  | Default evaluator behavior                       |
 
 ## Layout Interfaces and Types
 
-| Type | Kind | Purpose | Key Members |
-|---|---|---|---|
-| `ILayoutEngine` | interface | Turns bands into `ReportLayout` | `Layout(...)` |
-| `LayoutEngine` | class | Default implementation | delegates to pagination engine |
-| `LayoutOptions` | record | Page setup and margins | `PageWidth`, `PageHeight`, `PageMargins` |
-| `LayoutSizingContext` | class | Default LayoutSizing context | `FontMetrics`, image-size resolver |
-| `ReportLayout` | record | Final immutable output | `Pages` |
+| Type                    | Kind      | Purpose                          | Key Members                                    |
+| ----------------------- | --------- | -------------------------------- | ---------------------------------------------- |
+| `ILayoutEngine`       | interface | Turns bands into`ReportLayout` | `Layout(...)`                                |
+| `LayoutEngine`        | class     | Default implementation           | delegates to pagination engine                 |
+| `LayoutOptions`       | record    | Page setup and margins           | `PageWidth`, `PageHeight`, `PageMargins` |
+| `LayoutSizingContext` | class     | Default LayoutSizing context     | `FontMetrics`, image-size resolver           |
+| `ReportLayout`        | record    | Final immutable output           | `Pages`                                      |
 
 ## Pagination Behavior
 

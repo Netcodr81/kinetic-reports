@@ -1,11 +1,13 @@
 ﻿@page "/"
 @using KineticReports.Core.Definition
+@using KineticReports.Plugins
 @using KineticReports.Samples.Blazor.Reports
 @using KineticReports.Samples.Blazor.Services
 
 @using Microsoft.AspNetCore.Components.Web
 @inject IPluginService PluginService
 @inject IReportRenderService ReportRenderService
+@inject IJSRuntime Js
 @rendermode InteractiveServer
 
 
@@ -78,6 +80,24 @@
                 <h5>Sample Reports</h5>
             </div>
             <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Export format</label>
+                        <select class="form-select form-select-sm" @bind="_selectedExportFormat">
+                            @foreach (var format in _availableFormats)
+                            {
+                                <option value="@format.FormatId">@format.DisplayName (@format.FormatId)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        @if (!string.IsNullOrWhiteSpace(_lastExportStatus))
+                        {
+                            <div class="small text-muted">@_lastExportStatus</div>
+                        }
+                    </div>
+                </div>
+
                 <div class="row">
                     @foreach (var report in SampleReports.GetAllSampleReports())
                     {
@@ -183,6 +203,14 @@
     private string? _selectedReportName;
     private string? _reportHtml;
     private IReadOnlyList<string> _pluginTrace = Array.Empty<string>();
+    private IReadOnlyList<ExportFormatDescriptor> _availableFormats = [];
+    private string _selectedExportFormat = "html";
+    private string? _lastExportStatus;
+
+    protected override void OnInitialized()
+    {
+        RefreshAvailableFormats();
+    }
 
     private async Task LoadPluginsAsync()
     {
@@ -190,6 +218,7 @@
         try
         {
             await PluginService.InitializePluginAsync();
+            RefreshAvailableFormats();
         }
         finally
         {
@@ -200,6 +229,7 @@
     private async Task UnloadPluginsAsync()
     {
         await PluginService.UnloadAllAsync();
+        RefreshAvailableFormats();
     }
 
     private async Task ViewReportAsync(ReportDefinition report)
@@ -212,8 +242,7 @@
         try
         {
             // Execute report and export as HTML
-            var emptyParams = new Dictionary<string, object?>();
-            _reportHtml = await ReportRenderService.RenderReportAsHtmlAsync(report, emptyParams);
+            _reportHtml = await ReportRenderService.RenderReportAsHtmlAsync(report);
             _pluginTrace = ReportRenderService.GetLatestPluginTrace();
         }
         catch (Exception ex)
@@ -253,8 +282,43 @@
 
     private async Task ExportReportAsync(ReportDefinition report)
     {
-        // TODO: Implement export functionality
-        await Task.Delay(100);
-        System.Diagnostics.Debug.WriteLine($"Exporting report: {report.Name}");
+        var exportResult = await ReportRenderService.ExportReportAsync(
+            report,
+            _selectedExportFormat);
+
+        var safeBaseName = string.IsNullOrWhiteSpace(report.Name)
+            ? "report"
+            : string.Concat(report.Name.Select(ch => Path.GetInvalidFileNameChars().Contains(ch) ? '-' : ch));
+        var fileName = $"{safeBaseName}.{exportResult.FileExtension}";
+        var base64Content = Convert.ToBase64String(exportResult.Content);
+
+        await Js.InvokeVoidAsync(
+            "kineticReports.downloadFromBase64",
+            fileName,
+            exportResult.MimeType,
+            base64Content);
+
+        var trace = ReportRenderService.GetLatestPluginTrace().ToList();
+        trace.Add($"[Download] {fileName} ({exportResult.MimeType})");
+        _pluginTrace = trace;
+        _lastExportStatus =
+            $"Downloaded {fileName} ({exportResult.Content.Length} bytes, {exportResult.MimeType})";
+    }
+
+    private void RefreshAvailableFormats()
+    {
+        _availableFormats = ReportRenderService.GetAvailableExportFormats();
+        if (_availableFormats.Count == 0)
+        {
+            _availableFormats =
+            [
+                new ExportFormatDescriptor("html", "HTML", "text/html", "html")
+            ];
+        }
+
+        if (!_availableFormats.Any(f => string.Equals(f.FormatId, _selectedExportFormat, StringComparison.OrdinalIgnoreCase)))
+        {
+            _selectedExportFormat = _availableFormats[0].FormatId;
+        }
     }
 }

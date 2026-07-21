@@ -12,8 +12,11 @@ This is the fastest way to decide where to extend KineticReports.
 | Transform report bands before layout | `IReportBandsPostProcessorPlugin` | Plugin load | Runs after `IReportBuilder.Build(...)`, ordered by `Order` then `Id` |
 | Change page sizing/margins behavior | `LayoutOptions` or custom `ILayoutEngine` | App startup | Respect DIP units |
 | Add new render output (PNG/PDF/etc.) | `IRenderer` | App startup | Consume immutable `ReportLayout` only |
-| Add new export format | Exporter contract + implementation | App startup | No layout logic in exporter |
+| Add new export format | `IReportLayoutExporter` | App startup | Register one or more exporters in `IReportLayoutExporterRegistry`; formats appear in export discovery |
+| Contribute discoverable export formats | `IExportFormatRegistryPlugin` | Plugin load | Adds format descriptors to host registry, ordered by `Order` then `Id` |
+| Negotiate requested export format | `IExportNegotiationPlugin` | Plugin load | Maps requests to a final format deterministically |
 | Transform exported HTML deterministically | `IHtmlReportPostProcessorPlugin` | Plugin load | Runs after HTML export, ordered by `Order` then `Id` |
+| Transform exported artifact bytes | `IExportArtifactPostProcessorPlugin` | Plugin load | Runs after exporter output, ordered by `Order` then `Id` |
 | Add optional runtime feature package | `IPlugin` | Plugin manager | Package extension as DLL plugin |
 
 ## Lifecycle Boundaries
@@ -26,7 +29,8 @@ flowchart TB
 	D --> E[Layout Engine]
 	E --> F[ReportLayout]
 	F --> G[Renderer/Exporter]
-	G --> H[HTML Post-Processor Plugins]
+	G --> H[Artifact Post-Processor Plugins]
+	H --> I[HTML Post-Processor Plugins]
 ```
 
 - Anything before `ReportLayout` can shape content.

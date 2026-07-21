@@ -23,7 +23,7 @@ This page documents key Core contracts and base abstractions.
 
 | Type | Kind | Purpose | Key Members |
 |---|---|---|---|
-| `LayoutElement` | abstract class | Base for all layout elements | `Id`, `Style`, `Bounds`, `DesiredSize`, `Measure`, `Arrange` |
+| `LayoutElement` | abstract class | Base for all layout elements | `Id`, `Style`, `Bounds`, `DesiredSize`, `LayoutSize`, `Arrange` |
 
 ## Layout Element Types
 

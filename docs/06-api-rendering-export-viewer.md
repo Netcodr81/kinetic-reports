@@ -6,7 +6,7 @@
 |---|---|---|---|
 | `IRenderer` | interface | Convert `ReportLayout` into render output (PDF/PNG/etc.) | `RenderAsync(...)` |
 | `IGraphicsContext` | interface | Backend-agnostic drawing primitives | `FillRectangle`, `DrawText`, `DrawImage`, etc. |
-| `LayoutTreeRenderer` | class | Traverses tree and issues graphics calls | `Render(...)` |
+| `ReportLayoutRenderer` | class | Traverses `ReportLayout` and issues graphics calls | `Render(...)` |
 
 ## Rendering Implementations
 
@@ -21,6 +21,8 @@
 | Type | Kind | Purpose | Methods |
 |---|---|---|---|
 | `IHtmlExporter` | interface | Export `ReportLayout` as HTML | `ExportAsync(ReportLayout, Stream, CancellationToken)` |
+| `IReportLayoutExporter` | interface | Generic layout exporter contract for one format | `Format`, `ExportAsync(ReportLayout, CancellationToken)` |
+| `IReportLayoutExporterRegistry` | interface | Resolve registered exporters by format ID | `GetAvailableFormats()`, `TryGetExporter(...)` |
 
 ## Export Implementations
 
@@ -36,6 +38,9 @@
 | `IPlugin` | interface | Plugin lifecycle + metadata | `InitializeAsync`, `UnloadAsync`, metadata props |
 | `IPluginManager` | interface | Discover/load/unload plugins | `DiscoverAndLoadPluginsAsync`, `LoadPluginAsync`, `UnloadPluginAsync` |
 | `PluginBase` | abstract class | Common lifecycle behavior | `OnInitializeAsync`, `OnUnloadAsync` |
+| `IExportFormatRegistryPlugin` | interface | Contribute discoverable format descriptors | `GetFormats()`, `Order` |
+| `IExportNegotiationPlugin` | interface | Negotiate requested format to final format | `Negotiate(...)`, `Order` |
+| `IExportArtifactPostProcessorPlugin` | interface | Post-process artifact bytes after export | `ProcessArtifactAsync(...)`, `Order` |
 
 ## Viewer Contracts
 

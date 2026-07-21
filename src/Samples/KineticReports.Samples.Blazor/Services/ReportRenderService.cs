@@ -1,10 +1,8 @@
 namespace KineticReports.Samples.Blazor.Services;
 
 using KineticReports.Core.Definition;
-using KineticReports.Core.Layout;
 using KineticReports.Core.Typography;
 using KineticReports.Engine;
-using KineticReports.Export.Html;
 using KineticReports.Layout;
 using KineticReports.Plugins;
 
@@ -14,11 +12,25 @@ using KineticReports.Plugins;
 public interface IReportRenderService
 {
     /// <summary>
+    /// Gets currently available export formats, including plugin-contributed formats.
+    /// </summary>
+    IReadOnlyList<ExportFormatDescriptor> GetAvailableExportFormats();
+
+    /// <summary>
     /// Executes a report and exports it as HTML.
     /// </summary>
     Task<string> RenderReportAsHtmlAsync(
         ReportDefinition definition,
-        IReadOnlyDictionary<string, object?> parameters = null!,
+        IReadOnlyDictionary<string, object?>? parameters = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Executes a report and exports it using format registry and negotiation seams.
+    /// </summary>
+    Task<ReportExportResult> ExportReportAsync(
+        ReportDefinition definition,
+        string requestedFormat,
+        IReadOnlyDictionary<string, object?>? parameters = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -28,13 +40,22 @@ public interface IReportRenderService
 }
 
 /// <summary>
+/// Represents a completed export artifact.
+/// </summary>
+public sealed record ReportExportResult(
+    string FinalFormatId,
+    string MimeType,
+    string FileExtension,
+    byte[] Content);
+
+/// <summary>
 /// Default implementation of <see cref="IReportRenderService"/>.
 /// </summary>
 public sealed class ReportRenderService : IReportRenderService
 {
     private readonly IReportEngine _engine;
     private readonly IFontMetrics _fontMetrics;
-    private readonly IHtmlExporter _exporter;
+    private readonly IReportLayoutExporterRegistry _exporterRegistry;
     private readonly IPluginService _pluginService;
     private readonly IPluginExecutionTraceStore _traceStore;
 
@@ -44,13 +65,13 @@ public sealed class ReportRenderService : IReportRenderService
     public ReportRenderService(
         IReportEngine engine,
         IFontMetrics fontMetrics,
-        IHtmlExporter exporter,
+        IReportLayoutExporterRegistry exporterRegistry,
         IPluginService pluginService,
         IPluginExecutionTraceStore traceStore)
     {
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
         _fontMetrics = fontMetrics ?? throw new ArgumentNullException(nameof(fontMetrics));
-        _exporter = exporter ?? throw new ArgumentNullException(nameof(exporter));
+        _exporterRegistry = exporterRegistry ?? throw new ArgumentNullException(nameof(exporterRegistry));
         _pluginService = pluginService ?? throw new ArgumentNullException(nameof(pluginService));
         _traceStore = traceStore ?? throw new ArgumentNullException(nameof(traceStore));
     }
@@ -60,10 +81,38 @@ public sealed class ReportRenderService : IReportRenderService
     /// </summary>
     public async Task<string> RenderReportAsHtmlAsync(
         ReportDefinition definition,
-        IReadOnlyDictionary<string, object?> parameters = null!,
+        IReadOnlyDictionary<string, object?>? parameters = null,
+        CancellationToken cancellationToken = default)
+    {
+        var exportResult = await ExportReportAsync(
+            definition,
+            "html",
+            parameters,
+            cancellationToken).ConfigureAwait(false);
+
+        return System.Text.Encoding.UTF8.GetString(exportResult.Content);
+    }
+
+    /// <inheritdoc/>
+    public IReadOnlyList<ExportFormatDescriptor> GetAvailableExportFormats()
+    {
+        return ExportSeamPipeline.BuildRegistry(
+            _exporterRegistry.GetAvailableFormats(),
+            _pluginService.LoadedPlugins);
+    }
+
+    /// <inheritdoc/>
+    public async Task<ReportExportResult> ExportReportAsync(
+        ReportDefinition definition,
+        string requestedFormat,
+        IReadOnlyDictionary<string, object?>? parameters = null,
         CancellationToken cancellationToken = default)
     {
         if (definition == null) throw new ArgumentNullException(nameof(definition));
+        if (string.IsNullOrWhiteSpace(requestedFormat))
+        {
+            throw new ArgumentException("Requested format cannot be null or empty.", nameof(requestedFormat));
+        }
 
         _traceStore.Clear();
         _traceStore.Add($"[Render] Starting report '{definition.Id}'");
@@ -71,48 +120,88 @@ public sealed class ReportRenderService : IReportRenderService
         try
         {
             var reportParameters = parameters ?? new Dictionary<string, object?>();
+            var availableFormats = GetAvailableExportFormats();
+
+            _traceStore.Add($"[Export] Registry contains: {string.Join(", ", availableFormats.Select(f => f.FormatId))}");
+
+            var finalFormat = ExportSeamPipeline.Negotiate(
+                requestedFormat,
+                availableFormats,
+                _pluginService.LoadedPlugins);
+
+            _traceStore.Add($"[Export] Negotiated format: '{requestedFormat}' -> '{finalFormat}'");
+
+            var selectedDescriptor = availableFormats.FirstOrDefault(
+                f => string.Equals(f.FormatId, finalFormat, StringComparison.OrdinalIgnoreCase));
+
+            if (selectedDescriptor is null)
+            {
+                throw new InvalidOperationException(
+                    $"Requested export format '{finalFormat}' is not available.");
+            }
+
             var context = new LayoutSizingContext(_fontMetrics);
             var layoutOptions = new LayoutOptions();
 
-            var ReportLayout = await _engine.RunAsync(
+            var reportLayout = await _engine.RunAsync(
                 definition,
                 reportParameters,
                 context,
                 layoutOptions,
                 cancellationToken).ConfigureAwait(false);
 
-            _traceStore.Add($"[Render] Engine produced {ReportLayout.PageCount} page(s)");
+            _traceStore.Add($"[Render] Engine produced {reportLayout.PageCount} page(s)");
 
-            using var stream = new MemoryStream();
-            await _exporter.ExportAsync(ReportLayout, stream, cancellationToken).ConfigureAwait(false);
-
-            stream.Position = 0;
-            using var reader = new StreamReader(stream);
-            var html = await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
-
-            _traceStore.Add($"[Html] Exported HTML length: {html.Length}");
-
-            // Deterministic plugin seam: post-process exported HTML in explicit order.
-            var postProcessors = _pluginService.LoadedPlugins
-                .OfType<IHtmlReportPostProcessorPlugin>()
-                .OrderBy(p => p.Order)
-                .ThenBy(p => p.Id, StringComparer.Ordinal);
-
-            foreach (var postProcessor in postProcessors)
+            if (!_exporterRegistry.TryGetExporter(selectedDescriptor.FormatId, out var exporter) || exporter is null)
             {
-                var before = html.Length;
-                html = await postProcessor.ProcessHtmlAsync(html, cancellationToken).ConfigureAwait(false);
-                _traceStore.Add($"[Html] {postProcessor.Id} (Order {postProcessor.Order}) transformed {before} -> {html.Length} chars");
+                throw new NotSupportedException(
+                    $"No exporter registered for format '{selectedDescriptor.FormatId}'.");
             }
+
+            var artifact = await exporter.ExportAsync(reportLayout, cancellationToken).ConfigureAwait(false);
+
+            if (string.Equals(selectedDescriptor.MimeType, "text/html", StringComparison.OrdinalIgnoreCase))
+            {
+                var html = System.Text.Encoding.UTF8.GetString(artifact);
+                _traceStore.Add($"[Html] Exported HTML length: {html.Length}");
+
+                // Deterministic plugin seam: post-process exported HTML in explicit order.
+                var postProcessors = _pluginService.LoadedPlugins
+                    .OfType<IHtmlReportPostProcessorPlugin>()
+                    .OrderBy(p => p.Order)
+                    .ThenBy(p => p.Id, StringComparer.Ordinal);
+
+                foreach (var postProcessor in postProcessors)
+                {
+                    var before = html.Length;
+                    html = await postProcessor.ProcessHtmlAsync(html, cancellationToken).ConfigureAwait(false);
+                    _traceStore.Add($"[Html] {postProcessor.Id} (Order {postProcessor.Order}) transformed {before} -> {html.Length} chars");
+                }
+
+                artifact = System.Text.Encoding.UTF8.GetBytes(html);
+            }
+
+            var preArtifactLength = artifact.Length;
+            artifact = await ExportSeamPipeline.PostProcessArtifactAsync(
+                selectedDescriptor.FormatId,
+                artifact,
+                _pluginService.LoadedPlugins,
+                cancellationToken).ConfigureAwait(false);
+
+            _traceStore.Add($"[Artifact] Post-process transformed {preArtifactLength} -> {artifact.Length} bytes");
 
             _traceStore.Add("[Render] Completed successfully");
 
-            return html;
+            return new ReportExportResult(
+                selectedDescriptor.FormatId,
+                selectedDescriptor.MimeType,
+                selectedDescriptor.FileExtension,
+                artifact);
         }
         catch (Exception ex)
         {
             _traceStore.Add($"[Render] Failed: {ex.GetType().Name} - {ex.Message}");
-            return $@"
+            var errorHtml = $@"
                 <div class='alert alert-danger' role='alert'>
                     <h4 class='alert-heading'>Report Rendering Error</h4>
                     <p><strong>Error:</strong> {System.Net.WebUtility.HtmlEncode(ex.Message)}</p>
@@ -121,6 +210,12 @@ public sealed class ReportRenderService : IReportRenderService
                         <pre style='font-size: 0.875rem; overflow-x: auto;'>{System.Net.WebUtility.HtmlEncode(ex.StackTrace)}</pre>
                     </details>
                 </div>";
+
+            return new ReportExportResult(
+                "html",
+                "text/html",
+                "html",
+                System.Text.Encoding.UTF8.GetBytes(errorHtml));
         }
     }
 

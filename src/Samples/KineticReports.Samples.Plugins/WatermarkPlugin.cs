@@ -8,7 +8,13 @@ using KineticReports.Plugins;
 /// Sample plugin demonstrating custom watermark rendering.
 /// Shows how to create a simple plugin that extends report rendering capabilities.
 /// </summary>
-public sealed class WatermarkPlugin : PluginBase, IHtmlReportPostProcessorPlugin, IReportBandsPostProcessorPlugin
+public sealed class WatermarkPlugin :
+    PluginBase,
+    IHtmlReportPostProcessorPlugin,
+    IReportBandsPostProcessorPlugin,
+    IExportFormatRegistryPlugin,
+    IExportNegotiationPlugin,
+    IExportArtifactPostProcessorPlugin
 {
     public override string Id => "kinetic.sample.watermark";
     public override string Name => "Watermark Plugin";
@@ -16,7 +22,9 @@ public sealed class WatermarkPlugin : PluginBase, IHtmlReportPostProcessorPlugin
     public override string? Author => "KineticReports Team";
     public override string? Description => "Adds custom watermark rendering to reports";
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets deterministic execution order for all implemented plugin seams.
+    /// </summary>
     public int Order => 100;
 
     /// <inheritdoc/>
@@ -65,6 +73,64 @@ public sealed class WatermarkPlugin : PluginBase, IHtmlReportPostProcessorPlugin
             : withStyle + watermarkDiv;
 
         return ValueTask.FromResult(withWatermark);
+    }
+
+    /// <inheritdoc/>
+    public IReadOnlyList<ExportFormatDescriptor> GetFormats()
+    {
+        return
+        [
+            new ExportFormatDescriptor(
+                "markdown",
+                "Markdown Alias",
+                "text/markdown",
+                "md")
+        ];
+    }
+
+    /// <inheritdoc/>
+    public string? Negotiate(string requestedFormat, IReadOnlyList<ExportFormatDescriptor> availableFormats)
+    {
+        if (string.Equals(requestedFormat, "markdown", StringComparison.OrdinalIgnoreCase))
+        {
+            // Alias to the concrete markdown exporter format ID.
+            return "md";
+        }
+
+        return null;
+    }
+
+    /// <inheritdoc/>
+    public Task<byte[]> ProcessArtifactAsync(
+        string formatId,
+        byte[] artifact,
+        CancellationToken cancellationToken = default)
+    {
+        if (!string.Equals(formatId, "html", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!string.Equals(formatId, "md", StringComparison.OrdinalIgnoreCase))
+            {
+                return Task.FromResult(artifact);
+            }
+
+            var markdown = System.Text.Encoding.UTF8.GetString(artifact);
+            if (markdown.Contains("processed-by:kinetic.sample.watermark", StringComparison.Ordinal))
+            {
+                return Task.FromResult(artifact);
+            }
+
+            markdown += "\n\n<!-- processed-by:kinetic.sample.watermark -->";
+            return Task.FromResult(System.Text.Encoding.UTF8.GetBytes(markdown));
+        }
+
+        var html = System.Text.Encoding.UTF8.GetString(artifact);
+        if (html.Contains("<!-- processed-by:kinetic.sample.watermark -->", StringComparison.Ordinal))
+        {
+            return Task.FromResult(artifact);
+        }
+
+        html += "\n<!-- processed-by:kinetic.sample.watermark -->";
+        return Task.FromResult(System.Text.Encoding.UTF8.GetBytes(html));
     }
 
     private static BandElement CreateFooterBand()

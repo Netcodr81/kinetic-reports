@@ -30,7 +30,7 @@ public class CssBuilderTests
         var style = new ResolvedStyle { FontFamily = "Arial", FontSize = 14f };
         var css = BuildStyle(style);
 
-        css.ShouldContain("font-size: 14.0pt;");
+        css.ShouldContain("font-size: 14.0px;");
     }
 
     [Fact]

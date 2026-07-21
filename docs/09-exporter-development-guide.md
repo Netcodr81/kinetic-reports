@@ -11,9 +11,10 @@ Goal: Convert `ReportLayout` to a new output format.
 
 ## Step 2: Define exporter contract
 
-Use an interface similar to `IHtmlExporter` with:
+Implement `IReportLayoutExporter` with:
 
-- `ExportAsync(ReportLayout reportLayout, Stream output, CancellationToken ct)`
+- `Format` (an `ExportFormatDescriptor`)
+- `ExportAsync(ReportLayout reportLayout, CancellationToken ct)` returning bytes
 
 ## Step 3: Traverse the report layout
 
@@ -36,7 +37,12 @@ Dispatch on element types (`TextElement`, `ImageElement`, `TableElement`, etc.).
 
 ## Step 5: Register in DI
 
-Add your exporter service in host app startup.
+Register your exporter in host app startup so `IReportLayoutExporterRegistry` can resolve it.
+
+Example:
+
+- Register concrete exporter implementation as `IReportLayoutExporter`.
+- Ensure the host registers `IReportLayoutExporterRegistry`.
 
 ## Reference: Exporter Responsibilities
 
