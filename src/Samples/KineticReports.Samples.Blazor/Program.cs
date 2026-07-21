@@ -37,7 +37,7 @@ builder.Services.AddScoped<IFontMetrics, SkiaFontMetrics>();
 // Register report engine dependencies
 builder.Services.AddScoped<IExpressionEvaluator, LiteralEvaluator>();
 builder.Services.AddScoped<IDataResolver, SampleDataResolver>();
-builder.Services.AddScoped<ILogicalTreeBuilder, SampleLogicalTreeBuilder>();
+builder.Services.AddScoped<IReportBuilder, SampleReportBuilder>();
 builder.Services.AddScoped<ILayoutEngine, LayoutEngine>();
 
 // Register report engine and exporters

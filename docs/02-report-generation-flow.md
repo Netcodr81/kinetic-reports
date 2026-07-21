@@ -10,7 +10,7 @@ sequenceDiagram
 	participant Engine as IReportEngine
 	participant Resolver as IDataResolver
 	participant Eval as IExpressionEvaluator
-	participant Builder as ILogicalTreeBuilder
+	participant Builder as IReportBuilder
 	participant Layout as ILayoutEngine
 	participant Export as Exporter/Renderer
 
@@ -35,9 +35,9 @@ sequenceDiagram
 - For each source, `IDataResolver.ResolveAsync(...)` is called.
 - Returned rows are stored into `DataContext` keyed by data-source ID.
 
-## 2) Logical Tree Build
+## 2) Report Bands Build
 
-- `ILogicalTreeBuilder.Build(dataContext, evaluator)` transforms data into logical bands.
+- `IReportBuilder.Build(dataContext, evaluator)` transforms data into ordered report bands.
 - This is where row iteration and expression-aware content shaping happen.
 
 ## 3) Layout
@@ -58,7 +58,7 @@ Result is an immutable `ReportLayout`.
 ## Where Bugs Usually Happen
 
 1. Data resolver returns no rows.
-2. Logical tree builder returns empty bands.
+2. Report Builder returns empty bands.
 3. Unit mismatch in HTML/CSS sizing.
 4. Incorrect coordinate model for nested elements.
 

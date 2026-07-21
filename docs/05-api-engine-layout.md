@@ -9,7 +9,7 @@ This page documents how orchestration and layout contracts work.
 | `IReportEngine` | Main orchestration entry point | `RunAsync(...)` |
 | `IDataResolver` | Resolves rows for each `DataSourceDefinition` | `ResolveAsync(...)` |
 | `IExpressionEvaluator` | Evaluates expression strings | `Evaluate(expression, context)` |
-| `ILogicalTreeBuilder` | Builds ordered logical bands from resolved data | `Build(dataContext, evaluator)` |
+| `IReportBuilder` | Builds ordered report bands from resolved data | `Build(dataContext, evaluator)` |
 
 ## Engine Runtime Types
 
@@ -51,5 +51,5 @@ flowchart LR
 
 ## Junior Tips
 
-- Empty page usually means empty bands from `ILogicalTreeBuilder`.
+- Empty page usually means empty bands from `IReportBuilder`.
 - Data exists but page is empty usually means resolver/tree-builder mismatch on data-source IDs.

@@ -4,7 +4,7 @@
 |---|---|
 | `ReportDefinition` | Source definition of a report before execution |
 | `DataContext` | Resolved data rows for all data sources in one run |
-| Logical Tree | Ordered report content (`BandElement` list) before physical layout |
+| Report Bands | Ordered report content (`BandElement` list) before physical layout |
 | Measure | Stage that computes desired sizes |
 | Arrange | Stage that assigns final bounds |
 | Pagination | Stage that splits arranged content across pages |

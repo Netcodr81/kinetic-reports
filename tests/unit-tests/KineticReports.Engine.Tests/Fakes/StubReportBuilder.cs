@@ -7,15 +7,15 @@ using KineticReports.Engine.Data;
 using KineticReports.Engine.Expressions;
 
 /// <summary>
-/// A configurable <see cref="ILogicalTreeBuilder"/> stub that returns a pre-set band list.
+/// A configurable <see cref="IReportBuilder"/> stub that returns a pre-set band list.
 /// </summary>
-public sealed class StubLogicalTreeBuilder : ILogicalTreeBuilder
+public sealed class StubReportBuilder : IReportBuilder
 {
     private static readonly ResolvedStyle DefaultStyle = new() { FontFamily = "Arial", FontSize = 12f };
 
     private readonly IReadOnlyList<BandElement> _bands;
 
-    public StubLogicalTreeBuilder(IReadOnlyList<BandElement>? bands = null)
+    public StubReportBuilder(IReadOnlyList<BandElement>? bands = null)
     {
         _bands = bands ?? [MakeBand()];
     }

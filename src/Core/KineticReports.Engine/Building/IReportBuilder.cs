@@ -5,12 +5,12 @@ using KineticReports.Engine.Data;
 using KineticReports.Engine.Expressions;
 
 /// <summary>
-/// Builds the logical element tree from a data context and an expression evaluator.
+/// Builds report bands from a data context and an expression evaluator.
 /// Implementations are responsible for translating the report definition, iterating
 /// data rows, evaluating field expressions, and producing ordered <see cref="BandElement"/>
 /// objects ready for the layout engine.
 /// </summary>
-public interface ILogicalTreeBuilder
+public interface IReportBuilder
 {
     /// <summary>
     /// Constructs the ordered list of bands that represent the full data-bound

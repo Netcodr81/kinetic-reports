@@ -8,9 +8,9 @@ using KineticReports.Engine.Data;
 using KineticReports.Engine.Expressions;
 
 /// <summary>
-/// Builds a simple, data-backed logical tree for the Blazor sample reports.
+/// Builds simple, data-backed report bands for the Blazor sample reports.
 /// </summary>
-internal sealed class SampleLogicalTreeBuilder : ILogicalTreeBuilder
+internal sealed class SampleReportBuilder : IReportBuilder
 {
     private static readonly ResolvedStyle HeaderTextStyle = new()
     {

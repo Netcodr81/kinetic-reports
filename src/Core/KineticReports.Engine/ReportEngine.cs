@@ -12,7 +12,7 @@ using KineticReports.Layout;
 /// Runs the following pipeline in order:
 /// <list type="number">
 ///   <item><description>Resolve all data sources via <see cref="IDataResolver"/>.</description></item>
-///   <item><description>Build the logical element tree via <see cref="ILogicalTreeBuilder"/>.</description></item>
+///   <item><description>Build report bands via <see cref="IReportBuilder"/>.</description></item>
 ///   <item><description>Run the layout pipeline via <see cref="ILayoutEngine"/>.</description></item>
 /// </list>
 /// </summary>
@@ -20,7 +20,7 @@ public sealed class ReportEngine : IReportEngine
 {
     private readonly IDataResolver _dataResolver;
     private readonly IExpressionEvaluator _expressionEvaluator;
-    private readonly ILogicalTreeBuilder _treeBuilder;
+    private readonly IReportBuilder _bandsBuilder;
     private readonly ILayoutEngine _layoutEngine;
 
     /// <summary>
@@ -28,17 +28,17 @@ public sealed class ReportEngine : IReportEngine
     /// </summary>
     /// <param name="dataResolver">Resolves data sources into typed row collections.</param>
     /// <param name="expressionEvaluator">Evaluates field-reference expressions against data rows.</param>
-    /// <param name="treeBuilder">Builds the band element tree from the definition and data.</param>
+    /// <param name="bandsBuilder">Builds the ordered report bands from the definition and data.</param>
     /// <param name="layoutEngine">Runs Measure, Arrange, and Pagination passes.</param>
     public ReportEngine(
         IDataResolver dataResolver,
         IExpressionEvaluator expressionEvaluator,
-        ILogicalTreeBuilder treeBuilder,
+        IReportBuilder bandsBuilder,
         ILayoutEngine layoutEngine)
     {
         _dataResolver = dataResolver;
         _expressionEvaluator = expressionEvaluator;
-        _treeBuilder = treeBuilder;
+        _bandsBuilder = bandsBuilder;
         _layoutEngine = layoutEngine;
     }
 
@@ -67,12 +67,12 @@ public sealed class ReportEngine : IReportEngine
 
         var dataContext = new DataContext { DataSources = resolvedSources };
 
-        // 2. Build the logical element tree (data binding + expression evaluation).
-        var bands = _treeBuilder.Build(dataContext, _expressionEvaluator);
+        // 2. Build report bands (data binding + expression evaluation).
+        var bands = _bandsBuilder.Build(dataContext, _expressionEvaluator);
 
         // 3. Run the layout pipeline: Measure → Arrange → Pagination.
-        var ReportLayout = _layoutEngine.Layout(bands, options, measureContext);
+        var reportLayout = _layoutEngine.Layout(bands, options, measureContext);
 
-        return ReportLayout;
+        return reportLayout;
     }
 }

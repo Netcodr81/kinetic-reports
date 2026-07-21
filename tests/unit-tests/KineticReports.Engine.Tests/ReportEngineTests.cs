@@ -22,7 +22,7 @@ public class ReportEngineTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public async Task RunAsync_WithNoDataSources_ReturnsLayoutTree()
+    public async Task RunAsync_WithNoDataSources_ReturnsReportLayout()
     {
         var sut = BuildEngine();
         var tree = await sut.RunAsync(SimpleDefinition, new Dictionary<string, object?>(), _measureContext, _options);
@@ -99,12 +99,12 @@ public class ReportEngineTests
 
     private static ReportEngine BuildEngine(
         StubDataResolver? resolver = null,
-        StubLogicalTreeBuilder? treeBuilder = null)
+        StubReportBuilder? bandsBuilder = null)
     {
         return new ReportEngine(
             resolver ?? new StubDataResolver(),
             new LiteralEvaluator(),
-            treeBuilder ?? new StubLogicalTreeBuilder(),
+            bandsBuilder ?? new StubReportBuilder(),
             new KineticReports.Layout.LayoutEngine());
     }
 

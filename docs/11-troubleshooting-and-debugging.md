@@ -5,7 +5,7 @@
 Check in this order:
 
 1. Does resolver return rows?
-2. Does logical tree builder create bands?
+2. Does Report Builder create bands?
 3. Does report layout contain pages and children?
 4. Does exporter/renderer map styles/coordinates correctly?
 

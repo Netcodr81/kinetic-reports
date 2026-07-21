@@ -63,4 +63,4 @@ This page documents key Core contracts and base abstractions.
 ## Junior Tips
 
 - If an element appears but text is wrong, check `IFontMetrics` + `ResolvedStyle` first.
-- If an element is missing, verify it exists in logical tree before checking exporter/renderer.
+- If an element is missing, verify it exists in report bands before checking layout/exporter/renderer.
