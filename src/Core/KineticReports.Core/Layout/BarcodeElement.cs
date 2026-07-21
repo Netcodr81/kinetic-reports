@@ -25,7 +25,7 @@ public sealed class BarcodeElement : LayoutElement
     public bool ShowText { get; init; } = true;
 
     /// <inheritdoc/>
-    public override void Measure(Size availableSize, IMeasureContext context)
+    public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
     {
         DesiredSize = availableSize;
     }

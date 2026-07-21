@@ -34,7 +34,7 @@ public sealed class ReportExecutor : IReportExecutor
         if (definition == null) throw new ArgumentNullException(nameof(definition));
         if (parameters == null) throw new ArgumentNullException(nameof(parameters));
 
-        var context = new MeasureContext(_fontMetrics);
+        var context = new LayoutSizingContext(_fontMetrics);
         var layoutOptions = new LayoutOptions();
 
         return await _engine.RunAsync(definition, parameters, context, layoutOptions, ct);

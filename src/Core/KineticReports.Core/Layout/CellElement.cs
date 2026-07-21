@@ -28,13 +28,13 @@ public sealed class CellElement : LayoutElement
     public IReadOnlyList<LayoutElement> Children { get; init; } = [];
 
     /// <inheritdoc/>
-    public override void Measure(Size availableSize, IMeasureContext context)
+    public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
     {
         float totalHeight = 0f;
 
         foreach (var child in Children)
         {
-            child.Measure(availableSize, context);
+            child.LayoutSize(availableSize, context);
             totalHeight += child.DesiredSize.Height;
         }
 

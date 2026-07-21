@@ -22,7 +22,7 @@ public abstract class LayoutElement
     public Rect Bounds { get; protected set; }
 
     /// <summary>
-    /// Gets the desired size as computed by the Measure pass.
+    /// Gets the desired size as computed by the LayoutSizing pass.
     /// This value is set by <see cref="Measure"/> and consumed by the parent's Arrange pass.
     /// </summary>
     public Size DesiredSize { get; protected set; }
@@ -31,7 +31,7 @@ public abstract class LayoutElement
     public abstract LayoutElementType ElementType { get; }
 
     /// <summary>
-    /// Performs the Measure pass, computing <see cref="DesiredSize"/> given the
+    /// Performs the LayoutSizing pass, computing <see cref="DesiredSize"/> given the
     /// <paramref name="availableSize"/> constraint.
     /// </summary>
     /// <param name="availableSize">
@@ -39,7 +39,7 @@ public abstract class LayoutElement
     /// unconstrained measurement.
     /// </param>
     /// <param name="context">Font metrics and image resolution services.</param>
-    public abstract void Measure(Size availableSize, IMeasureContext context);
+    public abstract void LayoutSize(Size availableSize, ILayoutSizingContext context);
 
     /// <summary>
     /// Performs the Arrange pass, assigning the final <see cref="Bounds"/> within

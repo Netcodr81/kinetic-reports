@@ -27,7 +27,7 @@ KineticReports is a deterministic reporting engine for .NET 10.
 
 - `src/Core/KineticReports.Core` - domain types and contracts
 - `src/Core/KineticReports.Engine` - orchestration pipeline
-- `src/Core/KineticReports.Layout` - measure/arrange/pagination
+- `src/Core/KineticReports.Layout` - LayoutSizing/Arrange/Pagination
 - `src/Rendering/*` - renderer pipeline
 - `src/Export/*` - exporters
 - `src/Plugins/*` - plugin infrastructure

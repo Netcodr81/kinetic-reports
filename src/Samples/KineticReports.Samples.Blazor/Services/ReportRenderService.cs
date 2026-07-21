@@ -56,7 +56,7 @@ public sealed class ReportRenderService : IReportRenderService
         try
         {
             var reportParameters = parameters ?? new Dictionary<string, object?>();
-            var context = new MeasureContext(_fontMetrics);
+            var context = new LayoutSizingContext(_fontMetrics);
             var layoutOptions = new LayoutOptions();
 
             var ReportLayout = await _engine.RunAsync(

@@ -25,7 +25,7 @@ public sealed class ChartElement : LayoutElement
     public object? ChartData { get; init; }
 
     /// <inheritdoc/>
-    public override void Measure(Size availableSize, IMeasureContext context)
+    public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
     {
         DesiredSize = availableSize;
     }

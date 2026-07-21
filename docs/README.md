@@ -35,7 +35,7 @@ flowchart LR
 	A[ReportDefinition] --> B[Data Resolution]
 	B --> C[Expression Evaluation]
 	C --> D[Report Bands Build]
-	D --> E[Measure]
+	D --> E[LayoutSizing]
 	E --> F[Arrange]
 	F --> G[Pagination]
 	G --> H[ReportLayout]

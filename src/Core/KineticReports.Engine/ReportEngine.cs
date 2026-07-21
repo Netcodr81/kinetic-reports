@@ -29,7 +29,7 @@ public sealed class ReportEngine : IReportEngine
     /// <param name="dataResolver">Resolves data sources into typed row collections.</param>
     /// <param name="expressionEvaluator">Evaluates field-reference expressions against data rows.</param>
     /// <param name="bandsBuilder">Builds the ordered report bands from the definition and data.</param>
-    /// <param name="layoutEngine">Runs Measure, Arrange, and Pagination passes.</param>
+    /// <param name="layoutEngine">Runs LayoutSizing, Arrange, and Pagination passes.</param>
     public ReportEngine(
         IDataResolver dataResolver,
         IExpressionEvaluator expressionEvaluator,
@@ -46,7 +46,7 @@ public sealed class ReportEngine : IReportEngine
     public async Task<ReportLayout> RunAsync(
         ReportDefinition definition,
         IReadOnlyDictionary<string, object?> parameters,
-        IMeasureContext measureContext,
+        ILayoutSizingContext layoutSizingContext,
         LayoutOptions? layoutOptions = null,
         CancellationToken cancellationToken = default)
     {
@@ -70,8 +70,8 @@ public sealed class ReportEngine : IReportEngine
         // 2. Build report bands (data binding + expression evaluation).
         var bands = _bandsBuilder.Build(dataContext, _expressionEvaluator);
 
-        // 3. Run the layout pipeline: Measure → Arrange → Pagination.
-        var reportLayout = _layoutEngine.Layout(bands, options, measureContext);
+        // 3. Run the layout pipeline: LayoutSizing → Arrange → Pagination.
+        var reportLayout = _layoutEngine.Layout(bands, options, layoutSizingContext);
 
         return reportLayout;
     }

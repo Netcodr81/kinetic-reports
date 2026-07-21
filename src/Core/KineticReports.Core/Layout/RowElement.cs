@@ -35,13 +35,13 @@ public sealed class RowElement : LayoutElement
     public IReadOnlyList<CellElement> Cells { get; init; } = [];
 
     /// <inheritdoc/>
-    public override void Measure(Size availableSize, IMeasureContext context)
+    public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
     {
         float maxHeight = 0f;
 
         foreach (var cell in Cells)
         {
-            cell.Measure(availableSize, context);
+            cell.LayoutSize(availableSize, context);
             maxHeight = Math.Max(maxHeight, cell.DesiredSize.Height);
         }
 

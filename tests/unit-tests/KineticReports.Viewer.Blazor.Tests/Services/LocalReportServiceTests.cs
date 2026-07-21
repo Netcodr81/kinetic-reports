@@ -45,7 +45,7 @@ public class LocalReportServiceTests
         public Task<ReportLayout> RunAsync(
             ReportDefinition definition,
             IReadOnlyDictionary<string, object?> parameters,
-            IMeasureContext measureContext,
+            ILayoutSizingContext layoutSizingContext,
             LayoutOptions? layoutOptions = null,
             CancellationToken cancellationToken = default)
         {

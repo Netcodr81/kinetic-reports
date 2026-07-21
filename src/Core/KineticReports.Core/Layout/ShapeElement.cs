@@ -41,7 +41,7 @@ public sealed class ShapeElement : LayoutElement
     public float StrokeWidth { get; init; } = 1f;
 
     /// <inheritdoc/>
-    public override void Measure(Size availableSize, IMeasureContext context)
+    public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
     {
         DesiredSize = availableSize;
     }

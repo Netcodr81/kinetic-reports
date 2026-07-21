@@ -12,7 +12,7 @@ using KineticReports.Core.Styling;
 internal sealed class PaginationEngine
 {
     /// <summary>
-    /// Runs the full Measure → Arrange → Paginate pipeline and returns the ordered
+    /// Runs the full LayoutSizing → Arrange → Paginate pipeline and returns the ordered
     /// list of pages that form the <see cref="ReportLayout"/>.
     /// </summary>
     /// <param name="bands">All bands, including page-header and page-footer bands.</param>
@@ -22,7 +22,7 @@ internal sealed class PaginationEngine
     internal IReadOnlyList<PageElement> Paginate(
         IReadOnlyList<BandElement> bands,
         LayoutOptions options,
-        IMeasureContext context)
+        ILayoutSizingContext context)
     {
         // Default style used for structural page/section elements created by the engine.
         var engineStyle = new ResolvedStyle { FontFamily = "Arial", FontSize = 12f };
@@ -32,7 +32,7 @@ internal sealed class PaginationEngine
         var pageFooterBands = bands.Where(b => b.Kind == BandKind.PageFooter).ToList();
         var bodyBands = bands.Where(b => b.Kind != BandKind.PageHeader && b.Kind != BandKind.PageFooter).ToList();
 
-        // --- Measure ---
+        // --- LayoutSizing ---
         float contentWidth = options.PageWidth - options.PageMargins.Horizontal;
         var measureSize = new Size(contentWidth, float.PositiveInfinity);
 
@@ -40,7 +40,7 @@ internal sealed class PaginationEngine
         float pageFooterHeight = MeasureBandsVertical(pageFooterBands, measureSize, context);
 
         foreach (var band in bodyBands)
-            band.Measure(measureSize, context);
+            band.LayoutSize(measureSize, context);
 
         // --- Compute available body height ---
         float bodyAreaHeight = options.PageHeight
@@ -94,12 +94,12 @@ internal sealed class PaginationEngine
     // -------------------------------------------------------------------------
 
     private static float MeasureBandsVertical(
-        List<BandElement> bands, Size measureSize, IMeasureContext context)
+        List<BandElement> bands, Size measureSize, ILayoutSizingContext context)
     {
         float total = 0f;
         foreach (var b in bands)
         {
-            b.Measure(measureSize, context);
+            b.LayoutSize(measureSize, context);
             total += b.DesiredSize.Height;
         }
         return total;

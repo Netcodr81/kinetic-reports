@@ -37,7 +37,7 @@ public class HtmlExporterTests
             Style = DefaultStyle,
             Text = "Hello World"
         };
-        textElem.Measure(new Size(200f, 100f), new MeasureContext(new FakeFontMetrics()));
+        textElem.LayoutSize(new Size(200f, 100f), new LayoutSizingContext(new FakeFontMetrics()));
         textElem.Arrange(new Rect(10, 10, 100, 20));
 
         var page = MakePage(1, [textElem]);

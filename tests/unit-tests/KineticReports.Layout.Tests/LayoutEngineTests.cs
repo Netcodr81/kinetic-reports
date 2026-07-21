@@ -7,7 +7,7 @@ using KineticReports.Layout.Tests.Fakes;
 public class LayoutEngineTests
 {
     private static readonly ResolvedStyle DefaultStyle = new() { FontFamily = "Arial", FontSize = 12f };
-    private readonly MeasureContext _context = new(new FakeFontMetrics());
+    private readonly LayoutSizingContext _context = new(new FakeFontMetrics());
     private readonly LayoutOptions _options = new();
     private readonly LayoutEngine _sut = new();
 
@@ -218,7 +218,7 @@ public class LayoutEngineTests
 
         public override LayoutElementType ElementType => LayoutElementType.Container;
 
-        public override void Measure(Size availableSize, IMeasureContext context)
+        public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
             => DesiredSize = new Size(availableSize.Width, _height);
 
         public override void Arrange(Rect finalRect)

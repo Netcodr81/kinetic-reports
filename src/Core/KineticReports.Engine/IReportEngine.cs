@@ -19,7 +19,7 @@ public interface IReportEngine
     /// <paramref name="definition"/>. Pass an empty dictionary when the report
     /// has no parameters.
     /// </param>
-    /// <param name="measureContext">Font metrics and image-resolution services.</param>
+    /// <param name="layoutSizingContext">Font metrics and image-resolution services.</param>
     /// <param name="layoutOptions">
     /// Page layout configuration. Uses <see cref="LayoutOptions"/> defaults
     /// when <see langword="null"/>.
@@ -29,7 +29,7 @@ public interface IReportEngine
     Task<ReportLayout> RunAsync(
         ReportDefinition definition,
         IReadOnlyDictionary<string, object?> parameters,
-        IMeasureContext measureContext,
+        ILayoutSizingContext layoutSizingContext,
         LayoutOptions? layoutOptions = null,
         CancellationToken cancellationToken = default);
 }

@@ -8,7 +8,7 @@ This document maps repository projects to responsibilities.
 |---|---|
 | `KineticReports.Core` | Core domain model, geometry, styling, definition, layout element contracts |
 | `KineticReports.Engine` | Report orchestration pipeline |
-| `KineticReports.Layout` | Measure/Arrange/Pagination implementation |
+| `KineticReports.Layout` | LayoutSizing/Arrange/Pagination implementation |
 | `KineticReports.Rendering` | Backend-agnostic render traversal |
 | `KineticReports.Rendering.Skia` | Skia implementation for rendering and font metrics |
 | `KineticReports.Export.Html` | HTML exporter |

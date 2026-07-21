@@ -30,7 +30,7 @@ public sealed class PageElement : LayoutElement
     public IReadOnlyList<LayoutElement> Children { get; init; } = [];
 
     /// <inheritdoc/>
-    public override void Measure(Size availableSize, IMeasureContext context)
+    public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
     {
         DesiredSize = new Size(PageWidth, PageHeight);
     }

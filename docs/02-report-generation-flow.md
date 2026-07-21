@@ -14,14 +14,14 @@ sequenceDiagram
 	participant Layout as ILayoutEngine
 	participant Export as Exporter/Renderer
 
-	Caller->>Engine: RunAsync(definition, parameters, measureContext, layoutOptions)
+	Caller->>Engine: RunAsync(definition, parameters, LayoutSizingContext, layoutOptions)
 	loop each DataSourceDefinition
 		Engine->>Resolver: ResolveAsync(dataSource, parameters)
 		Resolver-->>Engine: rows
 	end
 	Engine->>Builder: Build(dataContext, evaluator)
 	Builder-->>Engine: bands (BandElement list)
-	Engine->>Layout: Layout(bands, layoutOptions, measureContext)
+	Engine->>Layout: Layout(bands, layoutOptions, LayoutSizingContext)
 	Layout-->>Engine: ReportLayout
 	Engine-->>Caller: ReportLayout
 	Caller->>Export: ExportAsync(ReportLayout, stream)
@@ -42,9 +42,9 @@ sequenceDiagram
 
 ## 3) Layout
 
-`ILayoutEngine` runs Measure → Arrange → Pagination.
+`ILayoutEngine` runs LayoutSizing → Arrange → Pagination.
 
-- **Measure:** each element computes desired size
+- **LayoutSizing pass:** each element computes desired size
 - **Arrange:** each element gets final bounds
 - **Pagination:** content is split into `PageElement`s
 

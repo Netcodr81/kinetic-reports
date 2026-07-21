@@ -5,7 +5,7 @@
 | `ReportDefinition` | Source definition of a report before execution |
 | `DataContext` | Resolved data rows for all data sources in one run |
 | Report Bands | Ordered report content (`BandElement` list) before physical layout |
-| Measure | Stage that computes desired sizes |
+| LayoutSizing | Stage that computes desired sizes |
 | Arrange | Stage that assigns final bounds |
 | Pagination | Stage that splits arranged content across pages |
 | `ReportLayout` | Immutable final page model consumed by output components |

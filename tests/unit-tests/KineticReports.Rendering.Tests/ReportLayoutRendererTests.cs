@@ -215,7 +215,7 @@ public class ReportLayoutRendererTests
             Style = DefaultStyle,
             Text = text
         };
-        elem.Measure(new Size(200f, 100f), _measureContext);
+        elem.LayoutSize(new Size(200f, 100f), _measureContext);
         elem.Arrange(new Rect(0, 0, 200, 15));
         return elem;
     }
@@ -233,8 +233,8 @@ public class ReportLayoutRendererTests
         return shape;
     }
 
-    // Minimal IMeasureContext backed by FakeFontMetrics
-    private sealed class FakeMeasureContext : KineticReports.Core.Layout.IMeasureContext
+    // Minimal ILayoutSizingContext backed by FakeFontMetrics
+    private sealed class FakeMeasureContext : KineticReports.Core.Layout.ILayoutSizingContext
     {
         public KineticReports.Core.Typography.IFontMetrics FontMetrics { get; } = new FakeFontMetrics();
         public Size? ResolveImageSize(string imageKey) => null;

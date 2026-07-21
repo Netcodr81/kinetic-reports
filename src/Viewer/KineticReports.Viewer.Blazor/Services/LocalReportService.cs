@@ -42,7 +42,7 @@ public sealed class LocalReportService : IReportService
 
         try
         {
-            var context = new MeasureContext(_fontMetrics);
+            var context = new LayoutSizingContext(_fontMetrics);
             var layoutOptions = new LayoutOptions();
             return await _engine.RunAsync(definition, parameters, context, layoutOptions, ct);
         }

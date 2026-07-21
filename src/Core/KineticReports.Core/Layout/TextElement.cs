@@ -10,7 +10,7 @@ using KineticReports.Core.Rendering;
 /// </summary>
 public sealed class TextElement : LayoutElement
 {
-    private IMeasureContext? _measureContext;
+    private ILayoutSizingContext? _layoutSizingContext;
 
     /// <inheritdoc/>
     public override LayoutElementType ElementType => LayoutElementType.Text;
@@ -27,9 +27,9 @@ public sealed class TextElement : LayoutElement
     public IReadOnlyList<TextRun> TextRuns { get; private set; } = [];
 
     /// <inheritdoc/>
-    public override void Measure(Size availableSize, IMeasureContext context)
+    public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
     {
-        _measureContext = context;
+        _layoutSizingContext = context;
         DesiredSize = context.FontMetrics.MeasureText(Text, Style, availableSize.Width);
     }
 
@@ -38,10 +38,10 @@ public sealed class TextElement : LayoutElement
     {
         Bounds = finalRect;
 
-        if (_measureContext != null && !string.IsNullOrEmpty(Text))
+        if (_layoutSizingContext != null && !string.IsNullOrEmpty(Text))
         {
-            SetTextRuns(_measureContext.FontMetrics.ShapeText(Text, Style, finalRect));
-            _measureContext = null;
+            SetTextRuns(_layoutSizingContext.FontMetrics.ShapeText(Text, Style, finalRect));
+            _layoutSizingContext = null;
         }
     }
 

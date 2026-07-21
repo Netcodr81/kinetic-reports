@@ -49,7 +49,7 @@ public sealed class TableElement : LayoutElement
     public bool RepeatHeaders { get; init; } = true;
 
     /// <inheritdoc/>
-    public override void Measure(Size availableSize, IMeasureContext context)
+    public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
     {
         // Full table layout is performed by KineticReports.Layout.
         DesiredSize = availableSize;

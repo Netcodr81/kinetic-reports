@@ -12,7 +12,7 @@ public readonly record struct Size(float Width, float Height)
     public static readonly Size Zero = new(0f, 0f);
 
     /// <summary>
-    /// Gets a size with positive-infinity dimensions, used during unconstrained measure passes.
+    /// Gets a size with positive-infinity dimensions, used during unconstrained LayoutSizing passes.
     /// </summary>
     public static readonly Size Infinity = new(float.PositiveInfinity, float.PositiveInfinity);
 

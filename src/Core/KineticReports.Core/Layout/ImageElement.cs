@@ -38,12 +38,13 @@ public sealed class ImageElement : LayoutElement
 
     /// <summary>
     /// Gets the resolved image reference set by the layout engine.
-    /// Populated after <see cref="Measure"/> is called; <see langword="null"/> before then.
+    /// Populated after the LayoutSizing pass (<see cref="Measure"/>) is called;
+    /// <see langword="null"/> before then.
     /// </summary>
     public ImageReference? ImageReference { get; private set; }
 
     /// <inheritdoc/>
-    public override void Measure(Size availableSize, IMeasureContext context)
+    public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
     {
         var intrinsic = context.ResolveImageSize(SourceKey);
         DesiredSize = intrinsic ?? availableSize;

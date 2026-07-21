@@ -16,14 +16,14 @@ public sealed class SectionElement : LayoutElement
     public IReadOnlyList<LayoutElement> Children { get; init; } = [];
 
     /// <inheritdoc/>
-    public override void Measure(Size availableSize, IMeasureContext context)
+    public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
     {
         float maxWidth = 0f;
         float totalHeight = 0f;
 
         foreach (var child in Children)
         {
-            child.Measure(availableSize, context);
+            child.LayoutSize(availableSize, context);
             maxWidth = Math.Max(maxWidth, child.DesiredSize.Width);
             totalHeight += child.DesiredSize.Height;
         }

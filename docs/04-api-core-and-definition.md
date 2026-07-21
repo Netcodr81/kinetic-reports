@@ -14,7 +14,7 @@ This page documents key Core contracts and base abstractions.
 
 | Interface | Purpose | Methods |
 |---|---|---|
-| `IMeasureContext` | Supplies measurement services during layout | `IFontMetrics FontMetrics`, `ResolveImageSize(...)` |
+| `ILayoutSizingContext` | Supplies measurement services during layout | `IFontMetrics FontMetrics`, `ResolveImageSize(...)` |
 | `IFontMetrics` | Text measurement + shaping contract | `MeasureText`, `ShapeText`, `GetAscent/Descent/LineGap` |
 | `IRenderer` | Renders `ReportLayout` to stream | `RenderAsync(ReportLayout, Stream, RenderOptions, CancellationToken)` |
 | `IDataProvider` | Executes backend query for provider implementations | `ExecuteAsync(QueryRequest, CancellationToken)` |
