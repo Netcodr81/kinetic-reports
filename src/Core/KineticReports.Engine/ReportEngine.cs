@@ -43,7 +43,7 @@ public sealed class ReportEngine : IReportEngine
     }
 
     /// <inheritdoc/>
-    public async Task<ReportLayout> RunAsync(
+    public async Task<ReportDocument> RunAsync(
         ReportDefinition definition,
         IReadOnlyDictionary<string, object?> parameters,
         ILayoutSizingContext layoutSizingContext,
@@ -71,8 +71,8 @@ public sealed class ReportEngine : IReportEngine
         var blocks = _blocksBuilder.Build(dataContext, _expressionEvaluator);
 
         // 3. Run the layout pipeline: LayoutSizing → Arrange → Pagination.
-        var reportLayout = _layoutEngine.Layout(blocks, options, layoutSizingContext);
+        var ReportDocument = _layoutEngine.Layout(blocks, options, layoutSizingContext);
 
-        return reportLayout;
+        return ReportDocument;
     }
 }

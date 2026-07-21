@@ -16,7 +16,7 @@ This page documents key Core contracts and base abstractions.
 |---|---|---|
 | `ILayoutSizingContext` | Supplies measurement services during layout | `ITextLayout TextLayout`, `ResolveImageSize(...)` |
 | `ITextLayout` | Text measurement + shaping contract | `MeasureText`, `ShapeText`, `GetAscent/Descent/LineGap` |
-| `IRenderer` | Renders `ReportLayout` to stream | `RenderAsync(ReportLayout, Stream, RenderOptions, CancellationToken)` |
+| `IRenderer` | Renders `ReportDocument` to stream | `RenderAsync(ReportDocument, Stream, RenderOptions, CancellationToken)` |
 | `IDataProvider` | Executes backend query for provider implementations | `ExecuteAsync(QueryRequest, CancellationToken)` |
 
 ## Abstract Base Class

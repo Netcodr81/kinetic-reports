@@ -5,9 +5,9 @@ using KineticReports.Export.Html;
 using KineticReports.Plugins;
 
 /// <summary>
-/// Adapts <see cref="IHtmlExporter"/> to the generic layout exporter contract.
+/// Adapts <see cref="IHtmlExporter"/> to the generic document exporter contract.
 /// </summary>
-public sealed class HtmlReportLayoutExporter : IReportLayoutExporter
+public sealed class HtmlReportDocumentExporter : IReportDocumentExporter
 {
     /// <inheritdoc/>
     public ExportFormatDescriptor Format => new("html", "HTML", "text/html", "html");
@@ -15,18 +15,18 @@ public sealed class HtmlReportLayoutExporter : IReportLayoutExporter
     private readonly IHtmlExporter _htmlExporter;
 
     /// <summary>
-    /// Initializes a new <see cref="HtmlReportLayoutExporter"/>.
+    /// Initializes a new <see cref="HtmlReportDocumentExporter"/>.
     /// </summary>
-    public HtmlReportLayoutExporter(IHtmlExporter htmlExporter)
+    public HtmlReportDocumentExporter(IHtmlExporter htmlExporter)
     {
         _htmlExporter = htmlExporter ?? throw new ArgumentNullException(nameof(htmlExporter));
     }
 
     /// <inheritdoc/>
-    public async Task<byte[]> ExportAsync(ReportLayout reportLayout, CancellationToken cancellationToken = default)
+    public async Task<byte[]> ExportAsync(ReportDocument reportDocument, CancellationToken cancellationToken = default)
     {
         using var stream = new MemoryStream();
-        await _htmlExporter.ExportAsync(reportLayout, stream, cancellationToken).ConfigureAwait(false);
+        await _htmlExporter.ExportAsync(reportDocument, stream, cancellationToken).ConfigureAwait(false);
         return stream.ToArray();
     }
 }

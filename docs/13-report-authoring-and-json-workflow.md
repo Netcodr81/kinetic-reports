@@ -32,7 +32,7 @@ flowchart LR
   E --> F["DataResolver resolves rows per data source"]
   F --> G["ReportBuilder creates blocks and elements"]
    G --> H["Optional block post-processing plugins"]
-   H --> I["Layout engine computes ReportLayout"]
+   H --> I["Layout engine computes ReportDocument"]
    I --> J["Exporter renders HTML, PDF, and other outputs"]
 ```
 
@@ -400,6 +400,6 @@ Before execution:
 
 After execution:
 
-1. `ReportLayout` has expected page count?
+1. `ReportDocument` has expected page count?
 2. Export output contains expected content?
 3. Trace/log shows each pipeline stage succeeded?

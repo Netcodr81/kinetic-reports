@@ -24,11 +24,11 @@ This page documents how orchestration and layout contracts work.
 
 | Type                    | Kind      | Purpose                           | Key Members                                    |
 | ----------------------- | --------- | --------------------------------- | ---------------------------------------------- |
-| `ILayoutEngine`       | interface | Turns blocks into`ReportLayout` | `Layout(...)`                                |
+| `ILayoutEngine`       | interface | Turns blocks into`ReportDocument` | `Layout(...)`                                |
 | `LayoutEngine`        | class     | Default implementation            | delegates to pagination engine                 |
 | `LayoutOptions`       | record    | Page setup and margins            | `PageWidth`, `PageHeight`, `PageMargins` |
 | `LayoutSizingContext` | class     | Default LayoutSizing context      | `TextLayout`, image-size resolver            |
-| `ReportLayout`        | record    | Final immutable output            | `Pages`                                      |
+| `ReportDocument`        | record    | Final immutable output            | `Pages`                                      |
 
 ## Pagination Behavior
 
@@ -46,7 +46,7 @@ flowchart LR
 	D --> E[LayoutSizing]
 	E --> F[Arrange]
 	F --> G[Pagination]
-	G --> H[ReportLayout]
+	G --> H[ReportDocument]
 ```
 
 ## Junior Tips

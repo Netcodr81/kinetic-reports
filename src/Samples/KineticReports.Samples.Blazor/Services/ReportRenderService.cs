@@ -55,7 +55,7 @@ public sealed class ReportRenderService : IReportRenderService
 {
     private readonly IReportEngine _engine;
     private readonly ITextLayout _textLayout;
-    private readonly IReportLayoutExporterRegistry _exporterRegistry;
+    private readonly IReportDocumentExporterRegistry _exporterRegistry;
     private readonly IPluginService _pluginService;
     private readonly IPluginExecutionTraceStore _traceStore;
 
@@ -65,7 +65,7 @@ public sealed class ReportRenderService : IReportRenderService
     public ReportRenderService(
         IReportEngine engine,
         ITextLayout textLayout,
-        IReportLayoutExporterRegistry exporterRegistry,
+        IReportDocumentExporterRegistry exporterRegistry,
         IPluginService pluginService,
         IPluginExecutionTraceStore traceStore)
     {
@@ -143,14 +143,14 @@ public sealed class ReportRenderService : IReportRenderService
             var context = new LayoutSizingContext(_textLayout);
             var layoutOptions = new LayoutOptions();
 
-            var reportLayout = await _engine.RunAsync(
+            var ReportDocument = await _engine.RunAsync(
                 definition,
                 reportParameters,
                 context,
                 layoutOptions,
                 cancellationToken).ConfigureAwait(false);
 
-            _traceStore.Add($"[Render] Engine produced {reportLayout.PageCount} page(s)");
+            _traceStore.Add($"[Render] Engine produced {ReportDocument.PageCount} page(s)");
 
             if (!_exporterRegistry.TryGetExporter(selectedDescriptor.FormatId, out var exporter) || exporter is null)
             {
@@ -158,7 +158,7 @@ public sealed class ReportRenderService : IReportRenderService
                     $"No exporter registered for format '{selectedDescriptor.FormatId}'.");
             }
 
-            var artifact = await exporter.ExportAsync(reportLayout, cancellationToken).ConfigureAwait(false);
+            var artifact = await exporter.ExportAsync(ReportDocument, cancellationToken).ConfigureAwait(false);
 
             if (string.Equals(selectedDescriptor.MimeType, "text/html", StringComparison.OrdinalIgnoreCase))
             {

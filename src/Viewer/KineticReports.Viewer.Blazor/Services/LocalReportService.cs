@@ -32,7 +32,7 @@ public sealed class LocalReportService : IReportService
     /// <summary>
     /// Executes a report locally.
     /// </summary>
-    public async Task<ReportLayout?> ExecuteAsync(
+    public async Task<ReportDocument?> ExecuteAsync(
         ReportDefinition definition,
         IReadOnlyDictionary<string, object?> parameters,
         CancellationToken ct = default)
@@ -54,18 +54,18 @@ public sealed class LocalReportService : IReportService
     }
 
     /// <summary>
-    /// Exports a report layout to HTML.
+    /// Exports a report document to HTML.
     /// </summary>
     public async Task<string> ExportHtmlAsync(
-        ReportLayout ReportLayout,
+        ReportDocument reportDocument,
         CancellationToken ct = default)
     {
-        if (ReportLayout == null) throw new ArgumentNullException(nameof(ReportLayout));
+        if (reportDocument == null) throw new ArgumentNullException(nameof(reportDocument));
 
         try
         {
             using var stream = new MemoryStream();
-            await _exporter.ExportAsync(ReportLayout, stream, ct);
+            await _exporter.ExportAsync(reportDocument, stream, ct);
             stream.Position = 0;
 
             using var reader = new StreamReader(stream);

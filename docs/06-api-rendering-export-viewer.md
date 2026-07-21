@@ -4,9 +4,9 @@
 
 | Type | Kind | Purpose | Key Methods |
 |---|---|---|---|
-| `IRenderer` | interface | Convert `ReportLayout` into render output (PDF/PNG/etc.) | `RenderAsync(...)` |
+| `IRenderer` | interface | Convert `ReportDocument` into render output (PDF/PNG/etc.) | `RenderAsync(...)` |
 | `IGraphicsContext` | interface | Backend-agnostic drawing primitives | `FillRectangle`, `DrawText`, `DrawImage`, etc. |
-| `ReportLayoutRenderer` | class | Traverses `ReportLayout` and issues graphics calls | `Render(...)` |
+| `ReportDocumentRenderer` | class | Traverses `ReportDocument` and issues graphics calls | `Render(...)` |
 
 ## Rendering Implementations
 
@@ -20,9 +20,9 @@
 
 | Type | Kind | Purpose | Methods |
 |---|---|---|---|
-| `IHtmlExporter` | interface | Export `ReportLayout` as HTML | `ExportAsync(ReportLayout, Stream, CancellationToken)` |
-| `IReportLayoutExporter` | interface | Generic layout exporter contract for one format | `Format`, `ExportAsync(ReportLayout, CancellationToken)` |
-| `IReportLayoutExporterRegistry` | interface | Resolve registered exporters by format ID | `GetAvailableFormats()`, `TryGetExporter(...)` |
+| `IHtmlExporter` | interface | Export `ReportDocument` as HTML | `ExportAsync(ReportDocument, Stream, CancellationToken)` |
+| `IReportDocumentExporter` | interface | Generic document exporter contract for one format | `Format`, `ExportAsync(ReportDocument, CancellationToken)` |
+| `IReportDocumentExporterRegistry` | interface | Resolve registered exporters by format ID | `GetAvailableFormats()`, `TryGetExporter(...)` |
 
 ## Export Implementations
 

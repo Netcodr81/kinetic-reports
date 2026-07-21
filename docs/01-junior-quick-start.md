@@ -7,15 +7,15 @@ This guide helps you understand what to run, what to read first, and where to ad
 KineticReports is a deterministic reporting engine for .NET 10.
 
 - **Input:** `ReportDefinition`
-- **Output:** `ReportLayout` and rendered/exported formats (HTML, PDF, etc.)
+- **Output:** `ReportDocument` and rendered/exported formats (HTML, PDF, etc.)
 
 ## First Things to Learn
 
 1. `ReportDefinition` is the source definition of a report.
 2. `IReportEngine` orchestrates the pipeline.
 3. `ILayoutEngine` computes geometry and pages.
-4. `ReportLayout` is the immutable final layout model.
-5. Renderers and exporters consume `ReportLayout`.
+4. `ReportDocument` is the immutable final layout model.
+5. Renderers and exporters consume `ReportDocument`.
 
 ## Typical Local Run (Sample App)
 
@@ -38,7 +38,7 @@ KineticReports is a deterministic reporting engine for .NET 10.
 - Coordinates are DIPs (`1/96` inch).
 - Layout is immutable after Arrange.
 - Pagination happens after Arrange.
-- Exporters consume `ReportLayout` only.
+- Exporters consume `ReportDocument` only.
 - Text layout is centralized via `ITextLayout`.
 
 ## What to Read Next

@@ -46,7 +46,7 @@ flowchart LR
 	A[IReportBuilder.Build] --> B[Report Blocks]
 	B --> C[IReportBlocksPostProcessorPlugin]
 	C --> D[ILayoutEngine.Layout]
-	D --> E[ReportLayout]
+	D --> E[ReportDocument]
 	E --> F[IHtmlExporter.ExportAsync]
 	F --> G[IExportArtifactPostProcessorPlugin]
 	G --> H[IHtmlReportPostProcessorPlugin]
@@ -77,12 +77,12 @@ Ordering rules for both seams:
 | `IHtmlReportPostProcessorPlugin` | `ProcessHtmlAsync(...)` | Post-processes exported HTML |
 | `IPluginManager` | `DiscoverAndLoadPluginsAsync(...)` | Bulk load from folder |
 | `IPluginManager` | `UnloadPluginAsync(pluginId)` | Unload one plugin |
-| `IReportLayoutExporter` | `Format` + `ExportAsync(...)` | Host-registered exporter for a concrete format |
-| `IReportLayoutExporterRegistry` | `TryGetExporter(...)` | Resolves exporter without host conditionals |
+| `IReportDocumentExporter` | `Format` + `ExportAsync(...)` | Host-registered exporter for a concrete format |
+| `IReportDocumentExporterRegistry` | `TryGetExporter(...)` | Resolves exporter without host conditionals |
 
 Sample host note:
 
-- The Blazor sample registers both `HtmlReportLayoutExporter` and `MarkdownReportLayoutExporter` as `IReportLayoutExporter` implementations.
+- The Blazor sample registers both `HtmlReportDocumentExporter` and `MarkdownReportDocumentExporter` as `IReportDocumentExporter` implementations.
 
 ## Example: Implement multiple seams in one plugin
 

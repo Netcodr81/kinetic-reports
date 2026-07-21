@@ -5,15 +5,15 @@ using Shouldly;
 using Xunit;
 
 /// <summary>
-/// Tests for <see cref="ReportLayoutExporterRegistry"/>.
+/// Tests for <see cref="ReportDocumentExporterRegistry"/>.
 /// </summary>
-public class ReportLayoutExporterRegistryTests
+public class ReportDocumentExporterRegistryTests
 {
     [Fact]
     public void GetAvailableFormats_ReturnsRegisteredFormats()
     {
         // Arrange
-        var registry = new ReportLayoutExporterRegistry(
+        var registry = new ReportDocumentExporterRegistry(
         [
             new FakeExporter("html", "HTML", "text/html", "html"),
             new FakeExporter("pdf", "PDF", "application/pdf", "pdf")
@@ -31,7 +31,7 @@ public class ReportLayoutExporterRegistryTests
     {
         // Arrange
         var expected = new FakeExporter("html", "HTML", "text/html", "html");
-        var registry = new ReportLayoutExporterRegistry([expected]);
+        var registry = new ReportDocumentExporterRegistry([expected]);
 
         // Act
         var found = registry.TryGetExporter("HTML", out var exporter);
@@ -45,7 +45,7 @@ public class ReportLayoutExporterRegistryTests
     public void TryGetExporter_WithUnknownFormat_ReturnsFalse()
     {
         // Arrange
-        var registry = new ReportLayoutExporterRegistry(
+        var registry = new ReportDocumentExporterRegistry(
         [
             new FakeExporter("html", "HTML", "text/html", "html")
         ]);
@@ -66,7 +66,7 @@ public class ReportLayoutExporterRegistryTests
         var zeta = new ZetaHtmlExporter();
 
         // Act
-        var registry = new ReportLayoutExporterRegistry([zeta, alpha]);
+        var registry = new ReportDocumentExporterRegistry([zeta, alpha]);
         var found = registry.TryGetExporter("html", out var exporter);
 
         // Assert
@@ -74,31 +74,31 @@ public class ReportLayoutExporterRegistryTests
         exporter.ShouldBeOfType<AlphaHtmlExporter>();
     }
 
-    private sealed class FakeExporter(string id, string name, string mimeType, string ext) : IReportLayoutExporter
+    private sealed class FakeExporter(string id, string name, string mimeType, string ext) : IReportDocumentExporter
     {
         public ExportFormatDescriptor Format => new(id, name, mimeType, ext);
 
-        public Task<byte[]> ExportAsync(ReportLayout reportLayout, CancellationToken cancellationToken = default)
+        public Task<byte[]> ExportAsync(ReportDocument ReportDocument, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(Array.Empty<byte>());
         }
     }
 
-    private sealed class AlphaHtmlExporter : IReportLayoutExporter
+    private sealed class AlphaHtmlExporter : IReportDocumentExporter
     {
         public ExportFormatDescriptor Format => new("html", "HTML", "text/html", "html");
 
-        public Task<byte[]> ExportAsync(ReportLayout reportLayout, CancellationToken cancellationToken = default)
+        public Task<byte[]> ExportAsync(ReportDocument ReportDocument, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(Array.Empty<byte>());
         }
     }
 
-    private sealed class ZetaHtmlExporter : IReportLayoutExporter
+    private sealed class ZetaHtmlExporter : IReportDocumentExporter
     {
         public ExportFormatDescriptor Format => new("html", "HTML", "text/html", "html");
 
-        public Task<byte[]> ExportAsync(ReportLayout reportLayout, CancellationToken cancellationToken = default)
+        public Task<byte[]> ExportAsync(ReportDocument ReportDocument, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(Array.Empty<byte>());
         }

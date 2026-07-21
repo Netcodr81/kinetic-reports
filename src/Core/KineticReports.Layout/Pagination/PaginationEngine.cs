@@ -13,7 +13,7 @@ internal sealed class PaginationEngine
 {
     /// <summary>
     /// Runs the full LayoutSizing → Arrange → Paginate pipeline and returns the ordered
-    /// list of pages that form the <see cref="ReportLayout"/>.
+    /// list of pages that form the <see cref="ReportDocument"/>.
     /// </summary>
     /// <param name="blocks">All blocks, including page-header and page-footer blocks.</param>
     /// <param name="options">Page dimensions and margin configuration.</param>

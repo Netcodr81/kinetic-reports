@@ -50,6 +50,6 @@ flowchart TB
 ## Important Constraints
 
 - Renderer/exporter does not perform layout.
-- `ReportLayout` is immutable after arrange/pagination.
+- `ReportDocument` is immutable after arrange/pagination.
 - All dimensions are DIPs.
 - Shared `ITextLayout` instance should be used across layout and rendering.

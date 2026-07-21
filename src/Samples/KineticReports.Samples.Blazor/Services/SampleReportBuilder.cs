@@ -125,7 +125,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
 
             if (string.Equals(sourceId, "quote-daily", StringComparison.OrdinalIgnoreCase))
             {
-                blocks.AddRange(CreateQuoteDailyBands(sourceId, rows));
+                blocks.AddRange(CreateQuoteDailyBlocks(sourceId, rows));
                 continue;
             }
 
@@ -211,7 +211,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
         };
     }
 
-    private static IReadOnlyList<ReportBlock> CreateQuoteDailyBands(
+    private static IReadOnlyList<ReportBlock> CreateQuoteDailyBlocks(
         string sourceId,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
     {

@@ -42,7 +42,7 @@ public class HtmlExporterTests
         textBlock.Arrange(new Rect(10, 10, 100, 20));
 
         var page = MakePage(1, [textBlock]);
-        var tree = new ReportLayout { Pages = [page] };
+        var tree = new ReportDocument { Pages = [page] };
 
         var exporter = new HtmlExporter();
         using var output = new MemoryStream();
@@ -56,7 +56,7 @@ public class HtmlExporterTests
     public async Task ExportAsync_WithMultiplePages_IncludesAllPages()
     {
         var pages = Enumerable.Range(1, 3).Select(n => MakePage(n)).ToList();
-        var tree = new ReportLayout { Pages = pages };
+        var tree = new ReportDocument { Pages = pages };
 
         var exporter = new HtmlExporter();
         using var output = new MemoryStream();
@@ -83,7 +83,7 @@ public class HtmlExporterTests
         shapeElem.Arrange(new Rect(10, 10, 100, 50));
 
         var page = MakePage(1, [shapeElem]);
-        var tree = new ReportLayout { Pages = [page] };
+        var tree = new ReportDocument { Pages = [page] };
 
         var exporter = new HtmlExporter();
         using var output = new MemoryStream();
@@ -120,7 +120,7 @@ public class HtmlExporterTests
         tableElem.Arrange(new Rect(0, 0, 200, 50));
 
         var page = MakePage(1, [tableElem]);
-        var tree = new ReportLayout { Pages = [page] };
+        var tree = new ReportDocument { Pages = [page] };
 
         var exporter = new HtmlExporter();
         using var output = new MemoryStream();
@@ -196,7 +196,7 @@ public class HtmlExporterTests
         tableElem.LayoutSize(new Size(180f, 200f), new LayoutSizingContext(new FakeTextLayout()));
         tableElem.Arrange(new Rect(0, 0, 180, tableElem.DesiredSize.Height));
 
-        var tree = new ReportLayout { Pages = [page] };
+        var tree = new ReportDocument { Pages = [page] };
         var exporter = new HtmlExporter();
 
         using var output = new MemoryStream();
@@ -221,7 +221,7 @@ public class HtmlExporterTests
 
     // -----
 
-    private static ReportLayout MakeSimpleLayoutTree() =>
+    private static ReportDocument MakeSimpleLayoutTree() =>
         new() { Pages = [MakePage(1)] };
 
     private static PageBlock MakePage(int pageNum, List<LayoutBlock>? children = null)

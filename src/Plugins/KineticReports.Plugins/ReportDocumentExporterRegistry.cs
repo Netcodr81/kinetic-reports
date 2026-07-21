@@ -1,17 +1,17 @@
 namespace KineticReports.Plugins;
 
 /// <summary>
-/// Default implementation of <see cref="IReportLayoutExporterRegistry"/>.
+/// Default implementation of <see cref="IReportDocumentExporterRegistry"/>.
 /// </summary>
-public sealed class ReportLayoutExporterRegistry : IReportLayoutExporterRegistry
+public sealed class ReportDocumentExporterRegistry : IReportDocumentExporterRegistry
 {
-    private readonly IReadOnlyDictionary<string, IReportLayoutExporter> _exporters;
+    private readonly IReadOnlyDictionary<string, IReportDocumentExporter> _exporters;
     private readonly IReadOnlyList<ExportFormatDescriptor> _formats;
 
     /// <summary>
-    /// Initializes a new <see cref="ReportLayoutExporterRegistry"/>.
+    /// Initializes a new <see cref="ReportDocumentExporterRegistry"/>.
     /// </summary>
-    public ReportLayoutExporterRegistry(IEnumerable<IReportLayoutExporter> exporters)
+    public ReportDocumentExporterRegistry(IEnumerable<IReportDocumentExporter> exporters)
     {
         if (exporters == null) throw new ArgumentNullException(nameof(exporters));
 
@@ -35,7 +35,7 @@ public sealed class ReportLayoutExporterRegistry : IReportLayoutExporterRegistry
     public IReadOnlyList<ExportFormatDescriptor> GetAvailableFormats() => _formats;
 
     /// <inheritdoc/>
-    public bool TryGetExporter(string formatId, out IReportLayoutExporter? exporter)
+    public bool TryGetExporter(string formatId, out IReportDocumentExporter? exporter)
     {
         if (string.IsNullOrWhiteSpace(formatId))
         {

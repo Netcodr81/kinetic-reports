@@ -2,7 +2,7 @@
 
 ## Tutorial: Build a New Exporter
 
-Goal: Convert `ReportLayout` to a new output format.
+Goal: Convert `ReportDocument` to a new output format.
 
 ## Step 1: Create exporter project
 
@@ -11,16 +11,16 @@ Goal: Convert `ReportLayout` to a new output format.
 
 ## Step 2: Define exporter contract
 
-Implement `IReportLayoutExporter` with:
+Implement `IReportDocumentExporter` with:
 
 - `Format` (an `ExportFormatDescriptor`)
-- `ExportAsync(ReportLayout reportLayout, CancellationToken ct)` returning bytes
+- `ExportAsync(ReportDocument reportDocument, CancellationToken ct)` returning bytes
 
 ## Step 3: Traverse the report layout
 
 ```mermaid
 flowchart TB
-	A[ReportLayout] --> B[Pages]
+	A[ReportDocument] --> B[Pages]
 	B --> C[Header]
 	B --> D[Body Children]
 	B --> E[Footer]
@@ -37,12 +37,12 @@ Dispatch on block types (`TextBlock`, `ImageBlock`, `TableBlock`, etc.).
 
 ## Step 5: Register in DI
 
-Register your exporter in host app startup so `IReportLayoutExporterRegistry` can resolve it.
+Register your exporter in host app startup so `IReportDocumentExporterRegistry` can resolve it.
 
 Example:
 
-- Register concrete exporter implementation as `IReportLayoutExporter`.
-- Ensure the host registers `IReportLayoutExporterRegistry`.
+- Register concrete exporter implementation as `IReportDocumentExporter`.
+- Ensure the host registers `IReportDocumentExporterRegistry`.
 
 ## Reference: Exporter Responsibilities
 

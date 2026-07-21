@@ -42,7 +42,7 @@ public class LocalReportServiceTests
 
     private sealed class MockReportEngine : IReportEngine
     {
-        public Task<ReportLayout> RunAsync(
+        public Task<ReportDocument> RunAsync(
             ReportDefinition definition,
             IReadOnlyDictionary<string, object?> parameters,
             ILayoutSizingContext layoutSizingContext,
@@ -61,7 +61,7 @@ public class LocalReportServiceTests
                 Style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f }
             };
 
-            return Task.FromResult(new ReportLayout { Pages = [page] });
+            return Task.FromResult(new ReportDocument { Pages = [page] });
         }
     }
 
@@ -154,11 +154,11 @@ public class LocalReportServiceTests
             Id = "test-3",
             Name = "TestReport"
         };
-        var ReportLayout = await service.ExecuteAsync(definition, new Dictionary<string, object?>());
-        ReportLayout.ShouldNotBeNull();
+        var ReportDocument = await service.ExecuteAsync(definition, new Dictionary<string, object?>());
+        ReportDocument.ShouldNotBeNull();
 
         // Act
-        var html = await service.ExportHtmlAsync(ReportLayout);
+        var html = await service.ExportHtmlAsync(ReportDocument);
 
         // Assert
         html.ShouldNotBeEmpty();

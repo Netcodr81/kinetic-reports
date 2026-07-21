@@ -11,8 +11,8 @@ This is the fastest way to decide where to extend KineticReports.
 | Build custom report content model | `IReportBuilder` | App startup | Must return ordered `ReportBlock` list |
 | Transform report blocks before layout | `IReportBlocksPostProcessorPlugin` | Plugin load | Runs after `IReportBuilder.Build(...)`, ordered by `Order` then `Id` |
 | Change page sizing/margins behavior | `LayoutOptions` or custom `ILayoutEngine` | App startup | Respect DIP units |
-| Add new render output (PNG/PDF/etc.) | `IRenderer` | App startup | Consume immutable `ReportLayout` only |
-| Add new export format | `IReportLayoutExporter` | App startup | Register one or more exporters in `IReportLayoutExporterRegistry`; formats appear in export discovery |
+| Add new render output (PNG/PDF/etc.) | `IRenderer` | App startup | Consume immutable `ReportDocument` only |
+| Add new export format | `IReportDocumentExporter` | App startup | Register one or more exporters in `IReportDocumentExporterRegistry`; formats appear in export discovery |
 | Contribute discoverable export formats | `IExportFormatRegistryPlugin` | Plugin load | Adds format descriptors to host registry, ordered by `Order` then `Id` |
 | Negotiate requested export format | `IExportNegotiationPlugin` | Plugin load | Maps requests to a final format deterministically |
 | Transform exported HTML deterministically | `IHtmlReportPostProcessorPlugin` | Plugin load | Runs after HTML export, ordered by `Order` then `Id` |
@@ -27,14 +27,14 @@ flowchart TB
 	B --> C[Report Builder]
 	C --> D[Block Post-Processor Plugins]
 	D --> E[Layout Engine]
-	E --> F[ReportLayout]
+	E --> F[ReportDocument]
 	F --> G[Renderer/Exporter]
 	G --> H[Artifact Post-Processor Plugins]
 	H --> I[HTML Post-Processor Plugins]
 ```
 
-- Anything before `ReportLayout` can shape content.
-- Anything after `ReportLayout` should only present content.
+- Anything before `ReportDocument` can shape content.
+- Anything after `ReportDocument` should only present content.
 
 ## Common Mistakes
 

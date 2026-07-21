@@ -6,7 +6,7 @@ using KineticReports.Core.Rendering;
 using KineticReports.Core.Styling;
 
 /// <summary>
-/// Backend-agnostic drawing surface consumed by <see cref="ReportLayoutRenderer"/>.
+/// Backend-agnostic drawing surface consumed by <see cref="ReportDocumentRenderer"/>.
 /// Each method accepts page-relative coordinates in Device Independent Pixels (DIPs).
 /// Implementations translate these calls into native graphics commands
 /// (SkiaSharp, HTML Canvas, Direct2D, etc.).

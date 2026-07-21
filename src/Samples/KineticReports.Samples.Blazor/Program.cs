@@ -58,9 +58,9 @@ builder.Services.AddScoped<ILayoutEngine, LayoutEngine>();
 // Register report engine and exporters
 builder.Services.AddScoped<IReportEngine, ReportEngine>();
 builder.Services.AddScoped<IHtmlExporter, HtmlExporter>();
-builder.Services.AddScoped<IReportLayoutExporter, HtmlReportLayoutExporter>();
-builder.Services.AddScoped<IReportLayoutExporter, MarkdownReportLayoutExporter>();
-builder.Services.AddScoped<IReportLayoutExporterRegistry, ReportLayoutExporterRegistry>();
+builder.Services.AddScoped<IReportDocumentExporter, HtmlReportDocumentExporter>();
+builder.Services.AddScoped<IReportDocumentExporter, MarkdownReportDocumentExporter>();
+builder.Services.AddScoped<IReportDocumentExporterRegistry, ReportDocumentExporterRegistry>();
 builder.Services.AddScoped<IReportRenderService, ReportRenderService>();
 
 var app = builder.Build();

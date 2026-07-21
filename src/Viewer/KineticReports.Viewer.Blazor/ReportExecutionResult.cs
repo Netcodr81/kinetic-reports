@@ -14,7 +14,7 @@ public sealed class ReportExecutionResult
     public required DateTime ExecutedAt { get; set; }
 
     /// <summary>Gets the resulting report layout (null if unsuccessful).</summary>
-    public ReportLayout? ReportLayout { get; set; }
+    public ReportDocument? ReportDocument { get; set; }
 
     /// <summary>Gets the error message if execution failed.</summary>
     public string? ErrorMessage { get; set; }

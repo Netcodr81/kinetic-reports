@@ -20,19 +20,19 @@ public class ReportExecutionResultTests
             Children = [],
             Style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f }
         };
-        var ReportLayout = new ReportLayout { Pages = [page] };
+        var ReportDocument = new ReportDocument { Pages = [page] };
 
         var result = new ReportExecutionResult
         {
             Success = true,
             ExecutedAt = DateTime.UtcNow,
-            ReportLayout = ReportLayout
+            ReportDocument = ReportDocument
         };
 
         // Assert
         result.Success.ShouldBeTrue();
-        result.ReportLayout.ShouldNotBeNull();
-        result.ReportLayout.Pages.Count.ShouldBe(1);
+        result.ReportDocument.ShouldNotBeNull();
+        result.ReportDocument.Pages.Count.ShouldBe(1);
         result.ErrorMessage.ShouldBeNull();
     }
 
@@ -49,7 +49,7 @@ public class ReportExecutionResultTests
 
         // Assert
         result.Success.ShouldBeFalse();
-        result.ReportLayout.ShouldBeNull();
+        result.ReportDocument.ShouldBeNull();
         result.ErrorMessage.ShouldBe("Report execution failed");
     }
 

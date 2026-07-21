@@ -8,10 +8,10 @@
 | LayoutSizing | Stage that computes desired sizes |
 | Arrange | Stage that assigns final bounds |
 | Pagination | Stage that splits arranged content across pages |
-| `ReportLayout` | Immutable final page model consumed by output components |
+| `ReportDocument` | Immutable final page model consumed by output components |
 | DIP | Device Independent Pixel, `1/96` inch |
-| Exporter | Converts `ReportLayout` to a format (HTML/XLSX/etc.) |
-| Renderer | Draws `ReportLayout` using graphics context (PDF/PNG/etc.) |
+| Exporter | Converts `ReportDocument` to a format (HTML/XLSX/etc.) |
+| Renderer | Draws `ReportDocument` using graphics context (PDF/PNG/etc.) |
 | `AppliedStyle` | Final style object after cascade/inheritance/overrides |
 | Plugin | Optional module loaded by plugin manager |
 | `IDataResolver` | Resolves report data sources to row sets |

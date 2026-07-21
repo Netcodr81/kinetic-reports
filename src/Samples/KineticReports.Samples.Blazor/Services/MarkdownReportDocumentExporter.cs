@@ -5,25 +5,25 @@ using KineticReports.Core.Layout;
 using KineticReports.Plugins;
 
 /// <summary>
-/// Exports report layout content to a simple markdown artifact.
+/// Exports report document content to a simple markdown artifact.
 /// </summary>
-public sealed class MarkdownReportLayoutExporter : IReportLayoutExporter
+public sealed class MarkdownReportDocumentExporter : IReportDocumentExporter
 {
     /// <inheritdoc/>
     public ExportFormatDescriptor Format => new("md", "Markdown", "text/markdown", "md");
 
     /// <inheritdoc/>
-    public Task<byte[]> ExportAsync(ReportLayout reportLayout, CancellationToken cancellationToken = default)
+    public Task<byte[]> ExportAsync(ReportDocument reportDocument, CancellationToken cancellationToken = default)
     {
-        if (reportLayout == null) throw new ArgumentNullException(nameof(reportLayout));
+        if (reportDocument == null) throw new ArgumentNullException(nameof(reportDocument));
 
         var builder = new StringBuilder();
         builder.AppendLine("# KineticReports Export");
         builder.AppendLine();
-        builder.AppendLine($"- Page count: {reportLayout.PageCount}");
+        builder.AppendLine($"- Page count: {reportDocument.PageCount}");
         builder.AppendLine();
 
-        foreach (var page in reportLayout.Pages)
+        foreach (var page in reportDocument.Pages)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

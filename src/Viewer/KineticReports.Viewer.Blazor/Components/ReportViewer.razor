@@ -70,7 +70,7 @@
     private string HtmlContent { get; set; } = string.Empty;
     private string ErrorMessage { get; set; } = string.Empty;
     private bool IsLoading { get; set; } = false;
-    private ReportLayout? CurrentLayoutTree { get; set; }
+    private ReportDocument? CurrentLayoutTree { get; set; }
     private CancellationTokenSource? _cancellationTokenSource;
 
     /// <summary>
@@ -114,7 +114,7 @@
             {
                 Success = true,
                 ExecutedAt = DateTime.UtcNow,
-                ReportLayout = CurrentLayoutTree
+                ReportDocument = CurrentLayoutTree
             });
         }
         catch (OperationCanceledException)

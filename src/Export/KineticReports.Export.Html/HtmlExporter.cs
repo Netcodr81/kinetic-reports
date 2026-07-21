@@ -6,27 +6,27 @@ using KineticReports.Export.Html.Styles;
 using System.Text;
 
 /// <summary>
-/// Exports an immutable ReportLayout to semantic HTML with inline CSS.
+/// Exports an immutable ReportDocument to semantic HTML with inline CSS.
 /// </summary>
 public sealed class HtmlExporter : IHtmlExporter
 {
     /// <summary>
-    /// Exports the report layout to HTML.
+    /// Exports the report document to HTML.
     /// </summary>
-    public async Task ExportAsync(ReportLayout reportLayout, Stream output, CancellationToken ct = default)
+    public async Task ExportAsync(ReportDocument reportDocument, Stream output, CancellationToken ct = default)
     {
-        if (reportLayout == null) throw new ArgumentNullException(nameof(reportLayout));
+        if (reportDocument == null) throw new ArgumentNullException(nameof(reportDocument));
         if (output == null) throw new ArgumentNullException(nameof(output));
 
         var builder = new HtmlBuilder();
-        BuildHtmlDocument(builder, reportLayout);
+        BuildHtmlDocument(builder, reportDocument);
 
         var html = builder.Build();
         var bytes = Encoding.UTF8.GetBytes(html);
         await output.WriteAsync(bytes, ct);
     }
 
-    private static void BuildHtmlDocument(HtmlBuilder html, ReportLayout reportLayout)
+    private static void BuildHtmlDocument(HtmlBuilder html, ReportDocument reportDocument)
     {
         html
             .Raw("<!DOCTYPE html>\n")
@@ -41,7 +41,7 @@ public sealed class HtmlExporter : IHtmlExporter
             .OpenTag("body");
 
         // Render all pages
-        foreach (var page in reportLayout.Pages)
+        foreach (var page in reportDocument.Pages)
         {
             RenderPage(html, page);
         }

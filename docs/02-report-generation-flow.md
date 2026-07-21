@@ -22,9 +22,9 @@ sequenceDiagram
 	Engine->>Builder: Build(dataContext, evaluator)
 	Builder-->>Engine: blocks (ReportBlock list)
 	Engine->>Layout: Layout(blocks, layoutOptions, LayoutSizingContext)
-	Layout-->>Engine: ReportLayout
-	Engine-->>Caller: ReportLayout
-	Caller->>Export: ExportAsync(ReportLayout, stream)
+	Layout-->>Engine: ReportDocument
+	Engine-->>Caller: ReportDocument
+	Caller->>Export: ExportAsync(ReportDocument, stream)
 ```
 
 ## Detailed Stages
@@ -48,11 +48,11 @@ sequenceDiagram
 - **Arrange:** each element gets final bounds
 - **Pagination:** content is split into `PageBlock`s
 
-Result is an immutable `ReportLayout`.
+Result is an immutable `ReportDocument`.
 
 ## 4) Render/Export
 
-- Renderers/exporters receive only `ReportLayout`.
+- Renderers/exporters receive only `ReportDocument`.
 - They must not perform layout decisions.
 
 ## Where Bugs Usually Happen

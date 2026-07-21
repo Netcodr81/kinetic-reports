@@ -173,7 +173,7 @@ public class LayoutEngineTests
     }
 
     // -------------------------------------------------------------------------
-    // ReportLayout immutability
+    // ReportDocument immutability
     // -------------------------------------------------------------------------
 
     [Fact]

@@ -3,7 +3,7 @@ namespace KineticReports.Plugins;
 /// <summary>
 /// Resolves report exporters by format ID.
 /// </summary>
-public interface IReportLayoutExporterRegistry
+public interface IReportDocumentExporterRegistry
 {
     /// <summary>
     /// Gets formats that are backed by a registered exporter.
@@ -16,5 +16,5 @@ public interface IReportLayoutExporterRegistry
     /// <param name="formatId">Format ID, such as html or pdf.</param>
     /// <param name="exporter">Resolved exporter when found.</param>
     /// <returns><c>true</c> when an exporter is found; otherwise <c>false</c>.</returns>
-    bool TryGetExporter(string formatId, out IReportLayoutExporter? exporter);
+    bool TryGetExporter(string formatId, out IReportDocumentExporter? exporter);
 }

@@ -26,7 +26,7 @@ public sealed class ReportExecutor : IReportExecutor
     /// <summary>
     /// Executes the report using the injected engine.
     /// </summary>
-    public async Task<ReportLayout> ExecuteAsync(
+    public async Task<ReportDocument> ExecuteAsync(
         ReportDefinition definition,
         IReadOnlyDictionary<string, object?> parameters,
         CancellationToken ct = default)

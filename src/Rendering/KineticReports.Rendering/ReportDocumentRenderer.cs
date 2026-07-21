@@ -5,7 +5,7 @@ using KineticReports.Core.Layout;
 using KineticReports.Core.Styling;
 
 /// <summary>
-/// Walks an immutable <see cref="ReportLayout"/> in deterministic rendering order and
+/// Walks an immutable <see cref="ReportDocument"/> in deterministic rendering order and
 /// translates every element into <see cref="IGraphicsContext"/> draw calls.
 /// </summary>
 /// <remarks>
@@ -14,7 +14,7 @@ using KineticReports.Core.Styling;
 /// Within each element: background fill → border → content → children.
 /// Renderers never perform layout (ADR-013).
 /// </remarks>
-public sealed class ReportLayoutRenderer
+public sealed class ReportDocumentRenderer
 {
     /// <summary>
     /// Renders a single <see cref="PageBlock"/> onto <paramref name="context"/>.

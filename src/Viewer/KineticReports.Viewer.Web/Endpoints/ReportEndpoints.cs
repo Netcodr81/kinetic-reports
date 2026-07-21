@@ -49,10 +49,10 @@ public static class ReportEndpoints
             var definition = JsonSerializer.Deserialize<ReportDefinition>(request.Definition)
                 ?? throw new InvalidOperationException("Failed to deserialize report definition");
 
-            var ReportLayout = await executor.ExecuteAsync(definition, request.Parameters, ct);
+            var ReportDocument = await executor.ExecuteAsync(definition, request.Parameters, ct);
             var operationId = Guid.NewGuid().ToString("N");
 
-            await store.SaveAsync(operationId, ReportLayout, ct);
+            await store.SaveAsync(operationId, ReportDocument, ct);
 
             var response = new ExecuteReportResponse
             {
@@ -82,12 +82,12 @@ public static class ReportEndpoints
         IHtmlExporter exporter,
         CancellationToken ct)
     {
-        var ReportLayout = await store.RetrieveAsync(operationId, ct);
-        if (ReportLayout == null)
+        var ReportDocument = await store.RetrieveAsync(operationId, ct);
+        if (ReportDocument == null)
             return Results.NotFound($"Report execution '{operationId}' not found");
 
         var stream = new MemoryStream();
-        await exporter.ExportAsync(ReportLayout, stream, ct);
+        await exporter.ExportAsync(ReportDocument, stream, ct);
         stream.Position = 0;
 
         return Results.Stream(stream, "text/html; charset=utf-8");

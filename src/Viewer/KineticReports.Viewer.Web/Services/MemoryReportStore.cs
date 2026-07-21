@@ -20,20 +20,20 @@ public sealed class MemoryReportStore : IReportStore
     }
 
     /// <summary>
-    /// Saves a report layout with the given operation ID.
+    /// Saves a report document with the given operation ID.
     /// </summary>
-    public Task SaveAsync(string operationId, ReportLayout ReportLayout, CancellationToken ct = default)
+    public Task SaveAsync(string operationId, ReportDocument reportDocument, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(operationId))
             throw new ArgumentException("Operation ID is required", nameof(operationId));
-        if (ReportLayout == null)
-            throw new ArgumentNullException(nameof(ReportLayout));
+        if (reportDocument == null)
+            throw new ArgumentNullException(nameof(reportDocument));
 
         lock (_lock)
         {
             _cache[operationId] = new CachedReport
             {
-                ReportLayout = ReportLayout,
+                Document = reportDocument,
                 ExpiresAt = DateTime.UtcNow.Add(_expirationTime)
             };
         }
@@ -42,25 +42,25 @@ public sealed class MemoryReportStore : IReportStore
     }
 
     /// <summary>
-    /// Retrieves a stored report layout by operation ID.
+    /// Retrieves a stored report document by operation ID.
     /// </summary>
-    public Task<ReportLayout?> RetrieveAsync(string operationId, CancellationToken ct = default)
+    public Task<ReportDocument?> RetrieveAsync(string operationId, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(operationId))
-            return Task.FromResult((ReportLayout?)null);
+            return Task.FromResult((ReportDocument?)null);
 
         lock (_lock)
         {
             if (!_cache.TryGetValue(operationId, out var cached))
-                return Task.FromResult((ReportLayout?)null);
+                return Task.FromResult((ReportDocument?)null);
 
             if (DateTime.UtcNow > cached.ExpiresAt)
             {
                 _cache.Remove(operationId);
-                return Task.FromResult((ReportLayout?)null);
+                return Task.FromResult((ReportDocument?)null);
             }
 
-            return Task.FromResult((ReportLayout?)cached.ReportLayout);
+            return Task.FromResult((ReportDocument?)cached.Document);
         }
     }
 
@@ -82,7 +82,7 @@ public sealed class MemoryReportStore : IReportStore
 
     private sealed class CachedReport
     {
-        public required ReportLayout ReportLayout { get; init; }
+        public required ReportDocument Document { get; init; }
         public required DateTime ExpiresAt { get; init; }
     }
 }

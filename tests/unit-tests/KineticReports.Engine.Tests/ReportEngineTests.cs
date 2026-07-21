@@ -22,7 +22,7 @@ public class ReportEngineTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public async Task RunAsync_WithNoDataSources_ReturnsReportLayout()
+    public async Task RunAsync_WithNoDataSources_ReturnsReportDocument()
     {
         var sut = BuildEngine();
         var tree = await sut.RunAsync(SimpleDefinition, new Dictionary<string, object?>(), _measureContext, _options);

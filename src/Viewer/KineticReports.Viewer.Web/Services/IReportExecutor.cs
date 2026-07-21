@@ -11,7 +11,7 @@ public interface IReportExecutor
     /// <summary>
     /// Executes a report and returns the immutable report layout.
     /// </summary>
-    Task<ReportLayout> ExecuteAsync(
+    Task<ReportDocument> ExecuteAsync(
         ReportDefinition definition,
         IReadOnlyDictionary<string, object?> parameters,
         CancellationToken ct = default);

@@ -39,11 +39,11 @@ flowchart LR
 	D --> E[LayoutSizing]
 	E --> F[Arrange]
 	F --> G[Pagination]
-	G --> H[ReportLayout]
+	G --> H[ReportDocument]
 	H --> I[Renderer or Exporter]
 ```
 
 **Rule of thumb:**
 - Engine builds the report content.
 - Layout engine computes placement.
-- Renderers/exporters only consume final `ReportLayout`.
+- Renderers/exporters only consume final `ReportDocument`.
