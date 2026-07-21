@@ -3,7 +3,7 @@ namespace KineticReports.Core.Layout;
 using KineticReports.Core.Geometry;
 using KineticReports.Core.Rendering;
 
-/// <summary>Specifies how an image is scaled within the bounds of an <see cref="ImageElement"/>.</summary>
+/// <summary>Specifies how an image is scaled within the bounds of an <see cref="ImageBlock"/>.</summary>
 public enum ImageStretch
 {
     /// <summary>The image is drawn at its natural (intrinsic) size.</summary>
@@ -23,12 +23,12 @@ public enum ImageStretch
 }
 
 /// <summary>
-/// Represents an image element in the report layout.
+/// Represents an image block in the report layout.
 /// </summary>
-public sealed class ImageElement : LayoutElement
+public sealed class ImageBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutElementType ElementType => LayoutElementType.Image;
+    public override LayoutBlockType ElementType => LayoutBlockType.Image;
 
     /// <summary>Gets the source key or URI that identifies the image asset.</summary>
     public required string SourceKey { get; init; }

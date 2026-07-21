@@ -15,18 +15,25 @@ A lot of confusion comes from mixing two layers:
 
 The definition is static metadata. The data association happens at execution time.
 
+The key runtime join is:
+
+1. `ReportDefinition.DataSources[*].Id` (authoring-time identifier)
+2. `DataContext.DataSources[id]` (runtime row collection)
+3. `IReportBuilder.Build(...)` consuming that key to create ordered `ReportBlock` instances
+
 ## Mental Model
 
 ```mermaid
 flowchart LR
-    A[User creates ReportDefinition] --> B[Serialize to JSON]
-    B --> C[Store or transmit JSON]
-    C --> D[Deserialize to ReportDefinition]
-    D --> E[RunAsync(definition, parameters, context)]
-    E --> F[DataResolver resolves rows per DataSource]
-    F --> G[ReportBuilder creates blocks/elements]
-    G --> H[Layout engine computes ReportLayout]
-    H --> I[Exporter renders HTML/PDF/etc]
+  A["User creates ReportDefinition"] --> B["Serialize to JSON"]
+  B --> C["Store or transmit JSON"]
+  C --> D["Deserialize to ReportDefinition"]
+  D --> E["RunAsync with definition, parameters, and context"]
+  E --> F["DataResolver resolves rows per data source"]
+  F --> G["ReportBuilder creates blocks and elements"]
+   G --> H["Optional block post-processing plugins"]
+   H --> I["Layout engine computes ReportLayout"]
+   I --> J["Exporter renders HTML, PDF, and other outputs"]
 ```
 
 ## Part 1: How the Report Object Is Generated
@@ -103,29 +110,161 @@ For each `DataSourceDefinition` in the report:
 1. `ReportEngine.RunAsync(...)` calls `IDataResolver.ResolveAsync(dataSource, parameters, ct)`.
 2. Resolver returns rows (`IReadOnlyList<IReadOnlyDictionary<string, object?>>`).
 3. Rows are stored in `DataContext.DataSources[dataSource.Id]`.
-4. `IReportBuilder` consumes those rows and emits layout elements/blocks.
+4. `IReportBuilder` consumes those rows and emits ordered `ReportBlock` instances.
+5. Optional `IReportBlocksPostProcessorPlugin` implementations can transform blocks before layout.
 
 ```mermaid
 sequenceDiagram
-    participant Engine as ReportEngine
-    participant Def as ReportDefinition
-    participant Resolver as IDataResolver
-    participant Builder as IReportBuilder
+   participant Engine as ReportEngine
+   participant Def as ReportDefinition
+   participant Resolver as IDataResolver
+   participant Ctx as DataContext
+   participant Builder as IReportBuilder
+   participant Plugin as IReportBlocksPostProcessorPlugin
+   participant Layout as ILayoutEngine
 
-    Engine->>Def: Read DataSources
-    loop each DataSource
+   Engine->>Def: Read DataSources
+   loop each DataSource
       Engine->>Resolver: ResolveAsync(dataSource, parameters)
       Resolver-->>Engine: rows for dataSource.Id
-    end
-    Engine->>Builder: Build(DataContext, evaluator)
-    Builder-->>Engine: Blocks/Elements
+   end
+   Engine->>Ctx: DataSources[dataSource.Id] = rows
+   Engine->>Builder: Build(DataContext, evaluator)
+   Builder-->>Engine: ReportBlock list
+   Engine->>Plugin: ProcessBlocks optional
+   Plugin-->>Engine: transformed ReportBlock list
+   Engine->>Layout: Layout(blocks, options, context)
 ```
+
+### Data Source to Block Relationship
+
+At runtime, each row set is keyed by the exact data-source ID from the definition.
+The builder uses those keyed rows to create one or more blocks.
+
+```mermaid
+flowchart LR
+   A["ReportDefinition.DataSources[*].Id"] --> B["IDataResolver returns rows"]
+   B --> C["DataContext.DataSources[id]"]
+   C --> D["IReportBuilder selects rows by id"]
+   D --> E["Builder emits ReportBlock list"]
+   E --> F["BlockType controls role: header, detail, footer"]
+```
+
+Typical mapping patterns:
+
+1. One data source -> one table-oriented detail block
+2. One data source -> many grouped blocks (`GroupHeaderBlock` + `DetailBlock`)
+3. Multiple data sources -> multiple block sections in a single report
+
+The engine does not infer these mappings automatically; the builder decides block composition.
+
+### Concrete Example: Resolver Side
+
+This example shows how a resolver can return rows for a known source ID.
+
+```csharp
+public sealed class SampleResolver : IDataResolver
+{
+   public Task<IReadOnlyList<IReadOnlyDictionary<string, object?>>> ResolveAsync(
+      DataSourceDefinition source,
+      IReadOnlyDictionary<string, object?> parameters,
+      CancellationToken cancellationToken = default)
+   {
+      if (string.Equals(source.Id, "sales-orders", StringComparison.OrdinalIgnoreCase))
+      {
+         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows =
+         [
+            new Dictionary<string, object?>
+            {
+               ["OrderId"] = 1001,
+               ["Region"] = "North",
+               ["Customer"] = "Acme Co",
+               ["Total"] = 420.50m,
+            },
+            new Dictionary<string, object?>
+            {
+               ["OrderId"] = 1002,
+               ["Region"] = "West",
+               ["Customer"] = "Globex",
+               ["Total"] = 215.00m,
+            },
+         ];
+
+         return Task.FromResult(rows);
+      }
+
+      return Task.FromResult<IReadOnlyList<IReadOnlyDictionary<string, object?>>>([]);
+   }
+}
+```
+
+### Concrete Example: Builder Side
+
+This example reads `sales-orders` rows from `DataContext` and emits one header block plus one detail block per row.
+
+```csharp
+public sealed class SampleReportBuilder : IReportBuilder
+{
+   public IReadOnlyList<ReportBlock> Build(
+      DataContext context,
+      IExpressionEvaluator evaluator)
+   {
+      var blocks = new List<ReportBlock>();
+
+      blocks.Add(new HeaderBlock
+      {
+         Name = "SalesHeader",
+         Children =
+         [
+            new TextBlock
+            {
+               Id = "title",
+               Text = "Sales Orders",
+            },
+         ],
+      });
+
+      var rows = context.GetRows("sales-orders");
+      foreach (var row in rows)
+      {
+         var orderId = row.TryGetValue("OrderId", out var oid) ? oid?.ToString() : string.Empty;
+         var customer = row.TryGetValue("Customer", out var c) ? c?.ToString() : string.Empty;
+         var total = row.TryGetValue("Total", out var t) ? t?.ToString() : string.Empty;
+
+         blocks.Add(new DetailBlock
+         {
+            Name = $"Order-{orderId}",
+            Children =
+            [
+               new TextBlock { Id = $"order-{orderId}", Text = $"Order: {orderId}" },
+               new TextBlock { Id = $"customer-{orderId}", Text = $"Customer: {customer}" },
+               new TextBlock { Id = $"total-{orderId}", Text = $"Total: {total}" },
+            ],
+         });
+      }
+
+      return blocks;
+   }
+}
+```
+
+### Optional Grouping Example
+
+A single source can also produce grouped output by mixing block types:
+
+1. One `GroupHeaderBlock` per region
+2. Multiple `DetailBlock` entries within that region
+3. One `GroupFooterBlock` for subtotal/summary
+
+The grouping policy remains builder-owned; engine and layout stay generic.
 
 ### Practical Rule
 
 If a report source ID is `sales-orders`, then your resolver must return rows for `sales-orders`.
 
 If source IDs and resolver mapping do not align, the report appears empty or partial.
+
+Also ensure the builder looks up the same ID in `DataContext.DataSources`; mismatches there produce the same symptom.
 
 ## Part 3: JSON Export/Import for User Authored Reports
 
@@ -245,8 +384,9 @@ builder.Services.AddKineticReportsAuthoring();
 
 1. Assuming data is embedded inside the report definition.
 2. Reusing source IDs inconsistently between definition and resolver.
-3. Skipping schema/version checks when importing JSON.
-4. Coupling authoring UI directly to renderer internals.
+3. Using source IDs correctly in resolver, but differently in builder lookup.
+4. Skipping schema/version checks when importing JSON.
+5. Coupling authoring UI directly to renderer internals.
 
 ## Quick Checklist
 

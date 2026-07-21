@@ -27,7 +27,7 @@ flowchart TB
 	D --> F[Element Dispatcher]
 ```
 
-Dispatch on element types (`TextElement`, `ImageElement`, `TableElement`, etc.).
+Dispatch on block types (`TextBlock`, `ImageBlock`, `TableBlock`, etc.).
 
 ## Step 4: Respect architecture rules
 

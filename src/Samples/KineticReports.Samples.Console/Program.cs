@@ -46,7 +46,7 @@ try
 
     // Create an empty report layout for demonstration
     Console.WriteLine("Step 3: Creating empty report layout...");
-    var page = new PageElement
+    var page = new PageBlock
     {
         Id = "page-1",
         PageWidth = 800,

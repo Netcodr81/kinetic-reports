@@ -3,16 +3,16 @@ namespace KineticReports.Core.Layout;
 using KineticReports.Core.Geometry;
 
 /// <summary>
-/// Represents a generic container that groups child elements using
+/// Represents a generic container that groups child blocks using
 /// absolute positioning relative to its own bounds.
 /// </summary>
-public sealed class ContainerElement : LayoutElement
+public sealed class ContainerBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutElementType ElementType => LayoutElementType.Container;
+    public override LayoutBlockType ElementType => LayoutBlockType.Container;
 
     /// <summary>Gets the child elements within this container.</summary>
-    public IReadOnlyList<LayoutElement> Children { get; init; } = [];
+    public IReadOnlyList<LayoutBlock> Children { get; init; } = [];
 
     /// <inheritdoc/>
     public override void LayoutSize(Size availableSize, ILayoutSizingContext context)

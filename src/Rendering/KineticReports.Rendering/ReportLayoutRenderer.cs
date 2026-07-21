@@ -17,12 +17,12 @@ using KineticReports.Core.Styling;
 public sealed class ReportLayoutRenderer
 {
     /// <summary>
-    /// Renders a single <see cref="PageElement"/> onto <paramref name="context"/>.
+    /// Renders a single <see cref="PageBlock"/> onto <paramref name="context"/>.
     /// </summary>
     /// <param name="page">The fully-arranged page to render.</param>
     /// <param name="context">The backend drawing surface.</param>
     /// <param name="options">Render configuration (background color, DPI, etc.).</param>
-    public void RenderPage(PageElement page, IGraphicsContext context, RenderOptions options)
+    public void RenderPage(PageBlock page, IGraphicsContext context, RenderOptions options)
     {
         // Page background fills the full page bounds.
         context.FillRectangle(page.Bounds, options.Background);
@@ -44,7 +44,7 @@ public sealed class ReportLayoutRenderer
     // Core traversal
     // -------------------------------------------------------------------------
 
-    private void RenderElement(LayoutElement element, IGraphicsContext context)
+    private void RenderElement(LayoutBlock element, IGraphicsContext context)
     {
         bool pushOpacity = element.Style.Opacity < 1f;
         bool pushClip = element.Style.Overflow == Overflow.Hidden;
@@ -63,25 +63,25 @@ public sealed class ReportLayoutRenderer
         // Dispatch by element type
         switch (element)
         {
-            case TextElement text:
+            case TextBlock text:
                 foreach (var run in text.TextRuns)
                     context.DrawText(run);
                 break;
 
-            case ImageElement image when image.ImageReference is not null:
+            case ImageBlock image when image.ImageReference is not null:
                 context.DrawImage(image.Bounds, image.ImageReference, image.Stretch);
                 break;
 
-            case ShapeElement shape:
+            case ShapeBlock shape:
                 RenderShape(shape, context);
                 break;
 
-            case ContainerElement container:
+            case ContainerBlock container:
                 foreach (var child in container.Children)
                     RenderElement(child, context);
                 break;
 
-            case SectionElement section:
+            case SectionBlock section:
                 foreach (var child in section.Children)
                     RenderElement(child, context);
                 break;
@@ -91,17 +91,17 @@ public sealed class ReportLayoutRenderer
                     RenderElement(child, context);
                 break;
 
-            case TableElement table:
+            case TableBlock table:
                 foreach (var row in table.Rows)
                     RenderElement(row, context);
                 break;
 
-            case RowElement row:
+            case RowBlock row:
                 foreach (var cell in row.Cells)
                     RenderElement(cell, context);
                 break;
 
-            case CellElement cell:
+            case CellBlock cell:
                 foreach (var child in cell.Children)
                     RenderElement(child, context);
                 break;
@@ -115,7 +115,7 @@ public sealed class ReportLayoutRenderer
     // Shape rendering
     // -------------------------------------------------------------------------
 
-    private static void RenderShape(ShapeElement shape, IGraphicsContext context)
+    private static void RenderShape(ShapeBlock shape, IGraphicsContext context)
     {
         switch (shape.Kind)
         {

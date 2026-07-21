@@ -14,7 +14,7 @@ public class MemoryReportStoreTests
             FontSize = 12f
         };
 
-        var page = new PageElement
+        var page = new PageBlock
         {
             Id = "page-1",
             PageWidth = 800,

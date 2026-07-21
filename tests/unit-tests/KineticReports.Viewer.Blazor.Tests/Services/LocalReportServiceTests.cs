@@ -49,7 +49,7 @@ public class LocalReportServiceTests
             LayoutOptions? layoutOptions = null,
             CancellationToken cancellationToken = default)
         {
-            var page = new PageElement
+            var page = new PageBlock
             {
                 Id = "page-1",
                 PageWidth = 800,

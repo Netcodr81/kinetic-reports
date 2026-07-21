@@ -3,12 +3,12 @@ namespace KineticReports.Core.Layout;
 using KineticReports.Core.Geometry;
 
 /// <summary>
-/// Represents a barcode or QR code element in the report layout.
+/// Represents a barcode or QR code block in the report layout.
 /// </summary>
-public sealed class BarcodeElement : LayoutElement
+public sealed class BarcodeBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutElementType ElementType => LayoutElementType.Barcode;
+    public override LayoutBlockType ElementType => LayoutBlockType.Barcode;
 
     /// <summary>
     /// Gets the barcode symbology identifier (e.g. "QR", "Code128", "EAN13", "PDF417").

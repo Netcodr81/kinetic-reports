@@ -23,24 +23,24 @@ This page documents key Core contracts and base abstractions.
 
 | Type | Kind | Purpose | Key Members |
 |---|---|---|---|
-| `LayoutElement` | abstract class | Base for all layout elements | `Id`, `Style`, `Bounds`, `DesiredSize`, `LayoutSize`, `Arrange` |
+| `LayoutBlock` | abstract class | Base for all layout blocks | `Id`, `Style`, `Bounds`, `DesiredSize`, `LayoutSize`, `Arrange` |
 
 ## Layout Element Types
 
 | Element | Role |
 |---|---|
-| `PageElement` | Represents one final page |
+| `PageBlock` | Represents one final page |
 | `ReportBlock` | Header/detail/footer grouping and repetition |
-| `SectionElement` | Structural grouping (header/body/footer areas) |
-| `ContainerElement` | Generic children container |
-| `TextElement` | Text content and text runs |
-| `TableElement` | Table root |
-| `RowElement` | Table row |
-| `CellElement` | Table cell |
-| `ImageElement` | Images |
-| `ShapeElement` | Vector shapes |
-| `ChartElement` | Charts |
-| `BarcodeElement` | Barcodes |
+| `SectionBlock` | Structural grouping (header/body/footer areas) |
+| `ContainerBlock` | Generic children container |
+| `TextBlock` | Text content and text runs |
+| `TableBlock` | Table root |
+| `RowBlock` | Table row |
+| `CellBlock` | Table cell |
+| `ImageBlock` | Images |
+| `ShapeBlock` | Vector shapes |
+| `ChartBlock` | Charts |
+| `BarcodeBlock` | Barcodes |
 
 ## Styling Types
 

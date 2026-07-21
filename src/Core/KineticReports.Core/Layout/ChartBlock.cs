@@ -3,14 +3,14 @@ namespace KineticReports.Core.Layout;
 using KineticReports.Core.Geometry;
 
 /// <summary>
-/// Represents a chart element in the report layout.
+/// Represents a chart block in the report layout.
 /// Chart-specific rendering is delegated to the renderer implementation
 /// via the opaque <see cref="ChartData"/> payload.
 /// </summary>
-public sealed class ChartElement : LayoutElement
+public sealed class ChartBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutElementType ElementType => LayoutElementType.Chart;
+    public override LayoutBlockType ElementType => LayoutBlockType.Chart;
 
     /// <summary>
     /// Gets the chart type identifier (e.g. "Bar", "Line", "Pie", "Area").

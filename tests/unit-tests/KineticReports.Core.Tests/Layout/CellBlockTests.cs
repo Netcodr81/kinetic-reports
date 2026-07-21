@@ -6,7 +6,7 @@ using KineticReports.Core.Rendering;
 using KineticReports.Core.Styling;
 using KineticReports.Core.Typography;
 
-public class CellElementTests
+public class CellBlockTests
 {
     [Fact]
     public void LayoutSize_WithPaddingAndBorder_IncludesInsetsInDesiredHeight()
@@ -18,7 +18,7 @@ public class CellElementTests
             FixedDesiredSize = new Size(50f, 10f)
         };
 
-        var cell = new CellElement
+        var cell = new CellBlock
         {
             Id = "cell-1",
             Style = new AppliedStyle
@@ -37,11 +37,11 @@ public class CellElementTests
         cell.DesiredSize.Height.ShouldBe(20f);
     }
 
-    private sealed class FixedSizeElement : LayoutElement
+    private sealed class FixedSizeElement : LayoutBlock
     {
         public required Size FixedDesiredSize { get; init; }
 
-        public override LayoutElementType ElementType => LayoutElementType.Container;
+        public override LayoutBlockType ElementType => LayoutBlockType.Container;
 
         public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
         {

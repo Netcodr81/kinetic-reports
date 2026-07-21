@@ -4,16 +4,16 @@ using KineticReports.Core.Geometry;
 using KineticReports.Core.Rendering;
 
 /// <summary>
-/// Represents a text element in the report layout.
+/// Represents a text block in the report layout.
 /// After the Arrange pass, the element holds the shaped and wrapped <see cref="TextRuns"/>
 /// ready for the renderer to consume.
 /// </summary>
-public sealed class TextElement : LayoutElement
+public sealed class TextBlock : LayoutBlock
 {
     private ILayoutSizingContext? _layoutSizingContext;
 
     /// <inheritdoc/>
-    public override LayoutElementType ElementType => LayoutElementType.Text;
+    public override LayoutBlockType ElementType => LayoutBlockType.Text;
 
     /// <summary>
     /// Gets the display text content (after expression evaluation has been applied).

@@ -183,7 +183,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
     {
         return CreateBlock(blockType, id, CreateBlockStyle(blockType),
         [
-            new TextElement
+            new TextBlock
             {
                 Id = $"{id}-text",
                 Style = textStyle,
@@ -196,7 +196,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
         BlockType blockType,
         string id,
         AppliedStyle style,
-        IReadOnlyList<LayoutElement> children)
+        IReadOnlyList<LayoutBlock> children)
     {
         return blockType switch
         {
@@ -305,7 +305,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
             new TableColumn { Width = 120f }
         };
 
-        var headerRow = new RowElement
+        var headerRow = new RowBlock
         {
             Id = $"source-{sourceId}-header-row",
             RowType = RowType.Header,
@@ -321,7 +321,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
 
         var dataRows = rows
             .Select((row, rowIndex) =>
-                new RowElement
+                new RowBlock
                 {
                     Id = $"source-{sourceId}-row-{rowIndex + 1}",
                     RowType = RowType.Data,
@@ -336,7 +336,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
                 })
             .ToList();
 
-        var tableRows = new List<RowElement> { headerRow };
+        var tableRows = new List<RowBlock> { headerRow };
         tableRows.AddRange(dataRows);
 
         return new DetailBlock
@@ -350,7 +350,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
             },
             Children =
             [
-                new TableElement
+                new TableBlock
                 {
                     Id = $"source-{sourceId}-table-element",
                     Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
@@ -403,7 +403,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
             new TableColumn { Width = 120f }
         };
 
-        var headerRow = new RowElement
+        var headerRow = new RowBlock
         {
             Id = $"source-{sourceId}-header-row",
             RowType = RowType.Header,
@@ -420,7 +420,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
 
         var dataRows = rows
             .Select((row, rowIndex) =>
-                new RowElement
+                new RowBlock
                 {
                     Id = $"source-{sourceId}-row-{rowIndex + 1}",
                     RowType = RowType.Data,
@@ -436,7 +436,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
                 })
             .ToList();
 
-        var tableRows = new List<RowElement> { headerRow };
+        var tableRows = new List<RowBlock> { headerRow };
         tableRows.AddRange(dataRows);
 
         return new DetailBlock
@@ -450,7 +450,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
             },
             Children =
             [
-                new TableElement
+                new TableBlock
                 {
                     Id = $"source-{sourceId}-table-element",
                     Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
@@ -508,7 +508,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
             .Select(_ => new TableColumn { MinWidth = 110f, Grow = 1f })
             .ToArray();
 
-        var headerRow = new RowElement
+        var headerRow = new RowBlock
         {
             Id = $"source-{sourceId}-header-row",
             RowType = RowType.Header,
@@ -525,7 +525,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
 
         var dataRows = rows
             .Select((row, rowIndex) =>
-                new RowElement
+                new RowBlock
                 {
                     Id = $"source-{sourceId}-row-{rowIndex + 1}",
                     RowType = RowType.Data,
@@ -541,7 +541,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
                 })
             .ToList();
 
-        var tableRows = new List<RowElement> { headerRow };
+        var tableRows = new List<RowBlock> { headerRow };
         tableRows.AddRange(dataRows);
 
         return new DetailBlock
@@ -555,7 +555,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
             },
             Children =
             [
-                new TableElement
+                new TableBlock
                 {
                     Id = $"source-{sourceId}-table-element",
                     Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
@@ -567,7 +567,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
         };
     }
 
-    private static CellElement CreateTableCell(string id, int columnIndex, string text, AppliedStyle style)
+    private static CellBlock CreateTableCell(string id, int columnIndex, string text, AppliedStyle style)
     {
         var textStyle = style with
         {
@@ -578,14 +578,14 @@ internal sealed class SampleReportBuilder : IReportBuilder
             Overflow = Overflow.Visible
         };
 
-        return new CellElement
+        return new CellBlock
         {
             Id = id,
             ColumnIndex = columnIndex,
             Style = style,
             Children =
             [
-                new TextElement
+                new TextBlock
                 {
                     Id = $"{id}-text",
                     Style = textStyle,

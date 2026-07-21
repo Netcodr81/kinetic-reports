@@ -54,9 +54,9 @@ public class SkiaRendererTests
     private static ReportLayout MakeLayoutTreeWithPages(int count) =>
         new() { Pages = Enumerable.Range(1, count).Select(MakePage).ToList() };
 
-    private static PageElement MakePage(int pageNum)
+    private static PageBlock MakePage(int pageNum)
     {
-        var page = new PageElement
+        var page = new PageBlock
         {
             Id = $"page-{pageNum}",
             Style = DefaultStyle,

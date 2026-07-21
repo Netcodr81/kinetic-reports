@@ -30,18 +30,18 @@ public class HtmlExporterTests
     }
 
     [Fact]
-    public async Task ExportAsync_WithTextElement_IncludesContent()
+    public async Task ExportAsync_WithTextBlock_IncludesContent()
     {
-        var textElem = new TextElement
+        var textBlock = new TextBlock
         {
             Id = "text-1",
             Style = DefaultStyle,
             Text = "Hello World"
         };
-        textElem.LayoutSize(new Size(200f, 100f), new LayoutSizingContext(new FakeTextLayout()));
-        textElem.Arrange(new Rect(10, 10, 100, 20));
+        textBlock.LayoutSize(new Size(200f, 100f), new LayoutSizingContext(new FakeTextLayout()));
+        textBlock.Arrange(new Rect(10, 10, 100, 20));
 
-        var page = MakePage(1, [textElem]);
+        var page = MakePage(1, [textBlock]);
         var tree = new ReportLayout { Pages = [page] };
 
         var exporter = new HtmlExporter();
@@ -71,7 +71,7 @@ public class HtmlExporterTests
     [Fact]
     public async Task ExportAsync_WithShapeElement_IncludesSvg()
     {
-        var shapeElem = new ShapeElement
+        var shapeElem = new ShapeBlock
         {
             Id = "shape-1",
             Style = DefaultStyle,
@@ -98,12 +98,12 @@ public class HtmlExporterTests
     [Fact]
     public async Task ExportAsync_WithTableElement_IncludesTable()
     {
-        var cell1 = new CellElement { Id = "cell-1", Style = DefaultStyle, Children = [] };
-        var cell2 = new CellElement { Id = "cell-2", Style = DefaultStyle, Children = [] };
+        var cell1 = new CellBlock { Id = "cell-1", Style = DefaultStyle, Children = [] };
+        var cell2 = new CellBlock { Id = "cell-2", Style = DefaultStyle, Children = [] };
         cell1.Arrange(new Rect(0, 0, 100, 50));
         cell2.Arrange(new Rect(100, 0, 100, 50));
 
-        var row = new RowElement
+        var row = new RowBlock
         {
             Id = "row-1",
             Style = DefaultStyle,
@@ -111,7 +111,7 @@ public class HtmlExporterTests
         };
         row.Arrange(new Rect(0, 0, 200, 50));
 
-        var tableElem = new TableElement
+        var tableElem = new TableBlock
         {
             Id = "table-1",
             Style = DefaultStyle,
@@ -136,14 +136,14 @@ public class HtmlExporterTests
     [Fact]
     public async Task ExportAsync_WithHeaderRow_RendersTheadAndTh()
     {
-        var headerCell = new CellElement
+        var headerCell = new CellBlock
         {
             Id = "header-cell-1",
             ColumnIndex = 0,
             Style = DefaultStyle,
             Children =
             [
-                new TextElement
+                new TextBlock
                 {
                     Id = "header-cell-1-text",
                     Style = DefaultStyle,
@@ -152,14 +152,14 @@ public class HtmlExporterTests
             ]
         };
 
-        var dataCell = new CellElement
+        var dataCell = new CellBlock
         {
             Id = "data-cell-1",
             ColumnIndex = 0,
             Style = DefaultStyle,
             Children =
             [
-                new TextElement
+                new TextBlock
                 {
                     Id = "data-cell-1-text",
                     Style = DefaultStyle,
@@ -168,7 +168,7 @@ public class HtmlExporterTests
             ]
         };
 
-        var headerRow = new RowElement
+        var headerRow = new RowBlock
         {
             Id = "header-row-1",
             RowType = RowType.Header,
@@ -176,7 +176,7 @@ public class HtmlExporterTests
             Cells = [headerCell]
         };
 
-        var dataRow = new RowElement
+        var dataRow = new RowBlock
         {
             Id = "data-row-1",
             RowType = RowType.Data,
@@ -184,7 +184,7 @@ public class HtmlExporterTests
             Cells = [dataCell]
         };
 
-        var tableElem = new TableElement
+        var tableElem = new TableBlock
         {
             Id = "table-with-header",
             Style = DefaultStyle,
@@ -224,9 +224,9 @@ public class HtmlExporterTests
     private static ReportLayout MakeSimpleLayoutTree() =>
         new() { Pages = [MakePage(1)] };
 
-    private static PageElement MakePage(int pageNum, List<LayoutElement>? children = null)
+    private static PageBlock MakePage(int pageNum, List<LayoutBlock>? children = null)
     {
-        var page = new PageElement
+        var page = new PageBlock
         {
             Id = $"page-{pageNum}",
             Style = DefaultStyle,

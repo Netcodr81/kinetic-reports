@@ -3,7 +3,7 @@ namespace KineticReports.Core.Layout;
 using KineticReports.Core.Geometry;
 using KineticReports.Core.Styling;
 
-/// <summary>Identifies the geometric primitive drawn by a <see cref="ShapeElement"/>.</summary>
+/// <summary>Identifies the geometric primitive drawn by a <see cref="ShapeBlock"/>.</summary>
 public enum ShapeKind
 {
     /// <summary>An axis-aligned rectangle (optionally with rounded corners).</summary>
@@ -17,12 +17,12 @@ public enum ShapeKind
 }
 
 /// <summary>
-/// Represents a vector shape element (rectangle, ellipse, or line) in the report layout.
+/// Represents a vector shape block (rectangle, ellipse, or line) in the report layout.
 /// </summary>
-public sealed class ShapeElement : LayoutElement
+public sealed class ShapeBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutElementType ElementType => LayoutElementType.Shape;
+    public override LayoutBlockType ElementType => LayoutBlockType.Shape;
 
     /// <summary>Gets the kind of shape to draw.</summary>
     public ShapeKind Kind { get; init; }

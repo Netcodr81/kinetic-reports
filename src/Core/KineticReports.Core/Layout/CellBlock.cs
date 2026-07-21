@@ -3,13 +3,13 @@ namespace KineticReports.Core.Layout;
 using KineticReports.Core.Geometry;
 
 /// <summary>
-/// Represents a single cell within a <see cref="RowElement"/>.
+/// Represents a single cell within a <see cref="RowBlock"/>.
 /// A cell may span multiple columns (<see cref="ColSpan"/>) or rows (<see cref="RowSpan"/>).
 /// </summary>
-public sealed class CellElement : LayoutElement
+public sealed class CellBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutElementType ElementType => LayoutElementType.Cell;
+    public override LayoutBlockType ElementType => LayoutBlockType.Cell;
 
     /// <summary>Gets the zero-based column index of this cell.</summary>
     public int ColumnIndex { get; init; }
@@ -25,7 +25,7 @@ public sealed class CellElement : LayoutElement
     public int RowSpan { get; init; } = 1;
 
     /// <summary>Gets the child elements inside this cell.</summary>
-    public IReadOnlyList<LayoutElement> Children { get; init; } = [];
+    public IReadOnlyList<LayoutBlock> Children { get; init; } = [];
 
     /// <inheritdoc/>
     public override void LayoutSize(Size availableSize, ILayoutSizingContext context)

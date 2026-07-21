@@ -3,17 +3,17 @@ namespace KineticReports.Core.Layout;
 using KineticReports.Core.Geometry;
 
 /// <summary>
-/// Represents a horizontal section within a <see cref="PageElement"/>
+/// Represents a horizontal section within a <see cref="PageBlock"/>
 /// (page header, page body, or page footer).
 /// Children are stacked vertically in document order.
 /// </summary>
-public sealed class SectionElement : LayoutElement
+public sealed class SectionBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutElementType ElementType => LayoutElementType.Section;
+    public override LayoutBlockType ElementType => LayoutBlockType.Section;
 
     /// <summary>Gets the child elements stacked inside this section.</summary>
-    public IReadOnlyList<LayoutElement> Children { get; init; } = [];
+    public IReadOnlyList<LayoutBlock> Children { get; init; } = [];
 
     /// <inheritdoc/>
     public override void LayoutSize(Size availableSize, ILayoutSizingContext context)

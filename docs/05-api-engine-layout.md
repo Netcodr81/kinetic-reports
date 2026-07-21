@@ -4,11 +4,11 @@ This page documents how orchestration and layout contracts work.
 
 ## Engine Interfaces
 
-| Interface                | Purpose                                        | Key Methods                       |
-| ------------------------ | ---------------------------------------------- | --------------------------------- |
-| `IReportEngine`        | Main orchestration entry point                 | `RunAsync(...)`                 |
-| `IDataResolver`        | Resolves rows for each`DataSourceDefinition` | `ResolveAsync(...)`             |
-| `IExpressionEvaluator` | Evaluates expression strings                   | `Evaluate(expression, context)` |
+| Interface                | Purpose                                         | Key Methods                       |
+| ------------------------ | ----------------------------------------------- | --------------------------------- |
+| `IReportEngine`        | Main orchestration entry point                  | `RunAsync(...)`                 |
+| `IDataResolver`        | Resolves rows for each`DataSourceDefinition`  | `ResolveAsync(...)`             |
+| `IExpressionEvaluator` | Evaluates expression strings                    | `Evaluate(expression, context)` |
 | `IReportBuilder`       | Builds ordered report blocks from resolved data | `Build(dataContext, evaluator)` |
 
 ## Engine Runtime Types
@@ -22,17 +22,17 @@ This page documents how orchestration and layout contracts work.
 
 ## Layout Interfaces and Types
 
-| Type                    | Kind      | Purpose                          | Key Members                                    |
-| ----------------------- | --------- | -------------------------------- | ---------------------------------------------- |
+| Type                    | Kind      | Purpose                           | Key Members                                    |
+| ----------------------- | --------- | --------------------------------- | ---------------------------------------------- |
 | `ILayoutEngine`       | interface | Turns blocks into`ReportLayout` | `Layout(...)`                                |
-| `LayoutEngine`        | class     | Default implementation           | delegates to pagination engine                 |
-| `LayoutOptions`       | record    | Page setup and margins           | `PageWidth`, `PageHeight`, `PageMargins` |
-| `LayoutSizingContext` | class     | Default LayoutSizing context     | `TextLayout`, image-size resolver           |
-| `ReportLayout`        | record    | Final immutable output           | `Pages`                                      |
+| `LayoutEngine`        | class     | Default implementation            | delegates to pagination engine                 |
+| `LayoutOptions`       | record    | Page setup and margins            | `PageWidth`, `PageHeight`, `PageMargins` |
+| `LayoutSizingContext` | class     | Default LayoutSizing context      | `TextLayout`, image-size resolver            |
+| `ReportLayout`        | record    | Final immutable output            | `Pages`                                      |
 
 ## Pagination Behavior
 
-- Page headers/footers are partitioned by `BandKind`.
+- Page headers/footers are partitioned by `BlockType`.
 - Body blocks are measured then distributed by available body area.
 - `ForcePageBreakBefore` and `KeepTogether` affect page splits.
 

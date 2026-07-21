@@ -46,7 +46,7 @@ sequenceDiagram
 
 - **LayoutSizing pass:** each element computes desired size
 - **Arrange:** each element gets final bounds
-- **Pagination:** content is split into `PageElement`s
+- **Pagination:** content is split into `PageBlock`s
 
 Result is an immutable `ReportLayout`.
 

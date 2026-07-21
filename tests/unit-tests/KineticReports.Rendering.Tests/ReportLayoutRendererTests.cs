@@ -36,10 +36,10 @@ public class ReportLayoutRendererTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void RenderPage_TextElement_EmitsDrawText()
+    public void RenderPage_TextBlock_EmitsDrawText()
     {
         var ctx = new RecordingGraphicsContext();
-        var text = MakeArrangedTextElement("Hello");
+        var text = MakeArrangedTextBlock("Hello");
         var page = MakePage(text);
 
         _sut.RenderPage(page, ctx, _options);
@@ -48,10 +48,10 @@ public class ReportLayoutRendererTests
     }
 
     [Fact]
-    public void RenderPage_TextElement_DrawsCorrectContent()
+    public void RenderPage_TextBlock_DrawsCorrectContent()
     {
         var ctx = new RecordingGraphicsContext();
-        var text = MakeArrangedTextElement("Hello");
+        var text = MakeArrangedTextBlock("Hello");
         _sut.RenderPage(MakePage(text), ctx, _options);
 
         ctx.Calls.ShouldContain("DrawText(Hello)");
@@ -65,7 +65,7 @@ public class ReportLayoutRendererTests
     public void RenderPage_FilledRectangleShape_EmitsTwoFillRects()
     {
         var ctx = new RecordingGraphicsContext();
-        var shape = ArrangeShape(new ShapeElement
+        var shape = ArrangeShape(new ShapeBlock
         {
             Id = "s1",
             Style = DefaultStyle,
@@ -81,7 +81,7 @@ public class ReportLayoutRendererTests
     public void RenderPage_StrokedEllipseShape_EmitsStrokeEllipse()
     {
         var ctx = new RecordingGraphicsContext();
-        var shape = ArrangeShape(new ShapeElement
+        var shape = ArrangeShape(new ShapeBlock
         {
             Id = "e1",
             Style = DefaultStyle,
@@ -97,7 +97,7 @@ public class ReportLayoutRendererTests
     public void RenderPage_LineShape_EmitsDrawLine()
     {
         var ctx = new RecordingGraphicsContext();
-        var shape = ArrangeShape(new ShapeElement
+        var shape = ArrangeShape(new ShapeBlock
         {
             Id = "l1",
             Style = DefaultStyle,
@@ -159,10 +159,10 @@ public class ReportLayoutRendererTests
     public void RenderPage_WithHeader_RendersHeaderBeforeBodyChildren()
     {
         var ctx = new RecordingGraphicsContext();
-        var headerText = MakeArrangedTextElement("Header");
-        var bodyText = MakeArrangedTextElement("Body");
+        var headerText = MakeArrangedTextBlock("Header");
+        var bodyText = MakeArrangedTextBlock("Body");
 
-        var header = new SectionElement
+        var header = new SectionBlock
         {
             Id = "hdr",
             Style = DefaultStyle,
@@ -184,15 +184,15 @@ public class ReportLayoutRendererTests
     // Helpers
     // -------------------------------------------------------------------------
 
-    private PageElement MakePage(
-        LayoutElement? child = null,
-        SectionElement? header = null,
-        SectionElement? footer = null)
+    private PageBlock MakePage(
+        LayoutBlock? child = null,
+        SectionBlock? header = null,
+        SectionBlock? footer = null)
     {
         var children = child is null
-            ? (IReadOnlyList<LayoutElement>)[]
+            ? (IReadOnlyList<LayoutBlock>)[]
             : [child];
-        var page = new PageElement
+        var page = new PageBlock
         {
             Id = "page-1",
             Style = DefaultStyle,
@@ -207,9 +207,9 @@ public class ReportLayoutRendererTests
         return page;
     }
 
-    private TextElement MakeArrangedTextElement(string text)
+    private TextBlock MakeArrangedTextBlock(string text)
     {
-        var elem = new TextElement
+        var elem = new TextBlock
         {
             Id = Guid.NewGuid().ToString(),
             Style = DefaultStyle,
@@ -220,14 +220,14 @@ public class ReportLayoutRendererTests
         return elem;
     }
 
-    private static ContainerElement ArrangeContainer(AppliedStyle style)
+    private static ContainerBlock ArrangeContainer(AppliedStyle style)
     {
-        var c = new ContainerElement { Id = "c1", Style = style, Children = [] };
+        var c = new ContainerBlock { Id = "c1", Style = style, Children = [] };
         c.Arrange(new Rect(0, 0, 100, 50));
         return c;
     }
 
-    private static ShapeElement ArrangeShape(ShapeElement shape)
+    private static ShapeBlock ArrangeShape(ShapeBlock shape)
     {
         shape.Arrange(new Rect(10, 10, 100, 50));
         return shape;

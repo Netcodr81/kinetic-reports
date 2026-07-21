@@ -6,7 +6,7 @@ using KineticReports.Core.Styling;
 
 /// <summary>
 /// Distributes a flat list of measured <see cref="ReportBlock"/> objects across
-/// one or more <see cref="PageElement"/> instances, respecting page breaks,
+/// one or more <see cref="PageBlock"/> instances, respecting page breaks,
 /// <see cref="ReportBlock.KeepTogether"/>, and <see cref="ReportBlock.ForcePageBreakBefore"/>.
 /// </summary>
 internal sealed class PaginationEngine
@@ -19,7 +19,7 @@ internal sealed class PaginationEngine
     /// <param name="options">Page dimensions and margin configuration.</param>
     /// <param name="context">Text layout and image-resolution services.</param>
     /// <returns>An ordered, non-empty list of fully arranged pages.</returns>
-    internal IReadOnlyList<PageElement> Paginate(
+    internal IReadOnlyList<PageBlock> Paginate(
         IReadOnlyList<ReportBlock> blocks,
         LayoutOptions options,
         ILayoutSizingContext context)
@@ -53,7 +53,7 @@ internal sealed class PaginationEngine
             bodyAreaHeight = options.PageHeight - options.PageMargins.Vertical;
 
         // --- Distribute body blocks across pages ---
-        var pages = new List<PageElement>();
+        var pages = new List<PageBlock>();
         int pageNumber = 1;
         float accumulatedHeight = 0f;
         var currentPage = new List<ReportBlock>();
@@ -105,7 +105,7 @@ internal sealed class PaginationEngine
         return total;
     }
 
-    private static PageElement BuildPage(
+    private static PageBlock BuildPage(
         int pageNumber,
         List<ReportBlock> bodyBlocks,
         List<ReportBlock> pageHeaderBlocks,
@@ -120,11 +120,11 @@ internal sealed class PaginationEngine
         float contentWidth = options.PageWidth - options.PageMargins.Horizontal;
 
         // --- Arrange page-header blocks ---
-        SectionElement? header = null;
+        SectionBlock? header = null;
         if (pageHeaderBlocks.Count > 0)
         {
             float y = marginTop;
-            var arranged = new List<LayoutElement>(pageHeaderBlocks.Count);
+            var arranged = new List<LayoutBlock>(pageHeaderBlocks.Count);
             foreach (var block in pageHeaderBlocks)
             {
                 block.Arrange(new Rect(marginLeft, y, contentWidth, block.DesiredSize.Height));
@@ -132,7 +132,7 @@ internal sealed class PaginationEngine
                 y += block.DesiredSize.Height;
             }
 
-            header = new SectionElement
+            header = new SectionBlock
             {
                 Id = $"PageHeader-p{pageNumber}",
                 Style = engineStyle,
@@ -142,12 +142,12 @@ internal sealed class PaginationEngine
         }
 
         // --- Arrange page-footer blocks ---
-        SectionElement? footer = null;
+        SectionBlock? footer = null;
         if (pageFooterBlocks.Count > 0)
         {
             float footerTop = options.PageHeight - options.PageMargins.Bottom - pageFooterHeight;
             float y = footerTop;
-            var arranged = new List<LayoutElement>(pageFooterBlocks.Count);
+            var arranged = new List<LayoutBlock>(pageFooterBlocks.Count);
             foreach (var block in pageFooterBlocks)
             {
                 block.Arrange(new Rect(marginLeft, y, contentWidth, block.DesiredSize.Height));
@@ -155,7 +155,7 @@ internal sealed class PaginationEngine
                 y += block.DesiredSize.Height;
             }
 
-            footer = new SectionElement
+            footer = new SectionBlock
             {
                 Id = $"PageFooter-p{pageNumber}",
                 Style = engineStyle,
@@ -167,7 +167,7 @@ internal sealed class PaginationEngine
         // --- Arrange body blocks ---
         float bodyTop = marginTop + pageHeaderHeight;
         float bodyY = bodyTop;
-        var children = new List<LayoutElement>(bodyBlocks.Count);
+        var children = new List<LayoutBlock>(bodyBlocks.Count);
         foreach (var block in bodyBlocks)
         {
             block.Arrange(new Rect(marginLeft, bodyY, contentWidth, block.DesiredSize.Height));
@@ -176,7 +176,7 @@ internal sealed class PaginationEngine
         }
 
         // --- Build and finalise the page ---
-        var page = new PageElement
+        var page = new PageBlock
         {
             Id = $"Page-{pageNumber}",
             Style = engineStyle,

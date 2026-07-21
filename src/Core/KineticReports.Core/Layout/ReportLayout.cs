@@ -7,7 +7,7 @@ namespace KineticReports.Core.Layout;
 public sealed class ReportLayout
 {
     /// <summary>Gets the pages in document order.</summary>
-    public required IReadOnlyList<PageElement> Pages { get; init; }
+    public required IReadOnlyList<PageBlock> Pages { get; init; }
 
     /// <summary>Gets the total number of pages in the document.</summary>
     public int PageCount => Pages.Count;

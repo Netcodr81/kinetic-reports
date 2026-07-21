@@ -2,7 +2,7 @@ namespace KineticReports.Core.Layout;
 
 using KineticReports.Core.Geometry;
 
-/// <summary>Specifies the functional role of a <see cref="RowElement"/>.</summary>
+/// <summary>Specifies the functional role of a <see cref="RowBlock"/>.</summary>
 public enum RowType
 {
     /// <summary>A header row; repeated at the top of each page when the table paginates.</summary>
@@ -16,12 +16,12 @@ public enum RowType
 }
 
 /// <summary>
-/// Represents a single row within a <see cref="TableElement"/>.
+/// Represents a single row within a <see cref="TableBlock"/>.
 /// </summary>
-public sealed class RowElement : LayoutElement
+public sealed class RowBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutElementType ElementType => LayoutElementType.Row;
+    public override LayoutBlockType ElementType => LayoutBlockType.Row;
 
     /// <summary>Gets the functional role of this row.</summary>
     public RowType RowType { get; init; } = RowType.Data;
@@ -32,7 +32,7 @@ public sealed class RowElement : LayoutElement
     public bool KeepTogether { get; init; }
 
     /// <summary>Gets the cells in this row, in column order.</summary>
-    public IReadOnlyList<CellElement> Cells { get; init; } = [];
+    public IReadOnlyList<CellBlock> Cells { get; init; } = [];
 
     /// <inheritdoc/>
     public override void LayoutSize(Size availableSize, ILayoutSizingContext context)

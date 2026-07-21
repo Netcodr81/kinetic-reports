@@ -9,7 +9,7 @@ public class ReportExecutionResultTests
     public void ReportExecutionResult_WithSuccessful_CreatesValidInstance()
     {
         // Arrange & Act
-        var page = new PageElement
+        var page = new PageBlock
         {
             Id = "page-1",
             PageWidth = 800,

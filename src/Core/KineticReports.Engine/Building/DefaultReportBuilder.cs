@@ -18,7 +18,7 @@ public sealed class DefaultReportBuilder : IReportBuilder
     /// This is a placeholder implementation. The Report Builder is responsible for:
     /// 1. Taking the report definition (structure/layout)
     /// 2. Combining it with the resolved data from DataContext
-    /// 3. Creating an element tree with ReportBlock, TextElement, TableElement, etc.
+    /// 3. Creating a block tree with ReportBlock, TextBlock, TableBlock, etc.
     /// 4. Evaluating expressions for data binding
     ///
     /// To implement this properly:

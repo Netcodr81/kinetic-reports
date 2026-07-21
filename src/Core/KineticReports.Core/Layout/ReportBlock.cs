@@ -31,10 +31,10 @@ public enum BlockType
 /// Represents a data-driven horizontal report block in the report layout.
 /// Blocks are the primary mechanism for repeating data rows and group summaries.
 /// </summary>
-public abstract class ReportBlock : LayoutElement
+public abstract class ReportBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutElementType ElementType => LayoutElementType.Band;
+    public override LayoutBlockType ElementType => LayoutBlockType.Band;
 
     /// <summary>Gets the functional role of this block.</summary>
     public virtual BlockType Kind { get; init; } = BlockType.Detail;
@@ -50,7 +50,7 @@ public abstract class ReportBlock : LayoutElement
     public bool KeepTogether { get; init; }
 
     /// <summary>Gets the child elements within this block.</summary>
-    public IReadOnlyList<LayoutElement> Children { get; init; } = [];
+    public IReadOnlyList<LayoutBlock> Children { get; init; } = [];
 
     /// <inheritdoc/>
     public override void LayoutSize(Size availableSize, ILayoutSizingContext context)

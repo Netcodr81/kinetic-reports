@@ -148,7 +148,7 @@ public sealed class WatermarkPlugin :
             Style = bandStyle,
             Children =
             [
-                new TextElement
+                new TextBlock
                 {
                     Id = "plugin-watermark-footer-text",
                     Style = bandStyle,

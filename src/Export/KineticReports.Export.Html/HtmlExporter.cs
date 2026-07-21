@@ -51,7 +51,7 @@ public sealed class HtmlExporter : IHtmlExporter
             .CloseTag("html");
     }
 
-    private static void RenderPage(HtmlBuilder html, PageElement page)
+    private static void RenderPage(HtmlBuilder html, PageBlock page)
     {
         var pageStyle = $"width: {page.PageWidth:F1}px; height: {page.PageHeight:F1}px; position: relative; margin: 20px auto;";
 
@@ -82,7 +82,7 @@ public sealed class HtmlExporter : IHtmlExporter
             .CloseTag("div"); // kinetic-page
     }
 
-    private static void RenderElement(HtmlBuilder html, LayoutElement element, float parentX, float parentY)
+    private static void RenderElement(HtmlBuilder html, LayoutBlock element, float parentX, float parentY)
     {
         var style = BuildElementStyle(element, parentX, parentY);
 
@@ -90,28 +90,28 @@ public sealed class HtmlExporter : IHtmlExporter
 
         switch (element)
         {
-            case TextElement textElem:
-                RenderTextElement(html, textElem);
+            case TextBlock textElem:
+                RenderTextBlock(html, textElem);
                 break;
 
-            case ImageElement imgElem:
+            case ImageBlock imgElem:
                 RenderImageElement(html, imgElem);
                 break;
 
-            case ShapeElement shapeElem:
+            case ShapeBlock shapeElem:
                 RenderShapeElement(html, shapeElem);
                 break;
 
-            case TableElement tableElem:
+            case TableBlock tableElem:
                 RenderTableElement(html, tableElem);
                 break;
 
-            case ContainerElement container:
+            case ContainerBlock container:
                 foreach (var child in container.Children)
                     RenderElement(html, child, element.Bounds.X, element.Bounds.Y);
                 break;
 
-            case SectionElement section:
+            case SectionBlock section:
                 foreach (var child in section.Children)
                     RenderElement(html, child, element.Bounds.X, element.Bounds.Y);
                 break;
@@ -121,21 +121,21 @@ public sealed class HtmlExporter : IHtmlExporter
                     RenderElement(html, child, element.Bounds.X, element.Bounds.Y);
                 break;
 
-            case RowElement row:
+            case RowBlock row:
                 foreach (var cell in row.Cells)
                     RenderElement(html, cell, element.Bounds.X, element.Bounds.Y);
                 break;
 
-            case CellElement cell:
+            case CellBlock cell:
                 foreach (var child in cell.Children)
                     RenderElement(html, child, element.Bounds.X, element.Bounds.Y);
                 break;
 
-            case ChartElement:
+            case ChartBlock:
                 html.Text("[Chart Element]");
                 break;
 
-            case BarcodeElement:
+            case BarcodeBlock:
                 html.Text("[Barcode Element]");
                 break;
         }
@@ -143,15 +143,15 @@ public sealed class HtmlExporter : IHtmlExporter
         html.CloseTag("div");
     }
 
-    private static void RenderTextElement(HtmlBuilder html, TextElement textElem)
+    private static void RenderTextBlock(HtmlBuilder html, TextBlock textBlock)
     {
-        if (textElem.TextRuns.Count == 0)
+        if (textBlock.TextRuns.Count == 0)
         {
-            html.Text(textElem.Text);
+            html.Text(textBlock.Text);
         }
         else
         {
-            foreach (var run in textElem.TextRuns)
+            foreach (var run in textBlock.TextRuns)
             {
                 var runStyle = CssBuilder.BuildStyle(run.Style);
                 html
@@ -162,7 +162,7 @@ public sealed class HtmlExporter : IHtmlExporter
         }
     }
 
-    private static void RenderImageElement(HtmlBuilder html, ImageElement imgElem)
+    private static void RenderImageElement(HtmlBuilder html, ImageBlock imgElem)
     {
         if (imgElem.ImageReference != null)
         {
@@ -186,7 +186,7 @@ public sealed class HtmlExporter : IHtmlExporter
         }
     }
 
-    private static void RenderShapeElement(HtmlBuilder html, ShapeElement shapeElem)
+    private static void RenderShapeElement(HtmlBuilder html, ShapeBlock shapeElem)
     {
         var width = shapeElem.Bounds.Width;
         var height = shapeElem.Bounds.Height;
@@ -199,7 +199,7 @@ public sealed class HtmlExporter : IHtmlExporter
             .CloseTag("svg");
     }
 
-    private static string RenderSvgShape(ShapeElement shape)
+    private static string RenderSvgShape(ShapeBlock shape)
     {
         var fill = shape.Fill.HasValue ? $"fill=\"{CssColorToSvg(shape.Fill.Value)}\"" : "fill=\"none\"";
         var stroke = shape.Stroke.HasValue ? $"stroke=\"{CssColorToSvg(shape.Stroke.Value)}\" stroke-width=\"{shape.StrokeWidth:F1}\"" : "stroke=\"none\"";
@@ -214,7 +214,7 @@ public sealed class HtmlExporter : IHtmlExporter
         };
     }
 
-    private static void RenderTableElement(HtmlBuilder html, TableElement tableElem)
+    private static void RenderTableElement(HtmlBuilder html, TableBlock tableElem)
     {
         html.OpenTag("table", classAttr: "kinetic-table");
 
@@ -241,7 +241,7 @@ public sealed class HtmlExporter : IHtmlExporter
         html.CloseTag("table");
     }
 
-    private static void RenderTableRow(HtmlBuilder html, RowElement row, string cellTag)
+    private static void RenderTableRow(HtmlBuilder html, RowBlock row, string cellTag)
     {
         html.OpenTag("tr", classAttr: row.RowType == RowType.Header ? "kinetic-table-header-row" : "kinetic-table-row");
 
@@ -267,29 +267,29 @@ public sealed class HtmlExporter : IHtmlExporter
         html.CloseTag("tr");
     }
 
-    private static void RenderTableCellChild(HtmlBuilder html, LayoutElement child)
+    private static void RenderTableCellChild(HtmlBuilder html, LayoutBlock child)
     {
-        if (child is TextElement textElem)
+        if (child is TextBlock textElem)
         {
-            RenderTextElementInline(html, textElem);
+            RenderTextBlockInline(html, textElem);
             return;
         }
 
         RenderElement(html, child, child.Bounds.X, child.Bounds.Y);
     }
 
-    private static void RenderTextElementInline(HtmlBuilder html, TextElement textElem)
+    private static void RenderTextBlockInline(HtmlBuilder html, TextBlock textBlock)
     {
-        if (textElem.TextRuns.Count == 0)
+        if (textBlock.TextRuns.Count == 0)
         {
             html
-                .OpenTag("span", style: CssBuilder.BuildStyle(textElem.Style))
-                .Text(textElem.Text)
+                .OpenTag("span", style: CssBuilder.BuildStyle(textBlock.Style))
+                .Text(textBlock.Text)
                 .CloseTag("span");
             return;
         }
 
-        foreach (var run in textElem.TextRuns)
+        foreach (var run in textBlock.TextRuns)
         {
             html
                 .OpenTag("span", style: CssBuilder.BuildStyle(run.Style))
@@ -298,7 +298,7 @@ public sealed class HtmlExporter : IHtmlExporter
         }
     }
 
-    private static string BuildElementStyle(LayoutElement element, float parentX, float parentY)
+    private static string BuildElementStyle(LayoutBlock element, float parentX, float parentY)
     {
         var bounds = element.Bounds;
         var relativeX = bounds.X - parentX;
@@ -310,21 +310,21 @@ public sealed class HtmlExporter : IHtmlExporter
         return css;
     }
 
-    private static string GetElementClassName(LayoutElement element) =>
+    private static string GetElementClassName(LayoutBlock element) =>
         element.ElementType switch
         {
-            LayoutElementType.Text => "text-element",
-            LayoutElementType.Image => "image-element",
-            LayoutElementType.Shape => "shape-element",
-            LayoutElementType.Table => "table-element",
-            LayoutElementType.Container => "container-element",
-            LayoutElementType.Section => "section-element",
-            LayoutElementType.Band => "band-element",
-            LayoutElementType.Page => "page-element",
-            LayoutElementType.Row => "row-element",
-            LayoutElementType.Cell => "cell-element",
-            LayoutElementType.Chart => "chart-element",
-            LayoutElementType.Barcode => "barcode-element",
+            LayoutBlockType.Text => "text-element",
+            LayoutBlockType.Image => "image-element",
+            LayoutBlockType.Shape => "shape-element",
+            LayoutBlockType.Table => "table-element",
+            LayoutBlockType.Container => "container-element",
+            LayoutBlockType.Section => "section-element",
+            LayoutBlockType.Band => "band-element",
+            LayoutBlockType.Page => "page-element",
+            LayoutBlockType.Row => "row-element",
+            LayoutBlockType.Cell => "cell-element",
+            LayoutBlockType.Chart => "chart-element",
+            LayoutBlockType.Barcode => "barcode-element",
             _ => "unknown-element"
         };
 

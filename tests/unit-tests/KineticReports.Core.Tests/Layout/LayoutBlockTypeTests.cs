@@ -3,29 +3,29 @@ namespace KineticReports.Core.Tests.Layout;
 using Shouldly;
 using KineticReports.Core.Layout;
 
-public class LayoutElementTypeTests
+public class LayoutBlockTypeTests
 {
     [Fact]
     public void AllElementTypes_AreDefinedInEnum()
     {
-        LayoutElementType.Page.ShouldBe(LayoutElementType.Page);
-        LayoutElementType.Section.ShouldBe(LayoutElementType.Section);
-        LayoutElementType.Band.ShouldBe(LayoutElementType.Band);
-        LayoutElementType.Container.ShouldBe(LayoutElementType.Container);
-        LayoutElementType.Text.ShouldBe(LayoutElementType.Text);
-        LayoutElementType.Table.ShouldBe(LayoutElementType.Table);
-        LayoutElementType.Row.ShouldBe(LayoutElementType.Row);
-        LayoutElementType.Cell.ShouldBe(LayoutElementType.Cell);
-        LayoutElementType.Image.ShouldBe(LayoutElementType.Image);
-        LayoutElementType.Shape.ShouldBe(LayoutElementType.Shape);
-        LayoutElementType.Chart.ShouldBe(LayoutElementType.Chart);
-        LayoutElementType.Barcode.ShouldBe(LayoutElementType.Barcode);
+        LayoutBlockType.Page.ShouldBe(LayoutBlockType.Page);
+        LayoutBlockType.Section.ShouldBe(LayoutBlockType.Section);
+        LayoutBlockType.Band.ShouldBe(LayoutBlockType.Band);
+        LayoutBlockType.Container.ShouldBe(LayoutBlockType.Container);
+        LayoutBlockType.Text.ShouldBe(LayoutBlockType.Text);
+        LayoutBlockType.Table.ShouldBe(LayoutBlockType.Table);
+        LayoutBlockType.Row.ShouldBe(LayoutBlockType.Row);
+        LayoutBlockType.Cell.ShouldBe(LayoutBlockType.Cell);
+        LayoutBlockType.Image.ShouldBe(LayoutBlockType.Image);
+        LayoutBlockType.Shape.ShouldBe(LayoutBlockType.Shape);
+        LayoutBlockType.Chart.ShouldBe(LayoutBlockType.Chart);
+        LayoutBlockType.Barcode.ShouldBe(LayoutBlockType.Barcode);
     }
 
     [Fact]
     public void ElementTypeCount_Is12()
     {
-        var values = System.Enum.GetValues<LayoutElementType>();
+        var values = System.Enum.GetValues<LayoutBlockType>();
         values.Length.ShouldBe(12);
     }
 }

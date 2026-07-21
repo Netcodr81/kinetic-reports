@@ -1,7 +1,7 @@
 namespace KineticReports.Core.Layout;
 
-/// <summary>Identifies the concrete type of a <see cref="LayoutElement"/>.</summary>
-public enum LayoutElementType
+/// <summary>Identifies the concrete type of a <see cref="LayoutBlock"/>.</summary>
+public enum LayoutBlockType
 {
     /// <summary>A physical or logical report page.</summary>
     Page,
@@ -12,13 +12,13 @@ public enum LayoutElementType
     /// <summary>A data-driven band (detail, group header, group footer, etc.).</summary>
     Band,
 
-    /// <summary>A generic container that groups child elements.</summary>
+    /// <summary>A generic container that groups child blocks.</summary>
     Container,
 
-    /// <summary>A text paragraph or run element.</summary>
+    /// <summary>A text paragraph or run block.</summary>
     Text,
 
-    /// <summary>A tabular data element.</summary>
+    /// <summary>A tabular data block.</summary>
     Table,
 
     /// <summary>A table row.</summary>
@@ -27,15 +27,15 @@ public enum LayoutElementType
     /// <summary>A table cell.</summary>
     Cell,
 
-    /// <summary>An image element.</summary>
+    /// <summary>An image block.</summary>
     Image,
 
     /// <summary>A vector shape (rectangle, ellipse, or line).</summary>
     Shape,
 
-    /// <summary>A chart element.</summary>
+    /// <summary>A chart block.</summary>
     Chart,
 
-    /// <summary>A barcode or QR code element.</summary>
+    /// <summary>A barcode or QR code block.</summary>
     Barcode,
 }

@@ -180,7 +180,7 @@ public class LayoutEngineTests
     public void LayoutTree_Pages_IsReadOnly()
     {
         var tree = _sut.Layout([], _options, _context);
-        tree.Pages.ShouldBeAssignableTo<IReadOnlyList<PageElement>>();
+        tree.Pages.ShouldBeAssignableTo<IReadOnlyList<PageBlock>>();
     }
 
     // -------------------------------------------------------------------------
@@ -250,7 +250,7 @@ public class LayoutEngineTests
     /// A minimal layout element whose desired size is hard-coded to a fixed height.
     /// Used to make band measurements predictable in tests.
     /// </summary>
-    private sealed class FixedHeightElement : LayoutElement
+    private sealed class FixedHeightElement : LayoutBlock
     {
         private readonly float _height;
 
@@ -262,7 +262,7 @@ public class LayoutEngineTests
             Style = style;
         }
 
-        public override LayoutElementType ElementType => LayoutElementType.Container;
+        public override LayoutBlockType ElementType => LayoutBlockType.Container;
 
         public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
             => DesiredSize = new Size(availableSize.Width, _height);

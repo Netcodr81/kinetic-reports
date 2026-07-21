@@ -6,10 +6,10 @@ using KineticReports.Core.Geometry;
 /// Represents a single rendered page in the report layout.
 /// A page contains optional header and footer sections plus the body content.
 /// </summary>
-public sealed class PageElement : LayoutElement
+public sealed class PageBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutElementType ElementType => LayoutElementType.Page;
+    public override LayoutBlockType ElementType => LayoutBlockType.Page;
 
     /// <summary>Gets the page width in DIPs.</summary>
     public float PageWidth { get; init; }
@@ -21,13 +21,13 @@ public sealed class PageElement : LayoutElement
     public int PageNumber { get; init; }
 
     /// <summary>Gets the optional header section for this page.</summary>
-    public SectionElement? Header { get; init; }
+    public SectionBlock? Header { get; init; }
 
     /// <summary>Gets the optional footer section for this page.</summary>
-    public SectionElement? Footer { get; init; }
+    public SectionBlock? Footer { get; init; }
 
     /// <summary>Gets the body elements rendered between the header and footer.</summary>
-    public IReadOnlyList<LayoutElement> Children { get; init; } = [];
+    public IReadOnlyList<LayoutBlock> Children { get; init; } = [];
 
     /// <inheritdoc/>
     public override void LayoutSize(Size availableSize, ILayoutSizingContext context)

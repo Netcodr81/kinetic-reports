@@ -66,11 +66,11 @@ public class ReportBlockTests
         child.Bounds.Width.ShouldBe(88f);
     }
 
-    private sealed class FixedSizeElement : LayoutElement
+    private sealed class FixedSizeElement : LayoutBlock
     {
         public required Size FixedDesiredSize { get; init; }
 
-        public override LayoutElementType ElementType => LayoutElementType.Container;
+        public override LayoutBlockType ElementType => LayoutBlockType.Container;
 
         public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
         {

@@ -4,15 +4,15 @@ using KineticReports.Core.Geometry;
 using KineticReports.Core.Styling;
 
 /// <summary>
-/// Abstract base class for all elements in the report layout.
+/// Abstract base class for all blocks in the report layout.
 /// The report layout is produced by the Arrange pass and is immutable thereafter (ADR-011).
 /// </summary>
-public abstract class LayoutElement
+public abstract class LayoutBlock
 {
-    /// <summary>Gets the stable unique identifier of this element.</summary>
+    /// <summary>Gets the stable unique identifier of this block.</summary>
     public required string Id { get; init; }
 
-    /// <summary>Gets the fully resolved, immutable style for this element.</summary>
+    /// <summary>Gets the fully resolved, immutable style for this block.</summary>
     public required AppliedStyle Style { get; init; }
 
     /// <summary>
@@ -27,15 +27,15 @@ public abstract class LayoutElement
     /// </summary>
     public Size DesiredSize { get; protected set; }
 
-    /// <summary>Gets the concrete type of this layout element.</summary>
-    public abstract LayoutElementType ElementType { get; }
+    /// <summary>Gets the concrete type of this layout block.</summary>
+    public abstract LayoutBlockType ElementType { get; }
 
     /// <summary>
     /// Performs the LayoutSizing pass, computing <see cref="DesiredSize"/> given the
     /// <paramref name="availableSize"/> constraint.
     /// </summary>
     /// <param name="availableSize">
-    /// The size available to this element. Pass <see cref="Size.Infinity"/> for
+    /// The size available to this block. Pass <see cref="Size.Infinity"/> for
     /// unconstrained measurement.
     /// </param>
     /// <param name="context">Text layout and image resolution services.</param>
@@ -46,7 +46,7 @@ public abstract class LayoutElement
     /// the given <paramref name="finalRect"/>.
     /// </summary>
     /// <param name="finalRect">
-    /// The rectangle allocated to this element by its parent.
+    /// The rectangle allocated to this block by its parent.
     /// </param>
     public abstract void Arrange(Rect finalRect);
 }

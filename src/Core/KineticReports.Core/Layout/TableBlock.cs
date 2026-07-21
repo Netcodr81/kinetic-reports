@@ -3,7 +3,7 @@ namespace KineticReports.Core.Layout;
 using KineticReports.Core.Geometry;
 
 /// <summary>
-/// Defines a column within a <see cref="TableElement"/>.
+/// Defines a column within a <see cref="TableBlock"/>.
 /// </summary>
 public sealed record TableColumn
 {
@@ -27,23 +27,23 @@ public sealed record TableColumn
 }
 
 /// <summary>
-/// Represents a tabular data element in the report layout.
+/// Represents a tabular data block in the report layout.
 /// The full table layout algorithm (column widths, row heights, spans, pagination)
 /// is implemented in <c>KineticReports.Layout</c>.
 /// </summary>
-public sealed class TableElement : LayoutElement
+public sealed class TableBlock : LayoutBlock
 {
     private float[] _columnWidths = [];
     private float[] _rowHeights = [];
 
     /// <inheritdoc/>
-    public override LayoutElementType ElementType => LayoutElementType.Table;
+    public override LayoutBlockType ElementType => LayoutBlockType.Table;
 
     /// <summary>Gets the column definitions for this table.</summary>
     public IReadOnlyList<TableColumn> Columns { get; init; } = [];
 
     /// <summary>Gets all rows in this table, in document order.</summary>
-    public IReadOnlyList<RowElement> Rows { get; init; } = [];
+    public IReadOnlyList<RowBlock> Rows { get; init; } = [];
 
     /// <summary>
     /// Gets a value indicating whether header rows should repeat at the top of
@@ -189,7 +189,7 @@ public sealed class TableElement : LayoutElement
         return widths;
     }
 
-    private static float GetCellWidth(CellElement cell, IReadOnlyList<float> columnWidths)
+    private static float GetCellWidth(CellBlock cell, IReadOnlyList<float> columnWidths)
     {
         if (columnWidths.Count == 0)
             return 0f;
