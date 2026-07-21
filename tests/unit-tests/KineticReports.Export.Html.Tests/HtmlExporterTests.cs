@@ -26,6 +26,7 @@ public class HtmlExporterTests
         html.ShouldContain("<html");
         html.ShouldContain("</html>");
         html.ShouldContain("kinetic-page");
+        html.ShouldContain("--kr-font-family");
     }
 
     [Fact]
@@ -130,6 +131,83 @@ public class HtmlExporterTests
         html.ShouldContain("<tr");
         html.ShouldContain("<td");
         html.ShouldContain("</table>");
+    }
+
+    [Fact]
+    public async Task ExportAsync_WithHeaderRow_RendersTheadAndTh()
+    {
+        var headerCell = new CellElement
+        {
+            Id = "header-cell-1",
+            ColumnIndex = 0,
+            Style = DefaultStyle,
+            Children =
+            [
+                new TextElement
+                {
+                    Id = "header-cell-1-text",
+                    Style = DefaultStyle,
+                    Text = "OrderId"
+                }
+            ]
+        };
+
+        var dataCell = new CellElement
+        {
+            Id = "data-cell-1",
+            ColumnIndex = 0,
+            Style = DefaultStyle,
+            Children =
+            [
+                new TextElement
+                {
+                    Id = "data-cell-1-text",
+                    Style = DefaultStyle,
+                    Text = "SO-1001"
+                }
+            ]
+        };
+
+        var headerRow = new RowElement
+        {
+            Id = "header-row-1",
+            Kind = RowKind.Header,
+            Style = DefaultStyle,
+            Cells = [headerCell]
+        };
+
+        var dataRow = new RowElement
+        {
+            Id = "data-row-1",
+            Kind = RowKind.Data,
+            Style = DefaultStyle,
+            Cells = [dataCell]
+        };
+
+        var tableElem = new TableElement
+        {
+            Id = "table-with-header",
+            Style = DefaultStyle,
+            Columns = [new TableColumn { Width = 180f }],
+            Rows = [headerRow, dataRow]
+        };
+
+        var page = MakePage(1, [tableElem]);
+        tableElem.LayoutSize(new Size(180f, 200f), new LayoutSizingContext(new FakeFontMetrics()));
+        tableElem.Arrange(new Rect(0, 0, 180, tableElem.DesiredSize.Height));
+
+        var tree = new ReportLayout { Pages = [page] };
+        var exporter = new HtmlExporter();
+
+        using var output = new MemoryStream();
+        await exporter.ExportAsync(tree, output);
+
+        var html = Encoding.UTF8.GetString(output.ToArray());
+        html.ShouldContain("<thead>");
+        html.ShouldContain("<th");
+        html.ShouldContain("OrderId");
+        html.ShouldContain("SO-1001");
+        html.ShouldNotContain("header-cell-1-text\" class=\"element text-element\"");
     }
 
     [Fact]

@@ -1,0 +1,76 @@
+namespace KineticReports.Core.Tests.Layout;
+
+using KineticReports.Core.Geometry;
+using KineticReports.Core.Layout;
+using KineticReports.Core.Rendering;
+using KineticReports.Core.Styling;
+using KineticReports.Core.Typography;
+
+public class CellElementTests
+{
+    [Fact]
+    public void LayoutSize_WithPaddingAndBorder_IncludesInsetsInDesiredHeight()
+    {
+        var child = new FixedSizeElement
+        {
+            Id = "child-1",
+            Style = new ResolvedStyle { FontFamily = "Arial", FontSize = 12f },
+            FixedDesiredSize = new Size(50f, 10f)
+        };
+
+        var cell = new CellElement
+        {
+            Id = "cell-1",
+            Style = new ResolvedStyle
+            {
+                FontFamily = "Arial",
+                FontSize = 12f,
+                Padding = new Thickness(2f, 3f, 4f, 5f),
+                Border = Border.Uniform(1f, Color.Black)
+            },
+            Children = [child]
+        };
+
+        cell.LayoutSize(new Size(100f, 200f), new TestLayoutSizingContext());
+
+        // Child height (10) + top/bottom padding (3+5) + top/bottom border (1+1)
+        cell.DesiredSize.Height.ShouldBe(20f);
+    }
+
+    private sealed class FixedSizeElement : LayoutElement
+    {
+        public required Size FixedDesiredSize { get; init; }
+
+        public override LayoutElementType ElementType => LayoutElementType.Container;
+
+        public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
+        {
+            DesiredSize = FixedDesiredSize;
+        }
+
+        public override void Arrange(Rect finalRect)
+        {
+            Bounds = finalRect;
+        }
+    }
+
+    private sealed class TestLayoutSizingContext : ILayoutSizingContext
+    {
+        public IFontMetrics FontMetrics { get; } = new StubFontMetrics();
+
+        public Size? ResolveImageSize(string imageKey) => null;
+    }
+
+    private sealed class StubFontMetrics : IFontMetrics
+    {
+        public Size MeasureText(string text, ResolvedStyle style, float maxWidth) => new(0f, 0f);
+
+        public IReadOnlyList<TextRun> ShapeText(string text, ResolvedStyle style, Rect bounds) => [];
+
+        public float GetAscent(FontDescriptor descriptor) => 0f;
+
+        public float GetDescent(FontDescriptor descriptor) => 0f;
+
+        public float GetLineGap(FontDescriptor descriptor) => 0f;
+    }
+}

@@ -10,4 +10,8 @@
     <ProjectReference Include="..\..\Core\KineticReports.Core\KineticReports.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Styles\kinetic-report.css" />
+  </ItemGroup>
+
 </Project>

@@ -1,9 +1,9 @@
 namespace KineticReports.Export.Html;
 
-using System.Text;
 using KineticReports.Core.Layout;
-using KineticReports.Core.Rendering;
 using KineticReports.Core.Styling;
+using KineticReports.Export.Html.Styles;
+using System.Text;
 
 /// <summary>
 /// Exports an immutable ReportLayout to semantic HTML with inline CSS.
@@ -35,7 +35,7 @@ public sealed class HtmlExporter : IHtmlExporter
             .VoidTag("meta", attributes: new() { ["charset"] = "UTF-8" })
             .OpenTag("title").Text("Report").CloseTag("title")
             .OpenTag("style")
-            .Raw(GetDefaultStyles())
+            .Raw(HtmlExportStylesheet.Css)
             .CloseTag("style")
             .CloseTag("head")
             .OpenTag("body");
@@ -147,7 +147,7 @@ public sealed class HtmlExporter : IHtmlExporter
     {
         if (textElem.TextRuns.Count == 0)
         {
-            html.Text(textElem.Text ?? string.Empty);
+            html.Text(textElem.Text);
         }
         else
         {
@@ -155,9 +155,9 @@ public sealed class HtmlExporter : IHtmlExporter
             {
                 var runStyle = CssBuilder.BuildStyle(run.Style);
                 html
-                    .OpenTag("span", style: runStyle)
+                    .OpenTag("p", style: runStyle)
                     .Text(run.Text)
-                    .CloseTag("span");
+                    .CloseTag("p");
             }
         }
     }
@@ -180,7 +180,7 @@ public sealed class HtmlExporter : IHtmlExporter
             html.VoidTag("img", attributes: new()
             {
                 ["src"] = dataUrl,
-                ["alt"] = imgElem.Id ?? "image",
+                ["alt"] = imgElem.Id,
                 ["style"] = $"width: {imgElem.Bounds.Width:F1}px; height: {imgElem.Bounds.Height:F1}px; object-fit: {GetObjectFit(imgElem.Stretch)};"
             });
         }
@@ -218,21 +218,84 @@ public sealed class HtmlExporter : IHtmlExporter
     {
         html.OpenTag("table", classAttr: "kinetic-table");
 
-        foreach (var row in tableElem.Rows)
+        var headerRows = tableElem.Rows.Where(r => r.Kind == RowKind.Header).ToList();
+        var bodyRows = tableElem.Rows.Where(r => r.Kind != RowKind.Header).ToList();
+
+        if (headerRows.Count > 0)
         {
-            html.OpenTag("tr");
-            foreach (var cell in row.Cells)
+            html.OpenTag("thead");
+            foreach (var row in headerRows)
             {
-                var cellStyle = $"width: {cell.Bounds.Width:F1}px; height: {cell.Bounds.Height:F1}px; {CssBuilder.BuildStyle(cell.Style)}";
-                html.OpenTag("td", style: cellStyle);
-                foreach (var child in cell.Children)
-                    RenderElement(html, child, cell.Bounds.X, cell.Bounds.Y);
-                html.CloseTag("td");
+                RenderTableRow(html, row, "th");
             }
-            html.CloseTag("tr");
+            html.CloseTag("thead");
         }
 
+        html.OpenTag("tbody");
+        foreach (var row in bodyRows)
+        {
+            RenderTableRow(html, row, "td");
+        }
+        html.CloseTag("tbody");
+
         html.CloseTag("table");
+    }
+
+    private static void RenderTableRow(HtmlBuilder html, RowElement row, string cellTag)
+    {
+        html.OpenTag("tr", classAttr: row.Kind == RowKind.Header ? "kinetic-table-header-row" : "kinetic-table-row");
+
+        foreach (var cell in row.Cells)
+        {
+            var cellStyle = $"width: {cell.Bounds.Width:F1}px; height: {cell.Bounds.Height:F1}px; {CssBuilder.BuildStyle(cell.Style)}";
+            var attributes = new Dictionary<string, string>();
+
+            if (cell.ColSpan > 1)
+                attributes["colspan"] = cell.ColSpan.ToString();
+
+            if (cell.RowSpan > 1)
+                attributes["rowspan"] = cell.RowSpan.ToString();
+
+            html.OpenTag(cellTag, style: cellStyle, attributes: attributes.Count == 0 ? null : attributes);
+
+            foreach (var child in cell.Children)
+                RenderTableCellChild(html, child);
+
+            html.CloseTag(cellTag);
+        }
+
+        html.CloseTag("tr");
+    }
+
+    private static void RenderTableCellChild(HtmlBuilder html, LayoutElement child)
+    {
+        if (child is TextElement textElem)
+        {
+            RenderTextElementInline(html, textElem);
+            return;
+        }
+
+        RenderElement(html, child, child.Bounds.X, child.Bounds.Y);
+    }
+
+    private static void RenderTextElementInline(HtmlBuilder html, TextElement textElem)
+    {
+        if (textElem.TextRuns.Count == 0)
+        {
+            html
+                .OpenTag("span", style: CssBuilder.BuildStyle(textElem.Style))
+                .Text(textElem.Text)
+                .CloseTag("span");
+            return;
+        }
+
+        foreach (var run in textElem.TextRuns)
+        {
+            html
+                .OpenTag("span", style: CssBuilder.BuildStyle(run.Style))
+                .Text(run.Text)
+                .CloseTag("span");
+        }
     }
 
     private static string BuildElementStyle(LayoutElement element, float parentX, float parentY)
@@ -277,20 +340,4 @@ public sealed class HtmlExporter : IHtmlExporter
     private static string CssColorToSvg(in Color color) =>
         $"rgba({color.R},{color.G},{color.B},{color.A / 255f:F2})";
 
-    private static string GetDefaultStyles() =>
-        @"
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { font-family: Arial, sans-serif; }
-.kinetic-report { display: flex; flex-direction: column; align-items: center; }
-.kinetic-page { background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #ddd; page-break-after: always; }
-.page-background { position: relative; width: 100%; height: 100%; }
-.element { box-sizing: border-box; }
-.text-element { word-wrap: break-word; white-space: pre-wrap; }
-.table-element table { width: 100%; border-collapse: collapse; }
-.table-element td { border: 1px solid #ddd; padding: 4px; }
-@media print {
-  .kinetic-page { box-shadow: none; margin: 0; }
-  body { margin: 0; padding: 0; }
-}
-";
 }

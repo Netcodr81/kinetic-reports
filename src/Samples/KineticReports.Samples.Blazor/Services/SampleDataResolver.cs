@@ -151,6 +151,29 @@ internal sealed class SampleDataResolver : IDataResolver
                     ["Preview"] = "Emphasized content for callouts"
                 }),
 
+            "expression-demo" => CreateRows(
+                new Dictionary<string, object?>
+                {
+                    ["CustomerName"] = "Acme Manufacturing",
+                    ["Tier"] = "Gold",
+                    ["Balance"] = 1400.00m,
+                    ["AssignedRep"] = "Noah"
+                },
+                new Dictionary<string, object?>
+                {
+                    ["CustomerName"] = "Bright Retail",
+                    ["Tier"] = "Silver",
+                    ["Balance"] = 0.00m,
+                    ["AssignedRep"] = "Avery"
+                },
+                new Dictionary<string, object?>
+                {
+                    ["CustomerName"] = "Contour Labs",
+                    ["Tier"] = "Platinum",
+                    ["Balance"] = 510.25m,
+                    ["AssignedRep"] = "Iris"
+                }),
+
             _ => CreateRows(
                 new Dictionary<string, object?>
                 {

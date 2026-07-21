@@ -55,27 +55,41 @@ public sealed class BandElement : LayoutElement
     /// <inheritdoc/>
     public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
     {
+        var horizontalInset = Style.Padding.Horizontal + GetBorderLeftWidth() + GetBorderRightWidth();
+        var verticalInset = Style.Padding.Vertical + GetBorderTopWidth() + GetBorderBottomWidth();
+
+        var contentWidth = Math.Max(0f, availableSize.Width - horizontalInset);
         float totalHeight = 0f;
 
         foreach (var child in Children)
         {
-            child.LayoutSize(availableSize, context);
+            child.LayoutSize(new Size(contentWidth, availableSize.Height), context);
             totalHeight += child.DesiredSize.Height;
         }
 
-        DesiredSize = new Size(availableSize.Width, totalHeight);
+        DesiredSize = new Size(availableSize.Width, totalHeight + verticalInset);
     }
 
     /// <inheritdoc/>
     public override void Arrange(Rect finalRect)
     {
         Bounds = finalRect;
-        float y = finalRect.Y;
+        var x = finalRect.X + Style.Padding.Left + GetBorderLeftWidth();
+        float y = finalRect.Y + Style.Padding.Top + GetBorderTopWidth();
+        var contentWidth = Math.Max(0f, finalRect.Width - Style.Padding.Horizontal - GetBorderLeftWidth() - GetBorderRightWidth());
 
         foreach (var child in Children)
         {
-            child.Arrange(new Rect(finalRect.X, y, finalRect.Width, child.DesiredSize.Height));
+            child.Arrange(new Rect(x, y, contentWidth, child.DesiredSize.Height));
             y += child.DesiredSize.Height;
         }
     }
+
+    private float GetBorderTopWidth() => Style.Border?.Top?.Width ?? 0f;
+
+    private float GetBorderRightWidth() => Style.Border?.Right?.Width ?? 0f;
+
+    private float GetBorderBottomWidth() => Style.Border?.Bottom?.Width ?? 0f;
+
+    private float GetBorderLeftWidth() => Style.Border?.Left?.Width ?? 0f;
 }

@@ -111,6 +111,26 @@ public static class SampleReports
     }
 
     /// <summary>
+    /// A report demonstrating expression evaluation against row fields and parameters.
+    /// </summary>
+    public static ReportDefinition CreateExpressionReport()
+    {
+        return new ReportDefinition
+        {
+            SchemaVersion = "1.0",
+            Id = "expression-report",
+            Name = "Expression Evaluation Report",
+            Description = "Shows how {FieldName} expressions resolve from the current row and parameters",
+            Parameters = [],
+            DataSources =
+            [
+                CreateDataSource("expression-demo", "Expression Demo Rows")
+            ],
+            Styles = []
+        };
+    }
+
+    /// <summary>
     /// Gets all available sample reports.
     /// </summary>
     public static IReadOnlyList<ReportDefinition> GetAllSampleReports()
@@ -121,7 +141,8 @@ public static class SampleReports
             CreateTableReport(),
             CreateBandedReport(),
             CreateMultiSectionReport(),
-            CreateStyledReport()
+            CreateStyledReport(),
+            CreateExpressionReport()
         ];
     }
 
