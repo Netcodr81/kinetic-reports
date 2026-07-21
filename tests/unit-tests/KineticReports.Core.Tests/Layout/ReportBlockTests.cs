@@ -20,7 +20,7 @@ public class ReportBlockTests
 
         var block = new DetailBlock
         {
-            Id = "band-1",
+            Id = "content-region-1",
             Style = new AppliedStyle
             {
                 FontFamily = "Arial",
@@ -48,7 +48,7 @@ public class ReportBlockTests
 
         var block = new DetailBlock
         {
-            Id = "band-2",
+            Id = "content-region-2",
             Style = new AppliedStyle
             {
                 FontFamily = "Arial",
@@ -70,7 +70,7 @@ public class ReportBlockTests
     {
         public required Size FixedDesiredSize { get; init; }
 
-        public override LayoutBlockType ElementType => LayoutBlockType.Container;
+        public override LayoutBlockType LayoutBlockType => LayoutBlockType.Container;
 
         public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
         {

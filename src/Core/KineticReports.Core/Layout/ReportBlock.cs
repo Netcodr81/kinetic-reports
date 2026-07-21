@@ -34,7 +34,7 @@ public enum BlockType
 public abstract class ReportBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutBlockType ElementType => LayoutBlockType.Band;
+    public override LayoutBlockType LayoutBlockType => LayoutBlockType.ContentRegion;
 
     /// <summary>Gets the functional role of this block.</summary>
     public virtual BlockType Kind { get; init; } = BlockType.Detail;

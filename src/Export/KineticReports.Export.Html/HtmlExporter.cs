@@ -311,7 +311,7 @@ public sealed class HtmlExporter : IHtmlExporter
     }
 
     private static string GetElementClassName(LayoutBlock element) =>
-        element.ElementType switch
+        element.LayoutBlockType switch
         {
             LayoutBlockType.Text => "text-element",
             LayoutBlockType.Image => "image-element",
@@ -319,7 +319,7 @@ public sealed class HtmlExporter : IHtmlExporter
             LayoutBlockType.Table => "table-element",
             LayoutBlockType.Container => "container-element",
             LayoutBlockType.Section => "section-element",
-            LayoutBlockType.Band => "band-element",
+            LayoutBlockType.ContentRegion => "content-region-element",
             LayoutBlockType.Page => "page-element",
             LayoutBlockType.Row => "row-element",
             LayoutBlockType.Cell => "cell-element",

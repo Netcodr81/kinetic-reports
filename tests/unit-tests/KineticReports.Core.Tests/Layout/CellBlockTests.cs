@@ -41,7 +41,7 @@ public class CellBlockTests
     {
         public required Size FixedDesiredSize { get; init; }
 
-        public override LayoutBlockType ElementType => LayoutBlockType.Container;
+        public override LayoutBlockType LayoutBlockType => LayoutBlockType.Container;
 
         public override void LayoutSize(Size availableSize, ILayoutSizingContext context)
         {

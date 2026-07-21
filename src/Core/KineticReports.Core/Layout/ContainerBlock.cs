@@ -9,7 +9,7 @@ using KineticReports.Core.Geometry;
 public sealed class ContainerBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutBlockType ElementType => LayoutBlockType.Container;
+    public override LayoutBlockType LayoutBlockType => LayoutBlockType.Container;
 
     /// <summary>Gets the child elements within this container.</summary>
     public IReadOnlyList<LayoutBlock> Children { get; init; } = [];

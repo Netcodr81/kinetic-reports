@@ -9,8 +9,8 @@ public enum LayoutBlockType
     /// <summary>A horizontal section of a page (header, body, footer).</summary>
     Section,
 
-    /// <summary>A data-driven band (detail, group header, group footer, etc.).</summary>
-    Band,
+    /// <summary>A report content region (detail, group header, group footer, etc.).</summary>
+    ContentRegion,
 
     /// <summary>A generic container that groups child blocks.</summary>
     Container,

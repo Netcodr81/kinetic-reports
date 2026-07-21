@@ -22,7 +22,7 @@ public enum ShapeKind
 public sealed class ShapeBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutBlockType ElementType => LayoutBlockType.Shape;
+    public override LayoutBlockType LayoutBlockType => LayoutBlockType.Shape;
 
     /// <summary>Gets the kind of shape to draw.</summary>
     public ShapeKind Kind { get; init; }

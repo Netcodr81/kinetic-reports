@@ -6,7 +6,7 @@ using KineticReports.Layout;
 
 /// <summary>
 /// Orchestrates the full report pipeline: data resolution, expression evaluation,
-/// report band construction, and the layout pipeline.
+/// report content-region construction, and the layout pipeline.
 /// </summary>
 public interface IReportEngine
 {

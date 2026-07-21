@@ -13,7 +13,7 @@ public sealed class TextBlock : LayoutBlock
     private ILayoutSizingContext? _layoutSizingContext;
 
     /// <inheritdoc/>
-    public override LayoutBlockType ElementType => LayoutBlockType.Text;
+    public override LayoutBlockType LayoutBlockType => LayoutBlockType.Text;
 
     /// <summary>
     /// Gets the display text content (after expression evaluation has been applied).

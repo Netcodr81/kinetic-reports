@@ -10,7 +10,7 @@ public class LayoutBlockTypeTests
     {
         LayoutBlockType.Page.ShouldBe(LayoutBlockType.Page);
         LayoutBlockType.Section.ShouldBe(LayoutBlockType.Section);
-        LayoutBlockType.Band.ShouldBe(LayoutBlockType.Band);
+        LayoutBlockType.ContentRegion.ShouldBe(LayoutBlockType.ContentRegion);
         LayoutBlockType.Container.ShouldBe(LayoutBlockType.Container);
         LayoutBlockType.Text.ShouldBe(LayoutBlockType.Text);
         LayoutBlockType.Table.ShouldBe(LayoutBlockType.Table);

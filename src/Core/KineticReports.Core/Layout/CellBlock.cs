@@ -9,7 +9,7 @@ using KineticReports.Core.Geometry;
 public sealed class CellBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutBlockType ElementType => LayoutBlockType.Cell;
+    public override LayoutBlockType LayoutBlockType => LayoutBlockType.Cell;
 
     /// <summary>Gets the zero-based column index of this cell.</summary>
     public int ColumnIndex { get; init; }

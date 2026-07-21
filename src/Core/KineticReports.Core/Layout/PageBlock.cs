@@ -9,7 +9,7 @@ using KineticReports.Core.Geometry;
 public sealed class PageBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutBlockType ElementType => LayoutBlockType.Page;
+    public override LayoutBlockType LayoutBlockType => LayoutBlockType.Page;
 
     /// <summary>Gets the page width in DIPs.</summary>
     public float PageWidth { get; init; }

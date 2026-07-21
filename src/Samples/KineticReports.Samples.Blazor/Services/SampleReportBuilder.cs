@@ -241,7 +241,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
         string sourceId,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
     {
-        var bands = new List<ReportBlock>();
+        var contentRegions = new List<ReportBlock>();
 
         var groupedRows = rows
             .GroupBy(row => GetRowValue(row, "Tier"), StringComparer.OrdinalIgnoreCase)
@@ -249,7 +249,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
 
         foreach (var group in groupedRows)
         {
-            bands.Add(CreateSingleTextBlock(
+            contentRegions.Add(CreateSingleTextBlock(
                 $"source-{sourceId}-group-{SanitizeForId(group.Key)}",
                 BlockType.GroupHeader,
                 GroupHeaderTextStyle,
@@ -268,7 +268,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
                     $"Balance: {GetRowValue(row, "Balance")} | " +
                     $"Last Invoice: {GetRowValue(row, "LastInvoice")}";
 
-                bands.Add(CreateSingleTextBlock(
+                contentRegions.Add(CreateSingleTextBlock(
                     $"source-{sourceId}-{SanitizeForId(group.Key)}-row-{index + 1}",
                     BlockType.Detail,
                     DetailTextStyle,
@@ -276,7 +276,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
             }
         }
 
-        return bands;
+        return contentRegions;
     }
 
     private static IReadOnlyList<ReportBlock> CreateKpiSummaryBlocks(
@@ -366,7 +366,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
         string sourceId,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
     {
-        var bands = new List<ReportBlock>();
+        var contentRegions = new List<ReportBlock>();
 
         for (var index = 0; index < rows.Count; index++)
         {
@@ -374,20 +374,20 @@ internal sealed class SampleReportBuilder : IReportBuilder
             var label = GetRowValue(row, "Label");
             var preview = GetRowValue(row, "Preview");
 
-            bands.Add(CreateSingleTextBlock(
+            contentRegions.Add(CreateSingleTextBlock(
                 $"source-{sourceId}-label-{index + 1}",
                 BlockType.Detail,
                 ResolveShowcaseLabelStyle(label),
                 label));
 
-            bands.Add(CreateSingleTextBlock(
+            contentRegions.Add(CreateSingleTextBlock(
                 $"source-{sourceId}-preview-{index + 1}",
                 BlockType.Detail,
                 ResolveShowcasePreviewStyle(label),
                 preview));
         }
 
-        return bands;
+        return contentRegions;
     }
 
     private static DetailBlock CreateSalesOrdersTableBlock(

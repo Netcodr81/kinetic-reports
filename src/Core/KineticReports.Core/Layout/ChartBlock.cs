@@ -10,7 +10,7 @@ using KineticReports.Core.Geometry;
 public sealed class ChartBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutBlockType ElementType => LayoutBlockType.Chart;
+    public override LayoutBlockType LayoutBlockType => LayoutBlockType.Chart;
 
     /// <summary>
     /// Gets the chart type identifier (e.g. "Bar", "Line", "Pie", "Area").

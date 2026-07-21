@@ -21,7 +21,7 @@ public enum RowType
 public sealed class RowBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutBlockType ElementType => LayoutBlockType.Row;
+    public override LayoutBlockType LayoutBlockType => LayoutBlockType.Row;
 
     /// <summary>Gets the functional role of this row.</summary>
     public RowType RowType { get; init; } = RowType.Data;

@@ -23,12 +23,12 @@ public abstract class LayoutBlock
 
     /// <summary>
     /// Gets the desired size as computed by the LayoutSizing pass.
-    /// This value is set by <see cref="Measure"/> and consumed by the parent's Arrange pass.
+    /// This value is set by <see cref="LayoutSize"/> and consumed by the parent's Arrange pass.
     /// </summary>
     public Size DesiredSize { get; protected set; }
 
     /// <summary>Gets the concrete type of this layout block.</summary>
-    public abstract LayoutBlockType ElementType { get; }
+    public abstract LayoutBlockType LayoutBlockType { get; }
 
     /// <summary>
     /// Performs the LayoutSizing pass, computing <see cref="DesiredSize"/> given the

@@ -37,7 +37,7 @@ public sealed class TableBlock : LayoutBlock
     private float[] _rowHeights = [];
 
     /// <inheritdoc/>
-    public override LayoutBlockType ElementType => LayoutBlockType.Table;
+    public override LayoutBlockType LayoutBlockType => LayoutBlockType.Table;
 
     /// <summary>Gets the column definitions for this table.</summary>
     public IReadOnlyList<TableColumn> Columns { get; init; } = [];

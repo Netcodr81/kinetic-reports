@@ -8,7 +8,7 @@ using KineticReports.Core.Geometry;
 public sealed class BarcodeBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutBlockType ElementType => LayoutBlockType.Barcode;
+    public override LayoutBlockType LayoutBlockType => LayoutBlockType.Barcode;
 
     /// <summary>
     /// Gets the barcode symbology identifier (e.g. "QR", "Code128", "EAN13", "PDF417").

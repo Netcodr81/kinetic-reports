@@ -10,7 +10,7 @@ using KineticReports.Core.Geometry;
 public sealed class SectionBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutBlockType ElementType => LayoutBlockType.Section;
+    public override LayoutBlockType LayoutBlockType => LayoutBlockType.Section;
 
     /// <summary>Gets the child elements stacked inside this section.</summary>
     public IReadOnlyList<LayoutBlock> Children { get; init; } = [];

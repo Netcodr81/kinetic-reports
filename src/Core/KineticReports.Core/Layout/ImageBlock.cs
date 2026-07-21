@@ -28,7 +28,7 @@ public enum ImageStretch
 public sealed class ImageBlock : LayoutBlock
 {
     /// <inheritdoc/>
-    public override LayoutBlockType ElementType => LayoutBlockType.Image;
+    public override LayoutBlockType LayoutBlockType => LayoutBlockType.Image;
 
     /// <summary>Gets the source key or URI that identifies the image asset.</summary>
     public required string SourceKey { get; init; }
