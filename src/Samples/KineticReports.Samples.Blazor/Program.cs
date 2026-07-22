@@ -10,6 +10,7 @@ using KineticReports.Export.Html;
 using KineticReports.Layout;
 using KineticReports.Plugins;
 using KineticReports.Rendering.Skia;
+using KineticReports.Viewer.Blazor.Services;
 
 // ============================================================================
 // KineticReports Blazor Sample Application (Interactive Server)
@@ -45,6 +46,7 @@ builder.Services.AddKineticReportsAuthoring();
 builder.Services.AddScoped<IPluginService, PluginService>();
 builder.Services.AddScoped<IPluginExecutionTraceStore, PluginExecutionTraceStore>();
 builder.Services.AddScoped<IAuthoringJsonWorkflowService, AuthoringJsonWorkflowService>();
+builder.Services.AddSingleton<IAuthoredReportCatalogService, AuthoredReportCatalogService>();
 
 // Register report execution services
 builder.Services.AddScoped<ITextLayout, SkiaTextLayout>();
@@ -63,6 +65,7 @@ builder.Services.AddScoped<IReportDocumentExporter, HtmlReportDocumentExporter>(
 builder.Services.AddScoped<IReportDocumentExporter, MarkdownReportDocumentExporter>();
 builder.Services.AddScoped<IReportDocumentExporterRegistry, ReportDocumentExporterRegistry>();
 builder.Services.AddScoped<IReportRenderService, ReportRenderService>();
+builder.Services.AddScoped<IReportService, ViewerReportServiceAdapter>();
 
 var app = builder.Build();
 

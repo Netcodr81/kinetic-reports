@@ -1,9 +1,10 @@
 @namespace KineticReports.Viewer.Blazor
 @using KineticReports.Core.Definition
-@using KineticReports.Core.Layout
 @using KineticReports.Viewer.Blazor.Services
+@using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inject IReportService ReportService
+@inject IJSRuntime Js
 
 <div class="kinetic-report-viewer">
     <div class="report-header">
@@ -14,9 +15,24 @@
             }
             else
             {
-                <span>Execute Report</span>
+                <span>Run / Refresh</span>
             }
         </button>
+
+        <div class="export-controls">
+            <label for="viewer-format-select" class="small text-muted">Export</label>
+            <select id="viewer-format-select" class="form-select form-select-sm" @bind="_selectedFormatId"
+                    disabled="@IsLoading">
+                @foreach (var format in _availableFormats)
+                {
+                    <option value="@format.FormatId">@format.DisplayName (@format.FormatId)</option>
+                }
+            </select>
+            <button class="btn btn-outline-secondary" @onclick="ExportAsync"
+                    disabled="@(IsLoading || Definition is null || string.IsNullOrWhiteSpace(_selectedFormatId))">
+                Export
+            </button>
+        </div>
 
         @if (IsLoading)
         {
@@ -34,16 +50,60 @@
         </div>
     }
 
+    @if (Definition?.Parameters.Count > 0)
+    {
+        <div class="parameter-panel">
+            <h6>Parameters</h6>
+            <div class="parameter-grid">
+                @foreach (var parameter in Definition.Parameters)
+                {
+                    <div class="parameter-item">
+                        <label class="form-label small">@parameter.Name</label>
+                        @if (parameter.Type == ParameterType.Boolean)
+                        {
+                            <input type="checkbox" class="form-check-input" checked="@GetBooleanValue(parameter)"
+                                   @onchange="eventArgs => OnBooleanParameterChanged(parameter.Id, eventArgs)" />
+                        }
+                        else
+                        {
+                            <input type="text" class="form-control form-control-sm" value="@GetParameterValue(parameter.Id)"
+                                   @onchange="eventArgs => OnParameterChanged(parameter.Id, eventArgs)" />
+                        }
+                        @if (!string.IsNullOrWhiteSpace(parameter.Description))
+                        {
+                            <div class="small text-muted">@parameter.Description</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
     @if (!string.IsNullOrEmpty(HtmlContent))
     {
         <div class="report-output">
-            @((MarkupString)HtmlContent)
+            <iframe title="Report Preview" srcdoc="@GetPreviewFrameSource()"
+                    style="width: 100%; height: 960px; border: 1px solid #dee2e6; border-radius: 0.375rem; background-color: #f8f9fa;">
+            </iframe>
         </div>
+
+        @if (_latestTrace.Count > 0)
+        {
+            <div class="trace-output">
+                <h6 class="mb-2">Execution Trace</h6>
+                <ol class="small mb-0">
+                    @foreach (var entry in _latestTrace)
+                    {
+                        <li>@entry</li>
+                    }
+                </ol>
+            </div>
+        }
     }
     else if (!IsLoading)
     {
         <div class="alert alert-info">
-            No report has been executed. Click 'Execute Report' to start.
+            No report has been executed. Click 'Run / Refresh' to start.
         </div>
     }
 </div>
@@ -62,6 +122,12 @@
     public IReadOnlyDictionary<string, object?> Parameters { get; set; } = new Dictionary<string, object?>();
 
     /// <summary>
+    /// Whether to execute automatically when the definition changes.
+    /// </summary>
+    [Parameter]
+    public bool AutoExecute { get; set; } = true;
+
+    /// <summary>
     /// Callback invoked when report execution completes.
     /// </summary>
     [Parameter]
@@ -70,8 +136,34 @@
     private string HtmlContent { get; set; } = string.Empty;
     private string ErrorMessage { get; set; } = string.Empty;
     private bool IsLoading { get; set; } = false;
-    private ReportDocument? CurrentLayoutTree { get; set; }
     private CancellationTokenSource? _cancellationTokenSource;
+    private string? _lastExecutedDefinitionId;
+    private IReadOnlyList<ReportViewerExportFormat> _availableFormats = [];
+    private string _selectedFormatId = "html";
+    private Dictionary<string, object?> _parameterValues = new(StringComparer.Ordinal);
+    private IReadOnlyList<string> _latestTrace = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _availableFormats = ReportService.GetAvailableExportFormats();
+
+        if (_availableFormats.Count > 0
+            && !_availableFormats.Any(format => string.Equals(format.FormatId, _selectedFormatId,
+StringComparison.OrdinalIgnoreCase)))
+        {
+            _selectedFormatId = _availableFormats[0].FormatId;
+        }
+
+        InitializeParameterValues();
+
+        if (AutoExecute
+            && Definition is not null
+            && !string.Equals(_lastExecutedDefinitionId, Definition.Id, StringComparison.Ordinal))
+        {
+            await ExecuteReportAsync().ConfigureAwait(false);
+            _lastExecutedDefinitionId = Definition.Id;
+        }
+    }
 
     /// <summary>
     /// Executes the report and displays the output.
@@ -87,22 +179,17 @@
         IsLoading = true;
         ErrorMessage = string.Empty;
         HtmlContent = string.Empty;
+        _latestTrace = [];
         _cancellationTokenSource = new CancellationTokenSource();
 
         try
         {
-            CurrentLayoutTree = await ReportService.ExecuteAsync(
+            var typedParameters = BuildTypedParameters();
+
+            HtmlContent = await ReportService.RenderHtmlAsync(
                 Definition,
-                Parameters,
+                typedParameters,
                 _cancellationTokenSource.Token);
-
-            if (CurrentLayoutTree == null)
-            {
-                ErrorMessage = "Report execution failed: report layout is null";
-                return;
-            }
-
-            HtmlContent = await ReportService.ExportHtmlAsync(CurrentLayoutTree, _cancellationTokenSource.Token);
 
             if (string.IsNullOrEmpty(HtmlContent))
             {
@@ -110,11 +197,14 @@
                 return;
             }
 
+            _latestTrace = ReportService.GetLatestTrace();
+
             await OnExecutionComplete.InvokeAsync(new ReportExecutionResult
             {
                 Success = true,
                 ExecutedAt = DateTime.UtcNow,
-                ReportDocument = CurrentLayoutTree
+                HtmlContent = HtmlContent,
+                Trace = _latestTrace
             });
         }
         catch (OperationCanceledException)
@@ -135,6 +225,153 @@
         {
             IsLoading = false;
         }
+    }
+
+    private async Task ExportAsync()
+    {
+        if (Definition is null || string.IsNullOrWhiteSpace(_selectedFormatId))
+            return;
+
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            var typedParameters = BuildTypedParameters();
+            var exportResult = await ReportService.ExportAsync(
+                Definition,
+                _selectedFormatId,
+                typedParameters,
+                CancellationToken.None).ConfigureAwait(false);
+
+            var baseName = string.IsNullOrWhiteSpace(Definition.Name)
+                ? "report"
+                : string.Concat(Definition.Name.Select(ch => Path.GetInvalidFileNameChars().Contains(ch) ? '-' : ch));
+            var fileName = $"{baseName}.{exportResult.FileExtension}";
+
+            await Js.InvokeVoidAsync(
+                "kineticReports.downloadFromBase64",
+                fileName,
+                exportResult.MimeType,
+                Convert.ToBase64String(exportResult.Content));
+
+            _latestTrace = ReportService.GetLatestTrace();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Export failed: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void InitializeParameterValues()
+    {
+        if (Definition is null)
+            return;
+
+        foreach (var parameter in Definition.Parameters)
+        {
+            if (_parameterValues.ContainsKey(parameter.Id))
+                continue;
+
+            if (Parameters.TryGetValue(parameter.Id, out var incomingValue))
+            {
+                _parameterValues[parameter.Id] = incomingValue;
+                continue;
+            }
+
+            _parameterValues[parameter.Id] = parameter.Type == ParameterType.Boolean
+                ? bool.TryParse(parameter.DefaultValue, out var parsed) && parsed
+                : parameter.DefaultValue;
+        }
+    }
+
+    private IReadOnlyDictionary<string, object?> BuildTypedParameters()
+    {
+        if (Definition is null)
+            return new Dictionary<string, object?>();
+
+        var typed = new Dictionary<string, object?>(StringComparer.Ordinal);
+
+        foreach (var parameter in Definition.Parameters)
+        {
+            _parameterValues.TryGetValue(parameter.Id, out var value);
+
+            typed[parameter.Id] = parameter.Type switch
+            {
+                ParameterType.Integer => TryParse<long>(value, long.TryParse),
+                ParameterType.Decimal => TryParse<decimal>(value, decimal.TryParse),
+                ParameterType.Boolean => value is bool flag ? flag : bool.TryParse(Convert.ToString(value), out var boolValue) &&
+boolValue,
+                ParameterType.DateTime => TryParse<DateTime>(value, DateTime.TryParse),
+                ParameterType.Guid => TryParse<Guid>(value, Guid.TryParse),
+                _ => Convert.ToString(value)
+            };
+        }
+
+        return typed;
+    }
+
+    private static T? TryParse<T>(object? value, TryParseDelegate<T> parser)
+        where T : struct
+    {
+        var text = Convert.ToString(value);
+        return parser(text, out var parsed)
+            ? parsed
+            : null;
+    }
+
+    private delegate bool TryParseDelegate<T>(string? text, out T value);
+
+    private string? GetParameterValue(string parameterId)
+        => _parameterValues.TryGetValue(parameterId, out var value) ? Convert.ToString(value) : null;
+
+    private bool GetBooleanValue(ParameterDefinition parameter)
+    {
+        if (_parameterValues.TryGetValue(parameter.Id, out var value))
+        {
+            return value is bool flag
+                ? flag
+                : bool.TryParse(Convert.ToString(value), out var parsed) && parsed;
+        }
+
+        return false;
+    }
+
+    private void OnParameterChanged(string parameterId, ChangeEventArgs args)
+    {
+        _parameterValues[parameterId] = Convert.ToString(args.Value);
+    }
+
+    private void OnBooleanParameterChanged(string parameterId, ChangeEventArgs args)
+    {
+        _parameterValues[parameterId] = args.Value is bool typed
+            ? typed
+            : bool.TryParse(Convert.ToString(args.Value), out var parsed) && parsed;
+    }
+
+    private string GetPreviewFrameSource()
+    {
+        if (string.IsNullOrEmpty(HtmlContent))
+            return "about:blank";
+
+        const string stylesheetLink = "<link rel=\"stylesheet\" href=\"/kinetic-report.css\">";
+
+        if (HtmlContent.Contains("kinetic-report.css", StringComparison.OrdinalIgnoreCase))
+            return HtmlContent;
+
+        if (HtmlContent.Contains("</head>", StringComparison.OrdinalIgnoreCase))
+        {
+            return HtmlContent.Replace(
+                "</head>",
+                stylesheetLink + "</head>",
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        return $"<html><head>{stylesheetLink}</head><body>{HtmlContent}</body></html>";
     }
 
     private void ClearError()

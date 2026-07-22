@@ -34,17 +34,32 @@ body {
   gap: var(--kr-page-gap);
 }
 
+.report-document {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--kr-page-gap);
+}
+
 .kinetic-page {
   background: var(--kr-page-bg);
   border: 1px solid var(--kr-page-border);
   box-shadow: var(--kr-page-shadow);
   page-break-after: always;
+  overflow: hidden;
 }
 
 .page-background {
   position: relative;
   width: 100%;
   height: 100%;
+}
+
+.page-header-region,
+.page-body-region,
+.page-footer-region {
+  position: static;
 }
 
 .element {

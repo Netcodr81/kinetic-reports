@@ -1,6 +1,7 @@
 namespace KineticReports.Samples.Blazor.Services;
 
 using System.Globalization;
+using KineticReports.Authoring.Compilation;
 using KineticReports.Core.Layout;
 using KineticReports.Core.Styling;
 using KineticReports.Engine.Building;
@@ -12,6 +13,12 @@ using KineticReports.Engine.Expressions;
 /// </summary>
 internal sealed class SampleReportBuilder : IReportBuilder
 {
+    private const float MaxAuthoredCanvasHeight = 860f;
+    private const float AuthoredGridColumnGap = 12f;
+    private const float AuthoredGridRowGap = 12f;
+    private const float FallbackAuthoredPageWidth = 816f;
+    private const float FallbackAuthoredPageHeight = 1056f;
+
     private const float HeaderBlockBottomSpacing = 12f;
     private const float SectionTitleBlockTopSpacing = 4f;
     private const float SectionTitleBlockBottomSpacing = 8f;
@@ -86,6 +93,9 @@ internal sealed class SampleReportBuilder : IReportBuilder
     /// <inheritdoc/>
     public IReadOnlyList<ReportBlock> Build(DataContext dataContext, IExpressionEvaluator evaluator)
     {
+        if (TryBuildAuthoredComponentBlocks(dataContext, out var authoredBlocks))
+            return authoredBlocks;
+
         var builder = new ReportLayoutBuilder()
             .Add(CreateSingleTextBlock(
                 "sample-header",
@@ -172,6 +182,742 @@ internal sealed class SampleReportBuilder : IReportBuilder
 
         return builder.Build();
     }
+
+    private static bool TryBuildAuthoredComponentBlocks(
+        DataContext dataContext,
+        out IReadOnlyList<ReportBlock> blocks)
+    {
+        blocks = [];
+
+        var definition = dataContext.Definition;
+        var metadata = definition?.Metadata;
+        if (metadata is null)
+            return false;
+
+        if (!metadata.TryGetValue("authoring.compiledComponents", out var rawComponents) || rawComponents is null)
+            return false;
+
+        IReadOnlyList<CompiledComponentMetadata>? compiledComponents = rawComponents switch
+        {
+            IReadOnlyList<CompiledComponentMetadata> typed => typed,
+            IEnumerable<CompiledComponentMetadata> sequence => sequence.ToList(),
+            _ => null
+        };
+
+        if (compiledComponents is null || compiledComponents.Count == 0)
+            return false;
+
+        var reportName = string.IsNullOrWhiteSpace(definition?.Name)
+            ? "Authored Report"
+            : definition.Name;
+
+        var providerSummary = string.Join(
+            ", ",
+            definition?.DataSources.Select(source => $"{source.Id}:{source.ProviderType}") ?? []);
+
+        var builder = new ReportLayoutBuilder()
+            .Add(CreateSingleTextBlock(
+                "authored-header",
+                BlockType.PageHeader,
+                HeaderTextStyle,
+                reportName))
+            .Add(CreateSingleTextBlock(
+                "authored-provider-summary",
+                BlockType.ReportHeader,
+                SubtleTextStyle,
+                string.IsNullOrWhiteSpace(providerSummary)
+                    ? "Provider: (none)"
+                    : $"Provider(s): {providerSummary}"));
+
+        foreach (var headerBand in CreateAuthoredBandBlocks(compiledComponents, "Header", BlockType.PageHeader, dataContext))
+            builder.Add(headerBand);
+
+        foreach (var footerBand in CreateAuthoredBandBlocks(compiledComponents, "Footer", BlockType.PageFooter, dataContext))
+            builder.Add(footerBand);
+
+        var flattened = FlattenBodyComponentsWithOffsets(compiledComponents)
+            .OrderBy(entry => entry.AbsoluteY)
+            .ThenBy(entry => entry.AbsoluteX)
+            .ToList();
+
+        var (authoredPageWidth, authoredPageHeight) = ResolveAuthoredPageSize(compiledComponents);
+        var availableGridWidth = Math.Max(240f, authoredPageWidth);
+        var availableGridHeight = Math.Max(320f, Math.Min(authoredPageHeight, MaxAuthoredCanvasHeight));
+
+        var segmentIndex = 1;
+        var hasRenderableBodyContent = false;
+        var layoutChildren = new List<LayoutBlock>();
+        var placements = new Dictionary<string, Core.Geometry.Rect>(StringComparer.Ordinal);
+        var currentGridRow = 1;
+        var currentX = 0f;
+        var currentY = 0f;
+        var currentRowHeight = 0f;
+
+        void AdvanceGridRow()
+        {
+            currentY += currentRowHeight + AuthoredGridRowGap;
+            currentX = 0f;
+            currentRowHeight = 0f;
+            currentGridRow++;
+        }
+
+        void ResetSegmentState()
+        {
+            layoutChildren = new List<LayoutBlock>();
+            placements = new Dictionary<string, Core.Geometry.Rect>(StringComparer.Ordinal);
+            currentGridRow = 1;
+            currentX = 0f;
+            currentY = 0f;
+            currentRowHeight = 0f;
+        }
+
+        void FinalizeCurrentSegment()
+        {
+            if (!TryCreateCanvasBlock(layoutChildren, placements, segmentIndex, out var canvasBlock))
+                return;
+
+            builder.Add(canvasBlock);
+            hasRenderableBodyContent = true;
+            segmentIndex++;
+        }
+
+        for (var index = 0; index < flattened.Count; index++)
+        {
+            var entry = flattened[index];
+            var component = entry.Component;
+
+            if (string.Equals(component.CanonicalType, "PageBreak", StringComparison.OrdinalIgnoreCase))
+            {
+                FinalizeCurrentSegment();
+
+                builder.Add(ReportBlockFactory.CreatePageBreak($"authored-page-break-{index + 1}", CreateBlockStyle(BlockType.Detail)));
+                ResetSegmentState();
+                continue;
+            }
+
+            var element = CreateComponentLayoutElement(component, index + 1, dataContext);
+            if (element is null)
+                continue;
+
+            var width = component.Placement.Width > 0f ? component.Placement.Width : Math.Max(120f, element.DesiredSize.Width);
+            var height = component.Placement.Height > 0f ? component.Placement.Height : Math.Max(26f, element.DesiredSize.Height);
+
+            width = Math.Clamp(width, 24f, availableGridWidth);
+
+            var explicitRow = TryGetExplicitGridRow(component);
+            if (explicitRow.HasValue)
+            {
+                var targetRow = Math.Max(1, explicitRow.Value);
+                while (currentGridRow < targetRow)
+                    AdvanceGridRow();
+            }
+            else if (HasNextRowDirective(component) && currentX > 0f)
+            {
+                AdvanceGridRow();
+            }
+
+            if (currentX > 0f && currentX + width > availableGridWidth)
+                AdvanceGridRow();
+
+            if (currentY > 0f && currentY + height > availableGridHeight)
+            {
+                FinalizeCurrentSegment();
+                builder.Add(ReportBlockFactory.CreatePageBreak($"authored-auto-page-break-{index + 1}", CreateBlockStyle(BlockType.Detail)));
+                ResetSegmentState();
+            }
+
+            layoutChildren.Add(element);
+            placements[element.Id] = new Core.Geometry.Rect(currentX, currentY, width, height);
+            currentX += width + AuthoredGridColumnGap;
+            currentRowHeight = Math.Max(currentRowHeight, height);
+        }
+
+        FinalizeCurrentSegment();
+
+        if (!hasRenderableBodyContent)
+        {
+            builder.Add(CreateSingleTextBlock(
+                "authored-no-components",
+                BlockType.Detail,
+                SubtleTextStyle,
+                "No renderable authored components found."));
+        }
+
+        blocks = builder.Build();
+        return true;
+    }
+
+    private static IEnumerable<FlattenedComponent> FlattenComponentsWithOffsets(
+        IEnumerable<CompiledComponentMetadata> components,
+        float offsetX = 0f,
+        float offsetY = 0f)
+    {
+        foreach (var component in components)
+        {
+            var absoluteX = offsetX + component.Placement.X;
+            var absoluteY = offsetY + component.Placement.Y;
+
+            yield return new FlattenedComponent(component, absoluteX, absoluteY);
+
+            foreach (var child in FlattenComponentsWithOffsets(component.Children, absoluteX, absoluteY))
+                yield return child;
+        }
+    }
+
+    private static IReadOnlyList<FlattenedComponent> FlattenBodyComponentsWithOffsets(
+        IEnumerable<CompiledComponentMetadata> components)
+    {
+        var flattened = new List<FlattenedComponent>();
+
+        AppendBodyComponents(flattened, components, 0f, 0f);
+
+        return flattened;
+    }
+
+    private static void AppendBodyComponents(
+        List<FlattenedComponent> flattened,
+        IEnumerable<CompiledComponentMetadata> components,
+        float offsetX,
+        float offsetY)
+    {
+        foreach (var component in components)
+        {
+            var absoluteX = offsetX + component.Placement.X;
+            var absoluteY = offsetY + component.Placement.Y;
+            var canonicalType = component.CanonicalType;
+
+            if (string.Equals(canonicalType, "Header", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(canonicalType, "Footer", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (!ShouldSkipComponent(component))
+                flattened.Add(new FlattenedComponent(component, absoluteX, absoluteY));
+
+            if (ShouldSuppressDescendantsInBody(canonicalType))
+                continue;
+
+            AppendBodyComponents(flattened, component.Children, absoluteX, absoluteY);
+        }
+    }
+
+    private static bool ShouldSuppressDescendantsInBody(string canonicalType)
+    {
+        return string.Equals(canonicalType, "Group", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(canonicalType, "List", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(canonicalType, "Table", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(canonicalType, "Chart", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(canonicalType, "Barcode", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(canonicalType, "Image", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static (float Width, float Height) ResolveAuthoredPageSize(IEnumerable<CompiledComponentMetadata> components)
+    {
+        var pagePlacements = EnumerateComponentsByCanonicalType(components, "Page")
+            .Select(component => component.Placement)
+            .Where(placement => placement.Width > 0f && placement.Height > 0f)
+            .ToList();
+
+        if (pagePlacements.Count == 0)
+            return (FallbackAuthoredPageWidth, FallbackAuthoredPageHeight);
+
+        return (pagePlacements.Max(placement => placement.Width), pagePlacements.Max(placement => placement.Height));
+    }
+
+    private static int? TryGetExplicitGridRow(CompiledComponentMetadata component)
+    {
+        foreach (var key in new[] { "layout.row", "grid.row", "row" })
+        {
+            if (!component.Properties.TryGetValue(key, out var rawValue) || string.IsNullOrWhiteSpace(rawValue))
+                continue;
+
+            if (int.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var rowIndex) && rowIndex > 0)
+                return rowIndex;
+        }
+
+        return null;
+    }
+
+    private static bool HasNextRowDirective(CompiledComponentMetadata component)
+    {
+        foreach (var key in new[] { "layout.newRow", "grid.newRow", "newRow", "nextRow", "row.break" })
+        {
+            if (!component.Properties.TryGetValue(key, out var rawValue) || string.IsNullOrWhiteSpace(rawValue))
+                continue;
+
+            if (bool.TryParse(rawValue, out var asBool))
+                return asBool;
+
+            if (string.Equals(rawValue, "1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(rawValue, "yes", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(rawValue, "y", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryCreateCanvasBlock(
+        IReadOnlyList<LayoutBlock> layoutChildren,
+        IReadOnlyDictionary<string, Core.Geometry.Rect> placements,
+        int segmentIndex,
+        out ReportBlock block)
+    {
+        block = null!;
+
+        if (layoutChildren.Count == 0 || placements.Count == 0)
+            return false;
+
+        var minX = placements.Values.Min(rect => rect.X);
+        var minY = placements.Values.Min(rect => rect.Y);
+
+        var rebasedPlacements = placements.ToDictionary(
+            pair => pair.Key,
+            pair => new Core.Geometry.Rect(
+                pair.Value.X - minX,
+                pair.Value.Y - minY,
+                pair.Value.Width,
+                pair.Value.Height),
+            StringComparer.Ordinal);
+
+        block = new DetailBlock
+        {
+            Id = $"report-page-body-block-{segmentIndex}",
+            Style = new AppliedStyle
+            {
+                FontFamily = "Arial",
+                FontSize = 12f,
+                Padding = new Core.Geometry.Thickness(0f, 0f, 0f, 12f)
+            },
+            Children =
+            [
+                new ContainerBlock
+                {
+                    Id = $"report-page-body-container-{segmentIndex}",
+                    Style = new AppliedStyle
+                    {
+                        FontFamily = "Arial",
+                        FontSize = 12f,
+                        Border = Border.Uniform(1f, Color.FromRgb(210, 216, 228)),
+                        Background = Color.FromRgb(250, 252, 255)
+                    },
+                    Children = layoutChildren.ToList(),
+                    ChildPlacements = rebasedPlacements
+                }
+            ]
+        };
+
+        return true;
+    }
+
+    private static bool ShouldSkipComponent(CompiledComponentMetadata component)
+    {
+        return string.Equals(component.CanonicalType, "Page", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(component.CanonicalType, "Section", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(component.CanonicalType, "Panel", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(component.CanonicalType, "Header", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(component.CanonicalType, "Footer", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static IReadOnlyList<ReportBlock> CreateAuthoredBandBlocks(
+        IReadOnlyList<CompiledComponentMetadata> components,
+        string canonicalType,
+        BlockType blockType,
+        DataContext dataContext)
+    {
+        var bands = new List<ReportBlock>();
+        var index = 1;
+
+        foreach (var component in EnumerateComponentsByCanonicalType(components, canonicalType))
+        {
+            var flattened = FlattenComponentsWithOffsets(component.Children).ToList();
+            if (flattened.Count == 0)
+                continue;
+
+            var children = new List<LayoutBlock>();
+            var placements = new Dictionary<string, Core.Geometry.Rect>(StringComparer.Ordinal);
+
+            for (var itemIndex = 0; itemIndex < flattened.Count; itemIndex++)
+            {
+                var entry = flattened[itemIndex];
+                var childComponent = entry.Component;
+
+                if (ShouldSkipComponent(childComponent)
+                    || string.Equals(childComponent.CanonicalType, "PageBreak", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(childComponent.CanonicalType, "Background", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var element = CreateComponentLayoutElement(childComponent, itemIndex + 1, dataContext);
+                if (element is null)
+                    continue;
+
+                var width = childComponent.Placement.Width > 0f
+                    ? childComponent.Placement.Width
+                    : Math.Max(100f, element.DesiredSize.Width);
+
+                var height = childComponent.Placement.Height > 0f
+                    ? childComponent.Placement.Height
+                    : Math.Max(24f, element.DesiredSize.Height);
+
+                children.Add(element);
+                placements[element.Id] = new Core.Geometry.Rect(entry.AbsoluteX, entry.AbsoluteY, width, height);
+            }
+
+            if (children.Count == 0)
+                continue;
+
+            var bandChildren = new List<LayoutBlock>
+            {
+                new ContainerBlock
+                {
+                    Id = $"authored-{canonicalType.ToLowerInvariant()}-band-{index}-container",
+                    Style = new AppliedStyle
+                    {
+                        FontFamily = "Arial",
+                        FontSize = 12f
+                    },
+                    Children = children,
+                    ChildPlacements = placements
+                }
+            };
+
+            ReportBlock bandBlock = blockType switch
+            {
+                BlockType.PageHeader => new PageHeaderBlock
+                {
+                    Id = $"authored-{canonicalType.ToLowerInvariant()}-band-{index}",
+                    Style = CreateBlockStyle(blockType),
+                    Children = bandChildren
+                },
+                BlockType.PageFooter => new PageFooterBlock
+                {
+                    Id = $"authored-{canonicalType.ToLowerInvariant()}-band-{index}",
+                    Style = CreateBlockStyle(blockType),
+                    Children = bandChildren
+                },
+                _ => ReportBlockFactory.Create(
+                    blockType,
+                    $"authored-{canonicalType.ToLowerInvariant()}-band-{index}",
+                    CreateBlockStyle(blockType))
+            };
+
+            bands.Add(bandBlock);
+            index++;
+        }
+
+        return bands;
+    }
+
+    private static IEnumerable<CompiledComponentMetadata> EnumerateComponentsByCanonicalType(
+        IEnumerable<CompiledComponentMetadata> components,
+        string canonicalType)
+    {
+        foreach (var component in components)
+        {
+            if (string.Equals(component.CanonicalType, canonicalType, StringComparison.OrdinalIgnoreCase))
+                yield return component;
+
+            foreach (var child in EnumerateComponentsByCanonicalType(component.Children, canonicalType))
+                yield return child;
+        }
+    }
+
+    private static LayoutBlock? CreateComponentLayoutElement(
+        CompiledComponentMetadata component,
+        int index,
+        DataContext dataContext)
+    {
+        var canonicalType = component.CanonicalType;
+
+        if (string.Equals(canonicalType, "Text", StringComparison.OrdinalIgnoreCase))
+        {
+            var text = component.Bindings.TryGetValue("Text", out var boundText)
+                ? boundText
+                : component.Name ?? component.Id;
+
+            return new TextBlock
+            {
+                Id = $"authored-component-{index}-text",
+                Style = DetailTextStyle,
+                Text = text,
+            };
+        }
+
+        if (string.Equals(canonicalType, "Table", StringComparison.OrdinalIgnoreCase))
+            return CreateAuthoredTableElement(component, index, dataContext);
+
+        if (string.Equals(canonicalType, "Image", StringComparison.OrdinalIgnoreCase))
+        {
+            var source = component.Bindings.TryGetValue("Source", out var src)
+                ? src
+                : "https://example.invalid/placeholder.png";
+
+            return new ImageBlock
+            {
+                Id = $"authored-component-{index}-image",
+                Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+                SourceKey = source,
+                Stretch = ImageStretch.Uniform,
+            };
+        }
+
+        if (string.Equals(canonicalType, "Rectangle", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(canonicalType, "Line", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(canonicalType, "Ellipse", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(canonicalType, "Divider", StringComparison.OrdinalIgnoreCase))
+        {
+            var kind = ShapeKind.Rectangle;
+
+            if (string.Equals(canonicalType, "Line", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(canonicalType, "Divider", StringComparison.OrdinalIgnoreCase))
+            {
+                kind = ShapeKind.Line;
+            }
+            else if (string.Equals(canonicalType, "Ellipse", StringComparison.OrdinalIgnoreCase))
+            {
+                kind = ShapeKind.Ellipse;
+            }
+
+            if (component.Properties.TryGetValue("shape.kind", out var shapeKind))
+            {
+                if (string.Equals(shapeKind, "Line", StringComparison.OrdinalIgnoreCase))
+                    kind = ShapeKind.Line;
+                else if (string.Equals(shapeKind, "Ellipse", StringComparison.OrdinalIgnoreCase))
+                    kind = ShapeKind.Ellipse;
+            }
+
+            return new ShapeBlock
+            {
+                Id = $"authored-component-{index}-shape",
+                Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+                Kind = kind,
+                Fill = kind == ShapeKind.Line ? null : Color.FromRgb(220, 232, 250),
+                Stroke = Color.FromRgb(70, 104, 160),
+                StrokeWidth = 1.5f,
+            };
+        }
+
+        if (string.Equals(canonicalType, "PageNumber", StringComparison.OrdinalIgnoreCase))
+        {
+            return new TextBlock
+            {
+                Id = $"authored-component-{index}-page-number",
+                Style = GroupHeaderTextStyle,
+                Text = "{PageNumber}"
+            };
+        }
+
+        if (string.Equals(canonicalType, "TotalPages", StringComparison.OrdinalIgnoreCase))
+        {
+            return new TextBlock
+            {
+                Id = $"authored-component-{index}-total-pages",
+                Style = GroupHeaderTextStyle,
+                Text = "{TotalPages}"
+            };
+        }
+
+        if (string.Equals(canonicalType, "CurrentDate", StringComparison.OrdinalIgnoreCase))
+        {
+            return new TextBlock
+            {
+                Id = $"authored-component-{index}-current-date",
+                Style = SubtleTextStyle,
+                Text = DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+            };
+        }
+
+        if (string.Equals(canonicalType, "CurrentTime", StringComparison.OrdinalIgnoreCase))
+        {
+            return new TextBlock
+            {
+                Id = $"authored-component-{index}-current-time",
+                Style = SubtleTextStyle,
+                Text = DateTime.UtcNow.ToString("HH:mm:ss 'UTC'", CultureInfo.InvariantCulture)
+            };
+        }
+
+        if (string.Equals(canonicalType, "DocumentInfo", StringComparison.OrdinalIgnoreCase))
+        {
+            var field = component.Properties.TryGetValue("document.field", out var configuredField)
+                ? configuredField
+                : "Name";
+
+            return new TextBlock
+            {
+                Id = $"authored-component-{index}-document-info",
+                Style = SubtleTextStyle,
+                Text = $"Document {field}: {dataContext.Definition?.Name ?? "Authored Report"}"
+            };
+        }
+
+        if (string.Equals(canonicalType, "Spacer", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(canonicalType, "Background", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        if (string.Equals(canonicalType, "Barcode", StringComparison.OrdinalIgnoreCase))
+        {
+            var symbology = component.Properties.TryGetValue("barcode.format", out var format)
+                ? format
+                : "Code128";
+            var value = component.Bindings.TryGetValue("Value", out var boundValue)
+                ? boundValue
+                : component.Id;
+
+            return new BarcodeBlock
+            {
+                Id = $"authored-component-{index}-barcode",
+                Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+                Symbology = symbology,
+                Value = value,
+                ShowText = true,
+            };
+        }
+
+        if (string.Equals(canonicalType, "Chart", StringComparison.OrdinalIgnoreCase))
+        {
+            var chartType = component.Properties.TryGetValue("chart.type", out var configuredType)
+                ? configuredType
+                : "Bar";
+
+            return new ChartBlock
+            {
+                Id = $"authored-component-{index}-chart",
+                Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+                ChartType = chartType,
+                ChartData = component.DataSourceId is { Length: > 0 } && dataContext.DataSources.TryGetValue(component.DataSourceId, out var rows)
+                    ? rows
+                    : null,
+            };
+        }
+
+        return new TextBlock
+        {
+            Id = $"authored-component-{index}-placeholder",
+            Style = SubtleTextStyle,
+            Text = $"{component.SourceType} ({component.CanonicalType})"
+        };
+    }
+
+    private static TableBlock CreateAuthoredTableElement(
+        CompiledComponentMetadata component,
+        int index,
+        DataContext dataContext)
+    {
+        var rows = component.DataSourceId is { Length: > 0 } && dataContext.DataSources.TryGetValue(component.DataSourceId, out var dataRows)
+            ? dataRows
+            : [];
+
+        var columnNames = rows.FirstOrDefault()?.Keys.ToList()
+            ?? ["Info"];
+
+        var columns = columnNames
+            .Select(_ => new TableColumn { MinWidth = 100f, Grow = 1f })
+            .ToList();
+
+        var tableRows = new List<RowBlock>
+        {
+            new()
+            {
+                Id = $"authored-component-{index}-table-header",
+                Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+                RowType = RowType.Header,
+                Cells = columnNames.Select((name, colIndex) =>
+                    new CellBlock
+                    {
+                        Id = $"authored-component-{index}-table-header-cell-{colIndex + 1}",
+                        Style = TableHeaderCellStyle,
+                        ColumnIndex = colIndex,
+                        Children =
+                        [
+                            new TextBlock
+                            {
+                                Id = $"authored-component-{index}-table-header-text-{colIndex + 1}",
+                                Style = TableHeaderCellStyle,
+                                Text = name
+                            }
+                        ]
+                    }).ToList()
+            }
+        };
+
+        if (rows.Count == 0)
+        {
+            tableRows.Add(new RowBlock
+            {
+                Id = $"authored-component-{index}-table-empty-row",
+                Style = new AppliedStyle { FontFamily = "Consolas", FontSize = 11f },
+                RowType = RowType.Data,
+                Cells =
+                [
+                    new CellBlock
+                    {
+                        Id = $"authored-component-{index}-table-empty-cell",
+                        Style = TableCellStyle,
+                        ColumnIndex = 0,
+                        ColSpan = columnNames.Count,
+                        Children =
+                        [
+                            new TextBlock
+                            {
+                                Id = $"authored-component-{index}-table-empty-text",
+                                Style = TableCellStyle,
+                                Text = "No rows returned for this data source."
+                            }
+                        ]
+                    }
+                ]
+            });
+        }
+        else
+        {
+            for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+            {
+                var row = rows[rowIndex];
+
+                tableRows.Add(new RowBlock
+                {
+                    Id = $"authored-component-{index}-table-row-{rowIndex + 1}",
+                    Style = new AppliedStyle { FontFamily = "Consolas", FontSize = 11f },
+                    RowType = RowType.Data,
+                    Cells = columnNames.Select((name, colIndex) =>
+                        new CellBlock
+                        {
+                            Id = $"authored-component-{index}-table-cell-{rowIndex + 1}-{colIndex + 1}",
+                            Style = TableCellStyle,
+                            ColumnIndex = colIndex,
+                            Children =
+                            [
+                                new TextBlock
+                                {
+                                    Id = $"authored-component-{index}-table-text-{rowIndex + 1}-{colIndex + 1}",
+                                    Style = TableCellStyle,
+                                    Text = GetRowValue(row, name)
+                                }
+                            ]
+                        }).ToList()
+                });
+            }
+        }
+
+        return new TableBlock
+        {
+            Id = $"authored-component-{index}-table",
+            Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+            Columns = columns,
+            Rows = tableRows,
+            RepeatHeaders = true,
+        };
+    }
+
+    private sealed record FlattenedComponent(CompiledComponentMetadata Component, float AbsoluteX, float AbsoluteY);
 
     private static ReportBlock CreateSingleTextBlock(
         string id,

@@ -3,6 +3,7 @@ namespace KineticReports.Export.Html;
 using KineticReports.Core.Layout;
 using KineticReports.Core.Styling;
 using KineticReports.Export.Html.Styles;
+using System.Text.Json;
 using System.Text;
 
 /// <summary>
@@ -40,6 +41,14 @@ public sealed class HtmlExporter : IHtmlExporter
             .CloseTag("head")
             .OpenTag("body");
 
+        var reportModel = BuildReportDocumentModelJson(reportDocument);
+
+        html
+            .OpenTag("script", id: "report-document-model", attributes: new Dictionary<string, string> { ["type"] = "application/json" })
+            .Raw(reportModel)
+            .CloseTag("script")
+            .OpenTag("div", id: "report-document", classAttr: "report-document");
+
         // Render all pages
         foreach (var page in reportDocument.Pages)
         {
@@ -47,6 +56,7 @@ public sealed class HtmlExporter : IHtmlExporter
         }
 
         html
+            .CloseTag("div")
             .CloseTag("body")
             .CloseTag("html");
     }
@@ -56,30 +66,85 @@ public sealed class HtmlExporter : IHtmlExporter
         var pageStyle = $"width: {page.PageWidth:F1}px; height: {page.PageHeight:F1}px; position: relative; margin: 20px auto;";
 
         html
-            .OpenTag("div", style: pageStyle, id: $"page-{page.PageNumber}", classAttr: "kinetic-page")
+            .OpenTag("section", style: pageStyle, id: $"page-{page.PageNumber}", classAttr: "kinetic-page page-block")
             .OpenTag("div", style: CssBuilder.BuildStyle(page.Style), classAttr: "page-background");
 
         // Render header if present
         if (page.Header != null)
         {
+            html.OpenTag("header", classAttr: "page-header-region");
             RenderElement(html, page.Header, 0f, 0f);
+            html.CloseTag("header");
         }
 
         // Render body elements
+        html.OpenTag("main", classAttr: "page-body-region");
         foreach (var child in page.Children)
         {
             RenderElement(html, child, 0f, 0f);
         }
+        html.CloseTag("main");
 
         // Render footer if present
         if (page.Footer != null)
         {
+            html.OpenTag("footer", classAttr: "page-footer-region");
             RenderElement(html, page.Footer, 0f, 0f);
+            html.CloseTag("footer");
         }
 
         html
             .CloseTag("div") // page-background
-            .CloseTag("div"); // kinetic-page
+            .CloseTag("section"); // kinetic-page
+    }
+
+    private static string BuildReportDocumentModelJson(ReportDocument reportDocument)
+    {
+        var model = new
+        {
+            pageCount = reportDocument.PageCount,
+            pages = reportDocument.Pages.Select(page => new
+            {
+                pageNumber = page.PageNumber,
+                pageWidth = page.PageWidth,
+                pageHeight = page.PageHeight,
+                header = page.Header is null ? null : ToBlockModel(page.Header),
+                children = page.Children.Select(ToBlockModel).ToList(),
+                footer = page.Footer is null ? null : ToBlockModel(page.Footer)
+            }).ToList()
+        };
+
+        return JsonSerializer.Serialize(model);
+    }
+
+    private static object ToBlockModel(LayoutBlock block)
+    {
+        return new
+        {
+            id = block.Id,
+            type = block.LayoutBlockType.ToString(),
+            bounds = new
+            {
+                x = block.Bounds.X,
+                y = block.Bounds.Y,
+                width = block.Bounds.Width,
+                height = block.Bounds.Height
+            },
+            children = GetChildBlocks(block).Select(ToBlockModel).ToList()
+        };
+    }
+
+    private static IReadOnlyList<LayoutBlock> GetChildBlocks(LayoutBlock block)
+    {
+        return block switch
+        {
+            ContainerBlock container => container.Children,
+            SectionBlock section => section.Children,
+            ReportBlock reportBlock => reportBlock.Children,
+            RowBlock row => row.Cells.Cast<LayoutBlock>().ToList(),
+            CellBlock cell => cell.Children,
+            _ => []
+        };
     }
 
     private static void RenderElement(HtmlBuilder html, LayoutBlock element, float parentX, float parentY)

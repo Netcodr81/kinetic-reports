@@ -1,12 +1,12 @@
-﻿@page "/"
-@using KineticReports.Core.Definition
-@using KineticReports.Plugins
-@using KineticReports.Samples.Blazor.Reports
+@page "/"
+@using KineticReports.Authoring.Components
 @using KineticReports.Samples.Blazor.Services
+@using KineticReports.Viewer.Blazor
 
 @using Microsoft.AspNetCore.Components.Web
 @inject IPluginService PluginService
-@inject IReportRenderService ReportRenderService
+@inject IAuthoringJsonWorkflowService AuthoringWorkflowService
+@inject IAuthoredReportCatalogService ReportCatalogService
 @inject IJSRuntime Js
 @rendermode InteractiveServer
 
@@ -14,9 +14,8 @@
 <PageTitle>KineticReports Samples</PageTitle>
 
 <div class="row">
-    <!-- Left Panel: Plugin Management -->
     <div class="col-lg-3">
-        <div class="card">
+        <div class="card mb-3">
             <div class="card-header">
                 <h5>Plugin Management</h5>
             </div>
@@ -71,147 +70,196 @@
                 }
             </div>
         </div>
-    </div>
 
-    <!-- Right Panel: Report Samples -->
-    <div class="col-lg-9">
         <div class="card">
             <div class="card-header">
-                <h5>Sample Reports</h5>
+                <h6 class="mb-0">Report Catalog</h6>
             </div>
             <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Export format</label>
-                        <select class="form-select form-select-sm" @bind="_selectedExportFormat">
-                            @foreach (var format in _availableFormats)
-                            {
-                                <option value="@format.FormatId">@format.DisplayName (@format.FormatId)</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="col-md-6 d-flex align-items-end">
-                        @if (!string.IsNullOrWhiteSpace(_lastExportStatus))
+                <div class="mb-2">
+                    <label class="form-label small">Saved reports</label>
+                    <select class="form-select form-select-sm"
+                            value="@_selectedCatalogItemId"
+                            @onchange="OnCatalogSelectionChanged">
+                        <option value="">(none)</option>
+                        @foreach (var item in _catalogItems)
                         {
-                            <div class="small text-muted">@_lastExportStatus</div>
+                            <option value="@item.Id">@item.Name (@item.ProviderType)</option>
                         }
-                    </div>
+                    </select>
                 </div>
 
-                <div class="row">
-                    @foreach (var report in SampleReports.GetAllSampleReports())
-                    {
-                        <div class="col-md-6 mb-3">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h6 class="card-title">@report.Name</h6>
-                                    <p class="card-text text-muted small">ID: @report.Id</p>
-                                    <div class="btn-group w-100" role="group">
-                                        <button class="btn btn-outline-primary btn-sm"
-                                                @onclick="() => ViewReportAsync(report)" disabled="@(_isRenderingReport)">
-                                            @if (_isRenderingReport && _selectedReportId == report.Id)
-                                            {
-                                                <span class="spinner-border spinner-border-sm me-1"></span>
-                                            }
-                                            View
-                                        </button>
-                                        <button class="btn btn-outline-success btn-sm"
-                                                @onclick="() => ExportReportAsync(report)">
-                                            Export
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-
-                <hr class="my-4" />
-
-                <div class="alert alert-info">
-                    <h6>About Sample Reports</h6>
-                    <ul class="mb-0">
-                        <li><strong>Simple Text Report:</strong> Basic layout with text elements</li>
-                        <li><strong>Sales Data Table:</strong> Demonstrates table and data grid components</li>
-                        <li><strong>Customer Report:</strong> Shows banded layout with repeating sections</li>
-                        <li><strong>Multi-Section Report:</strong> Demonstrates sections and grouping</li>
-                        <li><strong>Styled Report:</strong> Shows the style system in action</li>
-                        <li><strong>Expression Evaluation Report:</strong> Demonstrates <code>{FieldName}</code>
-                            resolution from rows and parameters</li>
-                        </ul>
-                    </div>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary btn-sm"
+                            @onclick="LoadCatalogEntryAsync"
+                            disabled="@(_isBusy || string.IsNullOrWhiteSpace(_selectedCatalogItemId))">
+                        Load Saved Report
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm"
+                            @onclick="DeleteCatalogEntryAsync"
+                            disabled="@(_isBusy || string.IsNullOrWhiteSpace(_selectedCatalogItemId))">
+                        Delete Saved Report
+                    </button>
                 </div>
             </div>
-
-            @if (!string.IsNullOrEmpty(_selectedReportId))
-            {
-                <div class="card mt-3">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Report Preview: @_selectedReportName</h5>
-                        <button class="btn btn-sm btn-outline-secondary" @onclick="ClosePreview">
-                            ✕
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        @if (_isRenderingReport)
-                        {
-                            <div class="text-center">
-                                <div class="spinner-border" role="status">
-                                    <span class="visually-hidden">Rendering report...</span>
-                                </div>
-                                <p class="mt-2">Rendering report...</p>
-                            </div>
-                        }
-                        else if (!string.IsNullOrEmpty(_reportHtml))
-                        {
-                            <iframe title="Report Preview" srcdoc="@GetPreviewFrameSource()"
-                                    style="width: 100%; height: 1120px; border: 1px solid #dee2e6; border-radius: 0.375rem; background-color: #f8f9fa;">
-                            </iframe>
-
-                            <div class="mt-3">
-                                <h6>Plugin Execution Trace</h6>
-                                @if (_pluginTrace.Count == 0)
-                                {
-                                    <p class="text-muted small mb-0">No plugin seam activity recorded.</p>
-                                }
-                                else
-                                {
-                                    <ol class="small mb-0">
-                                        @foreach (var entry in _pluginTrace)
-                                        {
-                                            <li>@entry</li>
-                                        }
-                                    </ol>
-                                }
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="alert alert-warning">
-                                <strong>Error</strong>
-                                <p class="mb-0">No preview available</p>
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
         </div>
     </div>
 
-@code {
-    private bool _isLoadingPlugins;
-    private bool _isRenderingReport;
-    private string? _selectedReportId;
-    private string? _selectedReportName;
-    private string? _reportHtml;
-    private IReadOnlyList<string> _pluginTrace = Array.Empty<string>();
-    private IReadOnlyList<ExportFormatDescriptor> _availableFormats = [];
-    private string _selectedExportFormat = "html";
-    private string? _lastExportStatus;
+    <div class="col-lg-9">
+        <div class="card">
+            <div class="card-header">
+                <h5>Report Workbench</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Report Type</label>
+                        <select class="form-select form-select-sm" value="@_selectedComponentType"
+                                @onchange="OnComponentTypeChanged" disabled="@_isBusy">
+                            @foreach (var componentType in _componentTypes)
+                            {
+                                <option value="@componentType">@componentType</option>
+                            }
+                        </select>
+                    </div>
 
-    protected override void OnInitialized()
+                    <div class="col-md-4">
+                        <label class="form-label">Data Source Type</label>
+                        <select class="form-select form-select-sm" value="@_selectedProviderType"
+                                @onchange="OnProviderTypeChanged" disabled="@_isBusy">
+                            @foreach (var provider in _providerOptions)
+                            {
+                                <option value="@provider.ProviderType">@provider.DisplayName</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Catalog Name</label>
+                        <input type="text" class="form-control form-control-sm"
+                               value="@_catalogName"
+                               @onchange="OnCatalogNameChanged"
+                               placeholder="Report name for save" />
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-end gap-2 flex-wrap mb-3">
+                    <button class="btn btn-primary btn-sm"
+                            @onclick="GenerateDefinitionAsync"
+                            disabled="@_isBusy">
+                        @if (_isBusy)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Author + Compile
+                    </button>
+
+                    <button class="btn btn-outline-success btn-sm"
+                            @onclick="SaveCurrentReportAsync"
+                            disabled="@(_isBusy || _compiledDefinition is null || string.IsNullOrWhiteSpace(_json))">
+                        Save To Catalog
+                    </button>
+
+                    <button class="btn btn-outline-secondary btn-sm"
+                            @onclick="DownloadJsonAsync"
+                            disabled="@(_isBusy || string.IsNullOrWhiteSpace(_json))">
+                        Download JSON
+                    </button>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_status))
+                {
+                    <div class="alert alert-info py-2 mb-3">@_status</div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(_error))
+                {
+                    <div class="alert alert-danger py-2 mb-3">@_error</div>
+                }
+
+                <div class="row">
+                    <div class="col-lg-5 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Generated JSON</h6>
+                                @if (!string.IsNullOrWhiteSpace(_selectedReportName))
+                                {
+                                    <span class="small text-muted">@_selectedReportName</span>
+                                }
+                            </div>
+                            <div class="card-body">
+                                @if (string.IsNullOrWhiteSpace(_json))
+                                {
+                                    <p class="text-muted mb-0">Click Author + Compile to produce JSON.</p>
+                                }
+                                else
+                                {
+                                    <pre class="json-preview mb-0">@_json</pre>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-7 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">Viewer</h6>
+                            </div>
+                            <div class="card-body">
+                                @if (_compiledDefinition is null)
+                                {
+                                    <p class="text-muted mb-0">Create or load a report from catalog to view and export.</p>
+                                }
+                                else
+                                {
+                                    <ReportViewer Definition="@_compiledDefinition"
+                                                  Parameters="@_viewerParameters"
+                                                  AutoExecute="true"
+                                                  OnExecutionComplete="OnViewerExecutionComplete" />
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private const string MultiPageAllBlocksOption = "AllBlockTypesMultiPage";
+    private const string MultiPageAllBlocksSampleId = "all-components-multipage";
+
+    private bool _isLoadingPlugins;
+    private bool _isBusy;
+    private string? _selectedReportName;
+    private string? _json;
+    private string? _error;
+    private string? _status;
+    private ReportDefinition? _compiledDefinition;
+    private IReadOnlyList<AuthoringDataProviderDescriptor> _providerOptions = [];
+    private IReadOnlyList<string> _componentTypes = [];
+    private IReadOnlyDictionary<string, object?> _viewerParameters = new Dictionary<string, object?>();
+    private IReadOnlyList<AuthoredReportCatalogItem> _catalogItems = [];
+    private string _selectedComponentType = string.Empty;
+    private string _selectedProviderType = string.Empty;
+    private string _selectedCatalogItemId = string.Empty;
+    private string _catalogName = string.Empty;
+
+    protected override async Task OnInitializedAsync()
     {
-        RefreshAvailableFormats();
+        _providerOptions = AuthoringWorkflowService.GetProviderOptions();
+        _selectedProviderType = _providerOptions.FirstOrDefault()?.ProviderType ?? string.Empty;
+
+        _componentTypes = Enum.GetValues<ReportComponentType>()
+            .Select(type => type.ToString())
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToList();
+
+        _componentTypes = [MultiPageAllBlocksOption, .. _componentTypes];
+        _selectedComponentType = _componentTypes.FirstOrDefault() ?? string.Empty;
+
+        await RefreshCatalogAsync();
     }
 
     private async Task LoadPluginsAsync()
@@ -220,7 +268,7 @@
         try
         {
             await PluginService.InitializePluginAsync();
-            RefreshAvailableFormats();
+            _status = "Plugins loaded.";
         }
         finally
         {
@@ -231,109 +279,238 @@
     private async Task UnloadPluginsAsync()
     {
         await PluginService.UnloadAllAsync();
-        RefreshAvailableFormats();
+        _status = "Plugins unloaded.";
     }
 
-    private async Task ViewReportAsync(ReportDefinition report)
+    private async Task GenerateDefinitionAsync()
     {
-        _selectedReportId = report.Id;
-        _selectedReportName = report.Name;
-        _isRenderingReport = true;
-        _reportHtml = null;
+        if (string.IsNullOrWhiteSpace(_selectedComponentType) || string.IsNullOrWhiteSpace(_selectedProviderType))
+        {
+            _error = "Select a report type and provider before authoring.";
+            return;
+        }
+
+        _isBusy = true;
+        _error = null;
 
         try
         {
-            // Execute report and export as HTML
-            _reportHtml = await ReportRenderService.RenderReportAsHtmlAsync(report);
-            _pluginTrace = ReportRenderService.GetLatestPluginTrace();
+            var sampleId = ResolveSampleId(_selectedComponentType);
+            _json = AuthoringWorkflowService.GenerateSampleJson(sampleId, _selectedProviderType);
+            _compiledDefinition = AuthoringWorkflowService.CompileFromJson(_json);
+            _selectedReportName = _compiledDefinition.Name;
+            _catalogName = _selectedReportName ?? string.Empty;
+            _viewerParameters = BuildDefaultParameters(_compiledDefinition);
+            _status = $"Compiled '{_compiledDefinition.Name}' from authored JSON.";
         }
         catch (Exception ex)
         {
-            _reportHtml = $@"
-                <div class='alert alert-danger' role='alert'>
-                    <h4 class='alert-heading'>Error Rendering Report</h4>
-                    <p>{System.Net.WebUtility.HtmlEncode(ex.Message)}</p>
-                </div>";
-            _pluginTrace = ReportRenderService.GetLatestPluginTrace();
+            _error = ex.Message;
         }
         finally
         {
-            _isRenderingReport = false;
+            _isBusy = false;
         }
     }
 
-    private void ClosePreview()
+    private async Task SaveCurrentReportAsync()
     {
-        _selectedReportId = null;
-        _selectedReportName = null;
-        _reportHtml = null;
-        _pluginTrace = Array.Empty<string>();
+        if (_compiledDefinition is null || string.IsNullOrWhiteSpace(_json))
+            return;
+
+        _isBusy = true;
+        _error = null;
+
+        try
+        {
+            var reportName = string.IsNullOrWhiteSpace(_catalogName)
+                ? _compiledDefinition.Name
+                : _catalogName.Trim();
+
+            var sampleId = ResolveSampleId(_selectedComponentType);
+            var saved = await ReportCatalogService.SaveAsync(
+                string.IsNullOrWhiteSpace(_selectedCatalogItemId) ? null : _selectedCatalogItemId,
+                reportName,
+                sampleId,
+                _selectedProviderType,
+                _json);
+
+            _selectedCatalogItemId = saved.Item.Id;
+            _catalogName = saved.Item.Name;
+            _status = $"Saved '{saved.Item.Name}' to catalog.";
+            await RefreshCatalogAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _isBusy = false;
+        }
     }
 
-    private string GetPreviewFrameSource()
+    private async Task LoadCatalogEntryAsync()
     {
-        if (string.IsNullOrEmpty(_reportHtml))
+        if (string.IsNullOrWhiteSpace(_selectedCatalogItemId))
+            return;
+
+        _isBusy = true;
+        _error = null;
+
+        try
         {
-            return "about:blank";
+            var entry = await ReportCatalogService.GetAsync(_selectedCatalogItemId);
+            if (entry is null)
+            {
+                _error = "Selected catalog report could not be found.";
+                return;
+            }
+
+            _json = entry.Json;
+            _compiledDefinition = AuthoringWorkflowService.CompileFromJson(_json);
+            _selectedReportName = _compiledDefinition.Name;
+            _selectedProviderType = entry.Item.ProviderType;
+            _catalogName = entry.Item.Name;
+            _viewerParameters = BuildDefaultParameters(_compiledDefinition);
+            _status = $"Loaded '{entry.Item.Name}' from catalog.";
         }
-
-        const string stylesheetLink = "<link rel=\"stylesheet\" href=\"/kinetic-report.css\">";
-
-        if (_reportHtml.Contains("kinetic-report.css", StringComparison.OrdinalIgnoreCase))
+        catch (Exception ex)
         {
-            return _reportHtml;
+            _error = ex.Message;
         }
-
-        if (_reportHtml.Contains("</head>", StringComparison.OrdinalIgnoreCase))
+        finally
         {
-            return _reportHtml.Replace(
-                "</head>",
-                stylesheetLink + "</head>",
-                StringComparison.OrdinalIgnoreCase);
+            _isBusy = false;
         }
-
-        return $"<html><head>{stylesheetLink}</head><body>{_reportHtml}</body></html>";
     }
 
-    private async Task ExportReportAsync(ReportDefinition report)
+    private async Task DeleteCatalogEntryAsync()
     {
-        var exportResult = await ReportRenderService.ExportReportAsync(
-            report,
-            _selectedExportFormat);
+        if (string.IsNullOrWhiteSpace(_selectedCatalogItemId))
+            return;
 
-        var safeBaseName = string.IsNullOrWhiteSpace(report.Name)
-            ? "report"
-            : string.Concat(report.Name.Select(ch => Path.GetInvalidFileNameChars().Contains(ch) ? '-' : ch));
-        var fileName = $"{safeBaseName}.{exportResult.FileExtension}";
-        var base64Content = Convert.ToBase64String(exportResult.Content);
+        _isBusy = true;
+        _error = null;
+
+        try
+        {
+            var deleted = await ReportCatalogService.DeleteAsync(_selectedCatalogItemId);
+            if (!deleted)
+            {
+                _error = "Report was not found in catalog.";
+                return;
+            }
+
+            _selectedCatalogItemId = string.Empty;
+            _status = "Deleted report from catalog.";
+            await RefreshCatalogAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private async Task RefreshCatalogAsync()
+    {
+        _catalogItems = await ReportCatalogService.ListAsync();
+    }
+
+    private void OnComponentTypeChanged(ChangeEventArgs args)
+    {
+        _selectedComponentType = Convert.ToString(args.Value) ?? string.Empty;
+        ResetTransientStatus();
+    }
+
+    private void OnProviderTypeChanged(ChangeEventArgs args)
+    {
+        _selectedProviderType = Convert.ToString(args.Value) ?? string.Empty;
+        ResetTransientStatus();
+    }
+
+    private void OnCatalogNameChanged(ChangeEventArgs args)
+    {
+        _catalogName = Convert.ToString(args.Value) ?? string.Empty;
+    }
+
+    private void OnCatalogSelectionChanged(ChangeEventArgs args)
+    {
+        _selectedCatalogItemId = Convert.ToString(args.Value) ?? string.Empty;
+        ResetTransientStatus();
+    }
+
+    private void OnViewerExecutionComplete(ReportExecutionResult result)
+    {
+        if (!result.Success)
+        {
+            _error = result.ErrorMessage;
+            return;
+        }
+
+        _status = $"Viewer refreshed at {result.ExecutedAt:HH:mm:ss} UTC.";
+    }
+
+    private async Task DownloadJsonAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_json))
+            return;
+
+        var fileName = string.IsNullOrWhiteSpace(_selectedReportName)
+            ? "authored-report.json"
+            : $"{_selectedReportName.Replace(' ', '-')}.json";
+        var payload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(_json));
 
         await Js.InvokeVoidAsync(
             "kineticReports.downloadFromBase64",
             fileName,
-            exportResult.MimeType,
-            base64Content);
+            "application/json",
+            payload);
 
-        var trace = ReportRenderService.GetLatestPluginTrace().ToList();
-        trace.Add($"[Download] {fileName} ({exportResult.MimeType})");
-        _pluginTrace = trace;
-        _lastExportStatus =
-            $"Downloaded {fileName} ({exportResult.Content.Length} bytes, {exportResult.MimeType})";
+        _status = $"Downloaded {fileName}.";
     }
 
-    private void RefreshAvailableFormats()
+    private static IReadOnlyDictionary<string, object?> BuildDefaultParameters(ReportDefinition definition)
     {
-        _availableFormats = ReportRenderService.GetAvailableExportFormats();
-        if (_availableFormats.Count == 0)
+        var values = new Dictionary<string, object?>(StringComparer.Ordinal);
+
+        foreach (var parameter in definition.Parameters)
         {
-            _availableFormats =
-            [
-                new ExportFormatDescriptor("html", "HTML", "text/html", "html")
-            ];
+            values[parameter.Id] = parameter.Type == ParameterType.Boolean
+                ? bool.TryParse(parameter.DefaultValue, out var parsed) && parsed
+                : parameter.DefaultValue;
         }
 
-        if (!_availableFormats.Any(f => string.Equals(f.FormatId, _selectedExportFormat, StringComparison.OrdinalIgnoreCase)))
-        {
-            _selectedExportFormat = _availableFormats[0].FormatId;
-        }
+        return values;
+    }
+
+    private void ResetTransientStatus()
+    {
+        _status = null;
+        _error = null;
+    }
+
+    private static string ResolveSampleId(string selectedType)
+    {
+        if (string.Equals(selectedType, MultiPageAllBlocksOption, StringComparison.OrdinalIgnoreCase))
+            return MultiPageAllBlocksSampleId;
+
+        return $"component-{selectedType.ToLowerInvariant()}";
     }
 }
+
+<style>
+    .json-preview {
+        max-height: 980px;
+        overflow: auto;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        font-size: 0.8rem;
+    }
+</style>

@@ -168,6 +168,18 @@ The sample UI also exposes this flow at route `/authoring-workflow` with buttons
 
 The page displays generated JSON and compiled metadata for quick inspection.
 
+The same page now includes authored sample selections that demonstrate all built-in
+component categories and use cases:
+
+1. `All Components Showcase`
+2. `Structure Components Showcase`
+3. `Content Components Showcase`
+4. `Supporting Components Showcase`
+
+For components whose final renderer behavior is not fully implemented (for example,
+QR output), the samples include explicit placeholder metadata (for example,
+`barcode.format=QrCode` and `placeholder.note`) so authored intent is preserved.
+
 ## Part 2: How Data Is Associated with the Report
 
 Data association is not hard-coded in the definition object itself. It happens by matching:
