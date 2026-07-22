@@ -1094,10 +1094,10 @@ public sealed class AuthoringJsonWorkflowService : IAuthoringJsonWorkflowService
         if (!string.IsNullOrWhiteSpace(component.DataSourceId))
             pieces.Add($"DataSource: {WebUtility.HtmlEncode(component.DataSourceId)}");
 
-        if (component.Bindings.TryGetValue("Text", out var textBinding) && !string.IsNullOrWhiteSpace(textBinding))
+        if (component.BoundFields.TryGetValue("Text", out var textBinding) && !string.IsNullOrWhiteSpace(textBinding))
             pieces.Add($"Text: {WebUtility.HtmlEncode(textBinding)}");
 
-        if (component.Bindings.TryGetValue("Value", out var valueBinding) && !string.IsNullOrWhiteSpace(valueBinding))
+        if (component.BoundFields.TryGetValue("Value", out var valueBinding) && !string.IsNullOrWhiteSpace(valueBinding))
             pieces.Add($"Value: {WebUtility.HtmlEncode(valueBinding)}");
 
         if (component.Properties.TryGetValue("barcode.format", out var barcodeFormat) && !string.IsNullOrWhiteSpace(barcodeFormat))

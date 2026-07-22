@@ -54,9 +54,9 @@ internal static class ComponentCompilationMapper
         foreach (var pair in normalized.PresetProperties)
             properties[pair.Key] = pair.Value;
 
-        var bindings = new Dictionary<string, string>(component.Bindings, StringComparer.Ordinal);
+        var boundFields = new Dictionary<string, string>(component.BoundFields, StringComparer.Ordinal);
         foreach (var pair in normalized.PresetBindings)
-            bindings[pair.Key] = pair.Value;
+            boundFields[pair.Key] = pair.Value;
 
         var children = component.Children
             .Select(CompileComponent)
@@ -72,7 +72,7 @@ internal static class ComponentCompilationMapper
             DataSourceId = component.DataSourceId,
             RepeatPath = component.RepeatPath,
             Placement = component.Placement,
-            Bindings = bindings,
+            BoundFields = boundFields,
             Properties = properties,
             Children = children,
         };
@@ -300,8 +300,8 @@ public sealed record CompiledComponentMetadata
     /// <summary>Gets or inits component placement metadata.</summary>
     public required ReportComponentPlacement Placement { get; init; }
 
-    /// <summary>Gets or inits merged expression bindings.</summary>
-    public IReadOnlyDictionary<string, string> Bindings { get; init; } = new Dictionary<string, string>();
+    /// <summary>Gets or inits merged expression-bound fields.</summary>
+    public IReadOnlyDictionary<string, string> BoundFields { get; init; } = new Dictionary<string, string>();
 
     /// <summary>Gets or inits merged component properties.</summary>
     public IReadOnlyDictionary<string, string> Properties { get; init; } = new Dictionary<string, string>();

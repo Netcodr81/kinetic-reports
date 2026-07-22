@@ -172,7 +172,7 @@ public sealed class ReportComponentDefinitionBuilder
     private string? _name;
     private string? _dataSourceId;
     private string? _repeatPath;
-    private readonly Dictionary<string, string> _bindings = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _boundFields = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _properties = new(StringComparer.Ordinal);
     private ReportComponentPlacement _placement = new();
     private readonly List<ReportComponentDefinition> _children = [];
@@ -217,14 +217,14 @@ public sealed class ReportComponentDefinitionBuilder
     }
 
     /// <summary>
-    /// Adds or replaces a binding expression.
+    /// Adds or replaces a bound field expression.
     /// </summary>
     public ReportComponentDefinitionBuilder WithBinding(string key, string expression)
     {
         if (string.IsNullOrWhiteSpace(key))
             throw new ArgumentException("Binding key must be provided.", nameof(key));
 
-        _bindings[key] = expression;
+        _boundFields[key] = expression;
         return this;
     }
 
@@ -291,7 +291,7 @@ public sealed class ReportComponentDefinitionBuilder
             Name = _name,
             DataSourceId = _dataSourceId,
             RepeatPath = _repeatPath,
-            Bindings = new Dictionary<string, string>(_bindings, StringComparer.Ordinal),
+            BoundFields = new Dictionary<string, string>(_boundFields, StringComparer.Ordinal),
             Properties = new Dictionary<string, string>(_properties, StringComparer.Ordinal),
             Placement = _placement,
             Children = _children.ToList(),

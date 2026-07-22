@@ -636,7 +636,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
 
         if (string.Equals(canonicalType, "Text", StringComparison.OrdinalIgnoreCase))
         {
-            var text = component.Bindings.TryGetValue("Text", out var boundText)
+            var text = component.BoundFields.TryGetValue("Text", out var boundText)
                 ? boundText
                 : component.Name ?? component.Id;
 
@@ -653,7 +653,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
 
         if (string.Equals(canonicalType, "Image", StringComparison.OrdinalIgnoreCase))
         {
-            var source = component.Bindings.TryGetValue("Source", out var src)
+            var source = component.BoundFields.TryGetValue("Source", out var src)
                 ? src
                 : "https://example.invalid/placeholder.png";
 
@@ -767,7 +767,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
             var symbology = component.Properties.TryGetValue("barcode.format", out var format)
                 ? format
                 : "Code128";
-            var value = component.Bindings.TryGetValue("Value", out var boundValue)
+            var value = component.BoundFields.TryGetValue("Value", out var boundValue)
                 ? boundValue
                 : component.Id;
 
