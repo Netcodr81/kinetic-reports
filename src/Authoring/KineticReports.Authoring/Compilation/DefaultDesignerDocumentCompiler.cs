@@ -17,11 +17,18 @@ public sealed class DefaultDesignerDocumentCompiler : IDesignerDocumentCompiler
             .GroupBy(component => component.Type)
             .ToDictionary(group => group.Key.ToString(), group => group.Count());
 
+        var compiledComponents = ComponentCompilationMapper.Compile(document.Components);
+        var canonicalSummary = ComponentCompilationMapper.BuildCanonicalSummary(compiledComponents);
+        var aliasMap = ComponentCompilationMapper.BuildAliasMap(compiledComponents);
+
         var metadata = new Dictionary<string, object>
         {
             ["authoring.schemaVersion"] = document.SchemaVersion,
             ["authoring.componentCount"] = document.Components.Count,
             ["authoring.componentTypes"] = componentSummary,
+            ["authoring.componentCanonicalTypes"] = canonicalSummary,
+            ["authoring.componentAliases"] = aliasMap,
+            ["authoring.compiledComponents"] = compiledComponents,
         };
 
         return new ReportDefinition

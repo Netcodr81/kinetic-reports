@@ -1,0 +1,206 @@
+@page "/authoring-workflow"
+@using KineticReports.Samples.Blazor.Services
+@inject IAuthoringJsonWorkflowService AuthoringWorkflowService
+@inject IJSRuntime Js
+@rendermode InteractiveServer
+
+<PageTitle>Authoring JSON Workflow</PageTitle>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Authoring JSON Workflow</h5>
+        <span class="text-muted small">Code-first -> JSON -> Compile</span>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">
+            This sample runs the end-to-end authoring flow:
+            build a <code>ReportDesignerDocument</code>, serialize it to JSON, persist/load it,
+            and compile to runtime <code>ReportDefinition</code>.
+        </p>
+
+        <div class="d-flex gap-2 flex-wrap mb-3">
+            <button class="btn btn-primary" @onclick="RunInMemoryAsync" disabled="@_isBusy">
+                @if (_isBusy)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                Run In-Memory Workflow
+            </button>
+            <button class="btn btn-outline-primary" @onclick="RunFileWorkflowAsync" disabled="@_isBusy">
+                Save, Load, and Compile via File
+            </button>
+            <button class="btn btn-outline-success" @onclick="DownloadJsonAsync"
+                    disabled="@(_isBusy || string.IsNullOrWhiteSpace(_json))">
+                Download JSON
+            </button>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_status))
+        {
+            <div class="alert alert-info py-2">@_status</div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <div class="alert alert-danger py-2">@_error</div>
+        }
+
+        <div class="row">
+            <div class="col-lg-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6 class="mb-0">Generated Authoring JSON</h6>
+                    </div>
+                    <div class="card-body">
+                        @if (string.IsNullOrWhiteSpace(_json))
+                        {
+                            <p class="text-muted mb-0">Run a workflow to generate JSON.</p>
+                        }
+                        else
+                        {
+                            <pre class="json-preview mb-0">@_json</pre>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6 class="mb-0">Compiled Definition Summary</h6>
+                    </div>
+                    <div class="card-body">
+                        @if (_compiledDefinition is null)
+                        {
+                            <p class="text-muted mb-0">Run a workflow to compile a definition.</p>
+                        }
+                        else
+                        {
+                            <dl class="row mb-0 small">
+                                <dt class="col-sm-5">Id</dt>
+                                <dd class="col-sm-7">@_compiledDefinition.Id</dd>
+
+                                <dt class="col-sm-5">Name</dt>
+                                <dd class="col-sm-7">@_compiledDefinition.Name</dd>
+
+                                <dt class="col-sm-5">Schema Version</dt>
+                                <dd class="col-sm-7">@_compiledDefinition.SchemaVersion</dd>
+
+                                <dt class="col-sm-5">Data Sources</dt>
+                                <dd class="col-sm-7">@_compiledDefinition.DataSources.Count</dd>
+
+                                <dt class="col-sm-5">Components</dt>
+                                <dd class="col-sm-7">@GetMetadataValue("authoring.componentCount")</dd>
+
+                                <dt class="col-sm-5">Canonical Types</dt>
+                                <dd class="col-sm-7">@GetMetadataValue("authoring.componentCanonicalTypes")</dd>
+
+                                <dt class="col-sm-5">Aliases</dt>
+                                <dd class="col-sm-7">@GetMetadataValue("authoring.componentAliases")</dd>
+                            </dl>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool _isBusy;
+    private string? _json;
+    private ReportDefinition? _compiledDefinition;
+    private string? _status;
+    private string? _error;
+
+    private Task RunInMemoryAsync()
+    {
+        return ExecuteAsync(() =>
+        {
+            _json = AuthoringWorkflowService.GenerateSampleJson();
+            _compiledDefinition = AuthoringWorkflowService.CompileSampleDefinition();
+            _status = "In-memory workflow complete.";
+            return Task.CompletedTask;
+        });
+    }
+
+    private Task RunFileWorkflowAsync()
+    {
+        return ExecuteAsync(async () =>
+        {
+            var document = AuthoringWorkflowService.CreateSampleDocument();
+            var tempPath = Path.Combine(Path.GetTempPath(), "kineticreports", "sample-authoring-report.json");
+
+            await AuthoringWorkflowService.SaveDocumentJsonAsync(document, tempPath);
+            _compiledDefinition = await AuthoringWorkflowService.LoadAndCompileAsync(tempPath);
+            _json = await File.ReadAllTextAsync(tempPath);
+            _status = $"File workflow complete. Path: {tempPath}";
+        });
+    }
+
+    private async Task ExecuteAsync(Func<Task> operation)
+    {
+        _isBusy = true;
+        _error = null;
+
+        try
+        {
+            await operation();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private async Task DownloadJsonAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_json))
+            return;
+
+        var bytes = System.Text.Encoding.UTF8.GetBytes(_json);
+        var base64 = Convert.ToBase64String(bytes);
+        var fileName = "sample-authoring-report.json";
+
+        await Js.InvokeVoidAsync(
+            "kineticReports.downloadFromBase64",
+            fileName,
+            "application/json",
+            base64);
+
+        _status = $"Downloaded {fileName} ({bytes.Length} bytes).";
+    }
+
+    private string GetMetadataValue(string key)
+    {
+        if (_compiledDefinition?.Metadata is null)
+            return "-";
+
+        if (!_compiledDefinition.Metadata.TryGetValue(key, out var value) || value is null)
+            return "-";
+
+        if (value is IReadOnlyDictionary<string, int> intMap)
+            return string.Join(", ", intMap.Select(pair => $"{pair.Key}={pair.Value}"));
+
+        if (value is IReadOnlyDictionary<string, string> stringMap)
+            return string.Join(", ", stringMap.Select(pair => $"{pair.Key}->{pair.Value}"));
+
+        return Convert.ToString(value) ?? "-";
+    }
+}
+
+<style>
+    .json-preview {
+        max-height: 420px;
+        overflow: auto;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        font-size: 0.8rem;
+    }
+</style>

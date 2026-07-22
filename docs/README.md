@@ -14,6 +14,12 @@ Welcome. This documentation explains **how KineticReports works end-to-end** and
 5. [05 - Engine and Layout API Reference](./05-api-engine-layout.md)
 6. [06 - Rendering, Export, Plugins, and Viewer API Reference](./06-api-rendering-export-viewer.md)
 
+Fluent builder examples:
+
+1. [Header + Table + Footer code-first fluent example](./04-api-core-and-definition.md#fluent-builder-example)
+2. [Short code-first builder example in authoring workflow](./13-report-authoring-and-json-workflow.md#short-code-first-builder-example)
+3. [Authoring JSON source-of-truth and serializer flow](./13-report-authoring-and-json-workflow.md#preferred-authoring-json-contract)
+
 ## Extension Guides
 
 7. [07 - Extension Points Cheat Sheet](./07-extension-points.md)

@@ -86,21 +86,19 @@ internal sealed class SampleReportBuilder : IReportBuilder
     /// <inheritdoc/>
     public IReadOnlyList<ReportBlock> Build(DataContext dataContext, IExpressionEvaluator evaluator)
     {
-        var blocks = new List<ReportBlock>
-        {
-            CreateSingleTextBlock(
+        var builder = new ReportLayoutBuilder()
+            .Add(CreateSingleTextBlock(
                 "sample-header",
                 BlockType.PageHeader,
                 HeaderTextStyle,
-                "KineticReports Sample Data Preview")
-        };
+                "KineticReports Sample Data Preview"));
 
         foreach (var dataSource in dataContext.DataSources)
         {
             var sourceId = dataSource.Key;
             var rows = dataSource.Value;
 
-            blocks.Add(CreateSingleTextBlock(
+            builder.Add(CreateSingleTextBlock(
                 $"source-{sourceId}-title",
                 BlockType.ReportHeader,
                 SectionTitleStyle,
@@ -108,7 +106,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
 
             if (rows.Count == 0)
             {
-                blocks.Add(CreateSingleTextBlock(
+                builder.Add(CreateSingleTextBlock(
                     $"source-{sourceId}-empty",
                     BlockType.Detail,
                     DetailTextStyle,
@@ -119,60 +117,60 @@ internal sealed class SampleReportBuilder : IReportBuilder
 
             if (string.Equals(sourceId, "sales-orders", StringComparison.OrdinalIgnoreCase))
             {
-                blocks.Add(CreateSalesOrdersTableBlock(sourceId, rows));
+                builder.Add(CreateSalesOrdersTableBlock(sourceId, rows));
                 continue;
             }
 
             if (string.Equals(sourceId, "quote-daily", StringComparison.OrdinalIgnoreCase))
             {
-                blocks.AddRange(CreateQuoteDailyBlocks(sourceId, rows));
+                builder.AddRange(CreateQuoteDailyBlocks(sourceId, rows));
                 continue;
             }
 
             if (string.Equals(sourceId, "customer-activity", StringComparison.OrdinalIgnoreCase))
             {
-                blocks.AddRange(CreateCustomerActivityGroupedBlocks(sourceId, rows));
+                builder.AddRange(CreateCustomerActivityGroupedBlocks(sourceId, rows));
                 continue;
             }
 
             if (string.Equals(sourceId, "kpi-summary", StringComparison.OrdinalIgnoreCase))
             {
-                blocks.AddRange(CreateKpiSummaryBlocks(sourceId, rows));
+                builder.AddRange(CreateKpiSummaryBlocks(sourceId, rows));
                 continue;
             }
 
             if (string.Equals(sourceId, "regional-performance", StringComparison.OrdinalIgnoreCase))
             {
-                blocks.Add(CreateRegionalPerformanceTableBlock(sourceId, rows));
+                builder.Add(CreateRegionalPerformanceTableBlock(sourceId, rows));
                 continue;
             }
 
             if (string.Equals(sourceId, "style-showcase", StringComparison.OrdinalIgnoreCase))
             {
-                blocks.AddRange(CreateStyleShowcaseBlocks(sourceId, rows));
+                builder.AddRange(CreateStyleShowcaseBlocks(sourceId, rows));
                 continue;
             }
 
             if (string.Equals(sourceId, "expression-demo", StringComparison.OrdinalIgnoreCase))
             {
-                blocks.Add(CreateExpressionDemoTableBlock(sourceId, rows, evaluator));
+                builder.Add(CreateExpressionDemoTableBlock(sourceId, rows, evaluator));
 
                 continue;
             }
 
-            blocks.Add(CreateGenericTableBlock(sourceId, rows));
+            builder.Add(CreateGenericTableBlock(sourceId, rows));
         }
 
         if (dataContext.DataSources.Count == 0)
         {
-            blocks.Add(CreateSingleTextBlock(
+            builder.Add(CreateSingleTextBlock(
                 "sample-empty",
                 BlockType.Detail,
                 DetailTextStyle,
                 "No data sources were resolved for this report."));
         }
 
-        return blocks;
+        return builder.Build();
     }
 
     private static ReportBlock CreateSingleTextBlock(
@@ -181,34 +179,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
         AppliedStyle textStyle,
         string text)
     {
-        return CreateBlock(blockType, id, CreateBlockStyle(blockType),
-        [
-            new TextBlock
-            {
-                Id = $"{id}-text",
-                Style = textStyle,
-                Text = text
-            }
-        ]);
-    }
-
-    private static ReportBlock CreateBlock(
-        BlockType blockType,
-        string id,
-        AppliedStyle style,
-        IReadOnlyList<LayoutBlock> children)
-    {
-        return blockType switch
-        {
-            BlockType.PageHeader => new PageHeaderBlock { Id = id, Style = style, Children = children },
-            BlockType.ReportHeader => new HeaderBlock { Id = id, Style = style, Children = children },
-            BlockType.GroupHeader => new GroupHeaderBlock { Id = id, Style = style, Children = children },
-            BlockType.Detail => new DetailBlock { Id = id, Style = style, Children = children },
-            BlockType.GroupFooter => new GroupFooterBlock { Id = id, Style = style, Children = children },
-            BlockType.ReportFooter => new FooterBlock { Id = id, Style = style, Children = children },
-            BlockType.PageFooter => new PageFooterBlock { Id = id, Style = style, Children = children },
-            _ => new DetailBlock { Id = id, Style = style, Children = children }
-        };
+        return ReportDsl.TextRegion(id, blockType, CreateBlockStyle(blockType), textStyle, text);
     }
 
     private static IReadOnlyList<ReportBlock> CreateQuoteDailyBlocks(
@@ -293,7 +264,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
             .ToList();
     }
 
-    private static DetailBlock CreateRegionalPerformanceTableBlock(
+    private static ReportBlock CreateRegionalPerformanceTableBlock(
         string sourceId,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
     {
@@ -305,61 +276,44 @@ internal sealed class SampleReportBuilder : IReportBuilder
             new TableColumn { Width = 120f }
         };
 
-        var headerRow = new RowBlock
-        {
-            Id = $"source-{sourceId}-header-row",
-            RowType = RowType.Header,
-            Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
-            Cells =
-            [
-                CreateTableCell($"source-{sourceId}-header-region", 0, "Region", TableHeaderCellStyle),
-                CreateTableCell($"source-{sourceId}-header-quota", 1, "Quota", TableHeaderCellStyle),
-                CreateTableCell($"source-{sourceId}-header-actual", 2, "Actual", TableHeaderCellStyle),
-                CreateTableCell($"source-{sourceId}-header-attainment", 3, "Attainment", TableHeaderCellStyle)
-            ]
-        };
-
-        var dataRows = rows
-            .Select((row, rowIndex) =>
-                new RowBlock
-                {
-                    Id = $"source-{sourceId}-row-{rowIndex + 1}",
-                    RowType = RowType.Data,
-                    Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
-                    Cells =
-                    [
-                        CreateTableCell($"source-{sourceId}-row-{rowIndex + 1}-region", 0, GetRowValue(row, "Region"), TableCellStyle),
-                        CreateTableCell($"source-{sourceId}-row-{rowIndex + 1}-quota", 1, GetRowValue(row, "Quota"), TableCellStyle),
-                        CreateTableCell($"source-{sourceId}-row-{rowIndex + 1}-actual", 2, GetRowValue(row, "Actual"), TableCellStyle),
-                        CreateTableCell($"source-{sourceId}-row-{rowIndex + 1}-attainment", 3, GetRowValue(row, "Attainment"), TableCellStyle)
-                    ]
-                })
-            .ToList();
-
-        var tableRows = new List<RowBlock> { headerRow };
-        tableRows.AddRange(dataRows);
-
-        return new DetailBlock
-        {
-            Id = $"source-{sourceId}-table",
-            Style = new AppliedStyle
+        var tableRegion = ReportLayoutBuilder.CreateTableRegion(
+            regionId: $"source-{sourceId}-table",
+            regionStyle: new AppliedStyle
             {
                 FontFamily = "Arial",
                 FontSize = 12f,
                 Padding = new Core.Geometry.Thickness(0f, 0f, 0f, TableBlockBottomSpacing)
             },
-            Children =
-            [
-                new TableBlock
-                {
-                    Id = $"source-{sourceId}-table-element",
-                    Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
-                    Columns = columns,
-                    Rows = tableRows,
-                    RepeatHeaders = true
-                }
-            ]
-        };
+            tableId: $"source-{sourceId}-table-element",
+            tableStyle: new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+            columns: columns,
+            blockType: BlockType.Detail,
+            repeatHeaders: true);
+
+        tableRegion.AddHeaderRow(
+            rowId: $"source-{sourceId}-header-row",
+            rowStyle: new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+            cellStyle: TableHeaderCellStyle,
+            values: ["Region", "Quota", "Actual", "Attainment"]);
+
+        for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+        {
+            var row = rows[rowIndex];
+
+            tableRegion.AddDataRow(
+                rowId: $"source-{sourceId}-row-{rowIndex + 1}",
+                rowStyle: new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+                cellStyle: TableCellStyle,
+                values:
+                [
+                    GetRowValue(row, "Region"),
+                    GetRowValue(row, "Quota"),
+                    GetRowValue(row, "Actual"),
+                    GetRowValue(row, "Attainment")
+                ]);
+        }
+
+        return tableRegion.BuildBlock();
     }
 
     private static IReadOnlyList<ReportBlock> CreateStyleShowcaseBlocks(
@@ -390,7 +344,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
         return contentRegions;
     }
 
-    private static DetailBlock CreateSalesOrdersTableBlock(
+    private static ReportBlock CreateSalesOrdersTableBlock(
         string sourceId,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
     {
@@ -403,66 +357,48 @@ internal sealed class SampleReportBuilder : IReportBuilder
             new TableColumn { Width = 120f }
         };
 
-        var headerRow = new RowBlock
-        {
-            Id = $"source-{sourceId}-header-row",
-            RowType = RowType.Header,
-            Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
-            Cells =
-            [
-                CreateTableCell($"source-{sourceId}-header-order-id", 0, "OrderId", TableHeaderCellStyle),
-                CreateTableCell($"source-{sourceId}-header-region", 1, "Region", TableHeaderCellStyle),
-                CreateTableCell($"source-{sourceId}-header-sales-person", 2, "SalesPerson", TableHeaderCellStyle),
-                CreateTableCell($"source-{sourceId}-header-amount", 3, "Amount", TableHeaderCellStyle),
-                CreateTableCell($"source-{sourceId}-header-status", 4, "Status", TableHeaderCellStyle)
-            ]
-        };
-
-        var dataRows = rows
-            .Select((row, rowIndex) =>
-                new RowBlock
-                {
-                    Id = $"source-{sourceId}-row-{rowIndex + 1}",
-                    RowType = RowType.Data,
-                    Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
-                    Cells =
-                    [
-                        CreateTableCell($"source-{sourceId}-row-{rowIndex + 1}-order-id", 0, GetRowValue(row, "OrderId"), TableCellStyle),
-                        CreateTableCell($"source-{sourceId}-row-{rowIndex + 1}-region", 1, GetRowValue(row, "Region"), TableCellStyle),
-                        CreateTableCell($"source-{sourceId}-row-{rowIndex + 1}-sales-person", 2, GetRowValue(row, "SalesPerson"), TableCellStyle),
-                        CreateTableCell($"source-{sourceId}-row-{rowIndex + 1}-amount", 3, GetRowValue(row, "Amount"), TableCellStyle),
-                        CreateTableCell($"source-{sourceId}-row-{rowIndex + 1}-status", 4, GetRowValue(row, "Status"), TableCellStyle)
-                    ]
-                })
-            .ToList();
-
-        var tableRows = new List<RowBlock> { headerRow };
-        tableRows.AddRange(dataRows);
-
-        return new DetailBlock
-        {
-            Id = $"source-{sourceId}-table",
-            Style = new AppliedStyle
+        var tableRegion = ReportLayoutBuilder.CreateTableRegion(
+            regionId: $"source-{sourceId}-table",
+            regionStyle: new AppliedStyle
             {
                 FontFamily = "Arial",
                 FontSize = 12f,
                 Padding = new Core.Geometry.Thickness(0f, 0f, 0f, TableBlockBottomSpacing)
             },
-            Children =
-            [
-                new TableBlock
-                {
-                    Id = $"source-{sourceId}-table-element",
-                    Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
-                    Columns = columns,
-                    Rows = tableRows,
-                    RepeatHeaders = true
-                }
-            ]
-        };
+            tableId: $"source-{sourceId}-table-element",
+            tableStyle: new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+            columns: columns,
+            blockType: BlockType.Detail,
+            repeatHeaders: true);
+
+        tableRegion.AddHeaderRow(
+            rowId: $"source-{sourceId}-header-row",
+            rowStyle: new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+            cellStyle: TableHeaderCellStyle,
+            values: ["OrderId", "Region", "SalesPerson", "Amount", "Status"]);
+
+        for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+        {
+            var row = rows[rowIndex];
+
+            tableRegion.AddDataRow(
+                rowId: $"source-{sourceId}-row-{rowIndex + 1}",
+                rowStyle: new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+                cellStyle: TableCellStyle,
+                values:
+                [
+                    GetRowValue(row, "OrderId"),
+                    GetRowValue(row, "Region"),
+                    GetRowValue(row, "SalesPerson"),
+                    GetRowValue(row, "Amount"),
+                    GetRowValue(row, "Status")
+                ]);
+        }
+
+        return tableRegion.BuildBlock();
     }
 
-    private static DetailBlock CreateExpressionDemoTableBlock(
+    private static ReportBlock CreateExpressionDemoTableBlock(
         string sourceId,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows,
         IExpressionEvaluator evaluator)
@@ -498,7 +434,7 @@ internal sealed class SampleReportBuilder : IReportBuilder
         return CreateGenericTableBlock(sourceId, expressionRows);
     }
 
-    private static DetailBlock CreateGenericTableBlock(
+    private static ReportBlock CreateGenericTableBlock(
         string sourceId,
         IReadOnlyList<IReadOnlyDictionary<string, object?>> rows)
     {
@@ -508,91 +444,41 @@ internal sealed class SampleReportBuilder : IReportBuilder
             .Select(_ => new TableColumn { MinWidth = 110f, Grow = 1f })
             .ToArray();
 
-        var headerRow = new RowBlock
-        {
-            Id = $"source-{sourceId}-header-row",
-            RowType = RowType.Header,
-            Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
-            Cells = columnNames
-                .Select((columnName, columnIndex) =>
-                    CreateTableCell(
-                        $"source-{sourceId}-header-{SanitizeForId(columnName)}",
-                        columnIndex,
-                        columnName,
-                        TableHeaderCellStyle))
-                .ToList()
-        };
-
-        var dataRows = rows
-            .Select((row, rowIndex) =>
-                new RowBlock
-                {
-                    Id = $"source-{sourceId}-row-{rowIndex + 1}",
-                    RowType = RowType.Data,
-                    Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
-                    Cells = columnNames
-                        .Select((columnName, columnIndex) =>
-                            CreateTableCell(
-                                $"source-{sourceId}-row-{rowIndex + 1}-{SanitizeForId(columnName)}",
-                                columnIndex,
-                                GetRowValue(row, columnName),
-                                TableCellStyle))
-                        .ToList()
-                })
-            .ToList();
-
-        var tableRows = new List<RowBlock> { headerRow };
-        tableRows.AddRange(dataRows);
-
-        return new DetailBlock
-        {
-            Id = $"source-{sourceId}-table",
-            Style = new AppliedStyle
+        var tableRegion = ReportLayoutBuilder.CreateTableRegion(
+            regionId: $"source-{sourceId}-table",
+            regionStyle: new AppliedStyle
             {
                 FontFamily = "Arial",
                 FontSize = 12f,
                 Padding = new Core.Geometry.Thickness(0f, 0f, 0f, TableBlockBottomSpacing)
             },
-            Children =
-            [
-                new TableBlock
-                {
-                    Id = $"source-{sourceId}-table-element",
-                    Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
-                    Columns = columns,
-                    Rows = tableRows,
-                    RepeatHeaders = true
-                }
-            ]
-        };
-    }
+            tableId: $"source-{sourceId}-table-element",
+            tableStyle: new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+            columns: columns,
+            blockType: BlockType.Detail,
+            repeatHeaders: true);
 
-    private static CellBlock CreateTableCell(string id, int columnIndex, string text, AppliedStyle style)
-    {
-        var textStyle = style with
-        {
-            Background = Color.Transparent,
-            Border = null,
-            Padding = Core.Geometry.Thickness.Zero,
-            Margin = Core.Geometry.Thickness.Zero,
-            Overflow = Overflow.Visible
-        };
+        tableRegion.AddHeaderRow(
+            rowId: $"source-{sourceId}-header-row",
+            rowStyle: new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+            cellStyle: TableHeaderCellStyle,
+            values: columnNames);
 
-        return new CellBlock
+        for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
         {
-            Id = id,
-            ColumnIndex = columnIndex,
-            Style = style,
-            Children =
-            [
-                new TextBlock
-                {
-                    Id = $"{id}-text",
-                    Style = textStyle,
-                    Text = text
-                }
-            ]
-        };
+            var row = rows[rowIndex];
+            var values = columnNames
+                .Select(columnName => GetRowValue(row, columnName))
+                .ToList();
+
+            tableRegion.AddDataRow(
+                rowId: $"source-{sourceId}-row-{rowIndex + 1}",
+                rowStyle: new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+                cellStyle: TableCellStyle,
+                values: values);
+        }
+
+        return tableRegion.BuildBlock();
     }
 
     private static string GetRowValue(IReadOnlyDictionary<string, object?> row, string fieldName)

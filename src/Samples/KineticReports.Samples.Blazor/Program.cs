@@ -44,6 +44,7 @@ builder.Services.AddKineticReportsAuthoring();
 // Register custom services
 builder.Services.AddScoped<IPluginService, PluginService>();
 builder.Services.AddScoped<IPluginExecutionTraceStore, PluginExecutionTraceStore>();
+builder.Services.AddScoped<IAuthoringJsonWorkflowService, AuthoringJsonWorkflowService>();
 
 // Register report execution services
 builder.Services.AddScoped<ITextLayout, SkiaTextLayout>();

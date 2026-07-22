@@ -19,6 +19,8 @@ public static class AuthoringServiceCollectionExtensions
 
         services.AddSingleton<IReportComponentCatalog, DefaultReportComponentCatalog>();
         services.AddSingleton<IDesignerDocumentCompiler, DefaultDesignerDocumentCompiler>();
+        services.AddSingleton<IDesignerDocumentCompilationService, DefaultDesignerDocumentCompilationService>();
+        services.AddSingleton<IReportDesignerDocumentSerializer, SystemTextJsonReportDesignerDocumentSerializer>();
         services.AddSingleton<IReportDefinitionSerializer, SystemTextJsonReportDefinitionSerializer>();
 
         return services;
