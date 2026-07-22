@@ -1,0 +1,150 @@
+@namespace KineticReports.Viewer.Blazor
+@using KineticReports.Core.Definition
+@using KineticReports.Core.Layout
+@using KineticReports.Viewer.Blazor.Services
+@implements IAsyncDisposable
+@inject IReportService ReportService
+
+<div class="kinetic-report-viewer">
+    <div class="report-header">
+        <button class="btn btn-primary" @onclick="ExecuteReportAsync" disabled="@IsLoading">
+            @if (IsLoading)
+            {
+                <span>Executing...</span>
+            }
+            else
+            {
+                <span>Execute Report</span>
+            }
+        </button>
+
+        @if (IsLoading)
+        {
+            <div class="spinner-border ms-2" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @ErrorMessage
+            <button type="button" class="btn-close" @onclick="ClearError"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(HtmlContent))
+    {
+        <div class="report-output">
+            @((MarkupString)HtmlContent)
+        </div>
+    }
+    else if (!IsLoading)
+    {
+        <div class="alert alert-info">
+            No report has been executed. Click 'Execute Report' to start.
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// The report definition to execute.
+    /// </summary>
+    [Parameter]
+    public required ReportDefinition Definition { get; set; }
+
+    /// <summary>
+    /// Parameters to pass to the report.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyDictionary<string, object?> Parameters { get; set; } = new Dictionary<string, object?>();
+
+    /// <summary>
+    /// Callback invoked when report execution completes.
+    /// </summary>
+    [Parameter]
+    public EventCallback<ReportExecutionResult> OnExecutionComplete { get; set; }
+
+    private string HtmlContent { get; set; } = string.Empty;
+    private string ErrorMessage { get; set; } = string.Empty;
+    private bool IsLoading { get; set; } = false;
+    private ReportDocument? CurrentLayoutTree { get; set; }
+    private CancellationTokenSource? _cancellationTokenSource;
+
+    /// <summary>
+    /// Executes the report and displays the output.
+    /// </summary>
+    private async Task ExecuteReportAsync()
+    {
+        if (Definition == null)
+        {
+            ErrorMessage = "Report definition is required";
+            return;
+        }
+
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+        HtmlContent = string.Empty;
+        _cancellationTokenSource = new CancellationTokenSource();
+
+        try
+        {
+            CurrentLayoutTree = await ReportService.ExecuteAsync(
+                Definition,
+                Parameters,
+                _cancellationTokenSource.Token);
+
+            if (CurrentLayoutTree == null)
+            {
+                ErrorMessage = "Report execution failed: report layout is null";
+                return;
+            }
+
+            HtmlContent = await ReportService.ExportHtmlAsync(CurrentLayoutTree, _cancellationTokenSource.Token);
+
+            if (string.IsNullOrEmpty(HtmlContent))
+            {
+                ErrorMessage = "Report export failed: HTML content is empty";
+                return;
+            }
+
+            await OnExecutionComplete.InvokeAsync(new ReportExecutionResult
+            {
+                Success = true,
+                ExecutedAt = DateTime.UtcNow,
+                ReportDocument = CurrentLayoutTree
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            ErrorMessage = "Report execution was cancelled";
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Report execution failed: {ex.Message}";
+            await OnExecutionComplete.InvokeAsync(new ReportExecutionResult
+            {
+                Success = false,
+                ErrorMessage = ex.Message,
+                ExecutedAt = DateTime.UtcNow
+            });
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void ClearError()
+    {
+        ErrorMessage = string.Empty;
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        _cancellationTokenSource?.Dispose();
+        await Task.CompletedTask;
+    }
+}

@@ -1,0 +1,146 @@
+# Copilot Instructions — KineticReports
+
+## Project Overview
+KineticReports is a cross-platform, deterministic reporting engine for .NET 10+.
+It is UI-framework agnostic, data-source agnostic, and renderer agnostic.
+
+## Solution Structure
+
+| Project | Purpose |
+|---|---|
+| `KineticReports.Core` | Domain primitives: geometry, styling, layout element hierarchy, rendering contracts, report definition |
+| `KineticReports.Engine` | Orchestrates data resolution, expression evaluation, and the layout pipeline |
+| `KineticReports.Layout` | Implements the Measure, Arrange, and Pagination passes |
+| `KineticReports.Rendering` | Abstract renderer base and shared rendering utilities |
+| `KineticReports.Rendering.Skia` | SkiaSharp-backed renderer implementation |
+| `KineticReports.Export.Html` | HTML exporter |
+| `KineticReports.Export.Excel` | Excel (XLSX) exporter |
+| `KineticReports.Data.SqlServer` | SQL Server data provider |
+| `KineticReports.Viewer.Web` | ASP.NET Core report viewer host |
+| `KineticReports.Viewer.Blazor` | Blazor report viewer component library |
+
+## Key Constraints
+
+### SkiaSharp Version
+**Always use SkiaSharp version 4.x.** Never reference SkiaSharp v2 or v3 packages.
+The correct package reference is:
+```xml
+<PackageReference Include="SkiaSharp" Version="4.*" />
+```
+This applies to every project that references SkiaSharp (primarily `KineticReports.Rendering.Skia`).
+`KineticReports.Core` has **no dependency** on SkiaSharp — it is renderer-agnostic.
+
+### Target Framework
+All projects target `net10.0`. No multi-targeting unless explicitly required.
+
+### Nullable & Implicit Usings
+All projects have `<Nullable>enable</Nullable>` and `<ImplicitUsings>enable</ImplicitUsings>`.
+
+## Architecture Rules
+
+- **Renderers never perform layout.** Renderers receive an immutable `ReportDocument` only.
+- **Layout is immutable after Arrange** (ADR-011).
+- **Pagination occurs after Arrange** (ADR-012).
+- **Exporters consume `ReportDocument` only** (ADR-013).
+- **All coordinates are Device Independent Pixels (DIPs)** — 1 DIP = 1/96 inch (ADR-014).
+- **Text layout is centralized** via `ITextLayout` (ADR-015).
+- **`ReportDefinition` is immutable** during engine execution.
+
+## Namespace Conventions
+
+```
+KineticReports.Core.Geometry      — Point, Size, Rect, Thickness
+KineticReports.Core.Styling       — Color, Typography, Border, StyleDefinition, AppliedStyle
+KineticReports.Core.Typography    — ITextLayout, FontDescriptor
+KineticReports.Core.Layout        — LayoutElement, all 12 element types, ReportDocument, IMeasureContext
+KineticReports.Core.Rendering     — TextRun, PathGeometry, ImageReference, IRenderer
+KineticReports.Core.Definition    — ReportDefinition, ParameterDefinition, DataSourceDefinition
+```
+
+## Coding Standards
+
+- All public APIs **must have XML doc comments** (`<summary>` at minimum; `<param>` and `<returns>` where applicable).
+- Use `readonly record struct` for geometry value types (Point, Size, Rect, Thickness).
+- Use `sealed record` for immutable reference types (AppliedStyle, TextRun, etc.).
+- Use `sealed class` for concrete layout element types.
+- Use `abstract class` for `LayoutElement` base.
+- Use `required` properties instead of constructor parameters for complex init types.
+- Prefer `IReadOnlyList<T>` and `IReadOnlyDictionary<K,V>` for collection properties.
+- Initialize collection properties to `[]` (not null) as defaults.
+- Internal layout engine state (e.g. `SetTextRuns`) uses `internal` visibility — never `public`.
+
+## Layout Pipeline (spec §2)
+
+```
+ReportDefinition → Data Resolution → Expression Evaluation
+  → Logical Object Tree → Measure Pass → Arrange Pass
+  → Pagination → ReportDocument → Renderer
+```
+
+## Style Cascade Order (spec §10)
+
+Theme → Report Defaults → Named Style → Parent Inheritance → Local Override → AppliedStyle (immutable)
+
+## Testing Strategy
+
+### Test Organization
+- **Unit tests:** `tests/unit-tests/{ProjectName}.Tests/`
+- **Integration tests:** `tests/integration-tests/{ProjectName}.Tests/`
+- One unit test project per `src/` project
+- Integration test projects created for projects with external dependencies (data providers, exporters)
+
+### Test Framework & Assertions
+- **Framework:** xUnit v3 (`xunit` NuGet package)
+- **Assertion Library:** Shouldly v4.2.1
+- **Test Runner:** Microsoft.NET.Test.Sdk
+
+### Test Naming Convention
+- Test method names follow: `{MethodUnderTest}_{Scenario}_{ExpectedOutcome}`
+- Example: `Translate_WithPositiveDelta_ReturnsTranslatedPoint`
+
+### Test Structure
+```csharp
+public class ThingTests
+{
+    [Fact]
+    public void MethodName_Scenario_ExpectedResult()
+    {
+        // Arrange
+        var sut = new Thing();
+        
+        // Act
+        var result = sut.DoSomething();
+        
+        // Assert
+        result.ShouldBe(expected);
+    }
+    
+    [Theory]
+    [InlineData(1, 2, 3)]
+    public void MethodName_WithVariousInputs(int a, int b, int expected)
+    {
+        var sut = new Calculator();
+        var result = sut.Add(a, b);
+        result.ShouldBe(expected);
+    }
+}
+```
+
+### Golden Testing
+For layout and rendering, use snapshot-based golden tests:
+- Reference outputs stored in `tests/golden/` alongside integration tests
+- Renderers must produce deterministic output
+- Use pixel-perfect or document-structure validation
+
+### Running Tests
+```bash
+dotnet test .\KineticReports.slnx                    # Run all tests
+dotnet test .\tests\unit-tests                       # Run only unit tests
+dotnet test .\tests\unit-tests\KineticReports.Core.Tests  # Run specific project tests
+dotnet test --filter "Category=Integration"         # Run tests with trait
+```
+
+### Test Coverage Goals
+- Phase 1 (Core): Geometry, Styling, Rendering contracts, Definition — aim for >90% coverage
+- Phase 2 (Layout): Layout element hierarchy, Measure/Arrange passes — golden tests for determinism
+- Phase 3 (Exporters): Integration tests for each exporter format

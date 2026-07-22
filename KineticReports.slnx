@@ -1,0 +1,49 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Authoring/">
+    <Project Path="src/Authoring/KineticReports.Authoring/KineticReports.Authoring.csproj" />
+  </Folder>
+  <Folder Name="/src/Core/">
+    <Project Path="src/Core/KineticReports.Core/KineticReports.Core.csproj" />
+    <Project Path="src/Core/KineticReports.Engine/KineticReports.Engine.csproj" />
+    <Project Path="src/Core/KineticReports.Layout/KineticReports.Layout.csproj" />
+  </Folder>
+  <Folder Name="/src/Data/">
+    <Project Path="src/Data/KineticReports.Data.SqlLite/KineticReports.Data.SqlLite.csproj" />
+    <Project Path="src/Data/KineticReports.Data.SqlServer/KineticReports.Data.SqlServer.csproj" />
+  </Folder>
+  <Folder Name="/src/Export/">
+    <Project Path="src/Export/KineticReports.Export.Excel/KineticReports.Export.Excel.csproj" />
+    <Project Path="src/Export/KineticReports.Export.Html/KineticReports.Export.Html.csproj" />
+    <Project Path="src/Export/KineticReports.Export.Pdf/KineticReports.Export.Pdf.csproj" />
+  </Folder>
+  <Folder Name="/src/Plugins/">
+    <Project Path="src/Plugins/KineticReports.Plugins/KineticReports.Plugins.csproj" />
+  </Folder>
+  <Folder Name="/src/Rendering/">
+    <Project Path="src/Rendering/KineticReports.Rendering.Skia/KineticReports.Rendering.Skia.csproj" />
+    <Project Path="src/Rendering/KineticReports.Rendering/KineticReports.Rendering.csproj" />
+  </Folder>
+  <Folder Name="/src/Samples/">
+    <Project Path="src/Samples/KineticReports.Samples.Blazor/KineticReports.Samples.Blazor.csproj" />
+    <Project Path="src/Samples/KineticReports.Samples.Plugins/KineticReports.Samples.Plugins.csproj" />
+  </Folder>
+  <Folder Name="/src/Viewer/">
+    <Project Path="src/Viewer/KineticReports.Viewer.Blazor/KineticReports.Viewer.Blazor.csproj" />
+    <Project Path="src/Viewer/KineticReports.Viewer.Web/KineticReports.Viewer.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/unit-tests/">
+    <Project Path="tests/unit-tests/KineticReports.Core.Tests/KineticReports.Core.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Data.SqlServer.Tests/KineticReports.Data.SqlServer.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Engine.Tests/KineticReports.Engine.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Export.Excel.Tests/KineticReports.Export.Excel.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Export.Html.Tests/KineticReports.Export.Html.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Layout.Tests/KineticReports.Layout.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Plugins.Tests/KineticReports.Plugins.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Rendering.Skia.Tests/KineticReports.Rendering.Skia.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Rendering.Tests/KineticReports.Rendering.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Viewer.Blazor.Tests/KineticReports.Viewer.Blazor.Tests.csproj" />
+    <Project Path="tests/unit-tests/KineticReports.Viewer.Web.Tests/KineticReports.Viewer.Web.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,36 @@
+namespace KineticReports.Engine.Tests.Fakes;
+
+using KineticReports.Core.Geometry;
+using KineticReports.Core.Rendering;
+using KineticReports.Core.Styling;
+using KineticReports.Core.Typography;
+
+/// <summary>
+/// Deterministic, dependency-free <see cref="ITextLayout"/> for Engine tests.
+/// </summary>
+public sealed class FakeTextLayout : ITextLayout
+{
+    public Size MeasureText(string text, AppliedStyle style, float maxWidth)
+        => new Size(text.Length * style.FontSize * 0.6f, style.FontSize * 1.2f);
+
+    public IReadOnlyList<TextRun> ShapeText(string text, AppliedStyle style, Rect bounds)
+    {
+        if (string.IsNullOrEmpty(text))
+            return [];
+
+        float ascent = style.FontSize * 0.8f;
+        float lineHeight = style.FontSize * style.LineHeight;
+        return [new TextRun
+        {
+            Text = text,
+            BaselineOrigin = new Point(bounds.X + style.Padding.Left, bounds.Y + style.Padding.Top + ascent),
+            Bounds = new Rect(bounds.X + style.Padding.Left, bounds.Y + style.Padding.Top,
+                text.Length * style.FontSize * 0.6f, lineHeight),
+            Style = style
+        }];
+    }
+
+    public float GetAscent(FontDescriptor descriptor) => descriptor.Size * 0.8f;
+    public float GetDescent(FontDescriptor descriptor) => descriptor.Size * 0.2f;
+    public float GetLineGap(FontDescriptor descriptor) => 0f;
+}

@@ -1,0 +1,20 @@
+/*
+  Override-only stylesheet for KineticReports HTML export variables.
+  The canonical structural styles live in:
+  src/Export/KineticReports.Export.Html/Styles/kinetic-report.css
+*/
+
+:root {
+  --kr-font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --kr-font-size-base: 12px;
+  --kr-body-bg: #f5f6f8;
+  --kr-text-color: #1f2430;
+
+  --kr-page-bg: #ffffff;
+  --kr-page-border: #d4dae3;
+  --kr-page-shadow: 0 4px 18px rgba(19, 31, 58, 0.14);
+  --kr-page-gap: 24px;
+
+  --kr-table-border: #cfd6df;
+  --kr-table-cell-padding: 6px;
+}

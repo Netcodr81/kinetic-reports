@@ -1,0 +1,339 @@
+﻿@page "/"
+@using KineticReports.Core.Definition
+@using KineticReports.Plugins
+@using KineticReports.Samples.Blazor.Reports
+@using KineticReports.Samples.Blazor.Services
+
+@using Microsoft.AspNetCore.Components.Web
+@inject IPluginService PluginService
+@inject IReportRenderService ReportRenderService
+@inject IJSRuntime Js
+@rendermode InteractiveServer
+
+
+<PageTitle>KineticReports Samples</PageTitle>
+
+<div class="row">
+    <!-- Left Panel: Plugin Management -->
+    <div class="col-lg-3">
+        <div class="card">
+            <div class="card-header">
+                <h5>Plugin Management</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <button class="btn btn-primary w-100" @onclick="LoadPluginsAsync">
+                        @if (_isLoadingPlugins)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            <span>Loading...</span>
+                        }
+                        else
+                        {
+                            <span>Load Plugins</span>
+                        }
+                    </button>
+                </div>
+
+                <div class="mb-3">
+                    <button class="btn btn-danger w-100" @onclick="UnloadPluginsAsync"
+                            disabled="@(PluginService.LoadedPlugins.Count == 0)">
+                        Unload All Plugins
+                    </button>
+                </div>
+
+                <hr />
+
+                <h6>Loaded Plugins:</h6>
+                @if (PluginService.LoadedPlugins.Count == 0)
+                {
+                    <p class="text-muted small">No plugins loaded</p>
+                }
+                else
+                {
+                    <div class="list-group">
+                        @foreach (var plugin in PluginService.LoadedPlugins)
+                        {
+                            <div class="list-group-item">
+                                <h6 class="mb-1">@plugin.Name</h6>
+                                <small class="text-muted">v@plugin.Version</small>
+                                @if (!string.IsNullOrEmpty(plugin.Author))
+                                {
+                                    <div class="small">by @plugin.Author</div>
+                                }
+                                @if (!string.IsNullOrEmpty(plugin.Description))
+                                {
+                                    <div class="small mt-1">@plugin.Description</div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel: Report Samples -->
+    <div class="col-lg-9">
+        <div class="card">
+            <div class="card-header">
+                <h5>Sample Reports</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Export format</label>
+                        <select class="form-select form-select-sm" @bind="_selectedExportFormat">
+                            @foreach (var format in _availableFormats)
+                            {
+                                <option value="@format.FormatId">@format.DisplayName (@format.FormatId)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        @if (!string.IsNullOrWhiteSpace(_lastExportStatus))
+                        {
+                            <div class="small text-muted">@_lastExportStatus</div>
+                        }
+                    </div>
+                </div>
+
+                <div class="row">
+                    @foreach (var report in SampleReports.GetAllSampleReports())
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">@report.Name</h6>
+                                    <p class="card-text text-muted small">ID: @report.Id</p>
+                                    <div class="btn-group w-100" role="group">
+                                        <button class="btn btn-outline-primary btn-sm"
+                                                @onclick="() => ViewReportAsync(report)" disabled="@(_isRenderingReport)">
+                                            @if (_isRenderingReport && _selectedReportId == report.Id)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-1"></span>
+                                            }
+                                            View
+                                        </button>
+                                        <button class="btn btn-outline-success btn-sm"
+                                                @onclick="() => ExportReportAsync(report)">
+                                            Export
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="alert alert-info">
+                    <h6>About Sample Reports</h6>
+                    <ul class="mb-0">
+                        <li><strong>Simple Text Report:</strong> Basic layout with text elements</li>
+                        <li><strong>Sales Data Table:</strong> Demonstrates table and data grid components</li>
+                        <li><strong>Customer Report:</strong> Shows banded layout with repeating sections</li>
+                        <li><strong>Multi-Section Report:</strong> Demonstrates sections and grouping</li>
+                        <li><strong>Styled Report:</strong> Shows the style system in action</li>
+                        <li><strong>Expression Evaluation Report:</strong> Demonstrates <code>{FieldName}</code>
+                            resolution from rows and parameters</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_selectedReportId))
+            {
+                <div class="card mt-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Report Preview: @_selectedReportName</h5>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="ClosePreview">
+                            ✕
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        @if (_isRenderingReport)
+                        {
+                            <div class="text-center">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Rendering report...</span>
+                                </div>
+                                <p class="mt-2">Rendering report...</p>
+                            </div>
+                        }
+                        else if (!string.IsNullOrEmpty(_reportHtml))
+                        {
+                            <iframe title="Report Preview" srcdoc="@GetPreviewFrameSource()"
+                                    style="width: 100%; height: 1120px; border: 1px solid #dee2e6; border-radius: 0.375rem; background-color: #f8f9fa;">
+                            </iframe>
+
+                            <div class="mt-3">
+                                <h6>Plugin Execution Trace</h6>
+                                @if (_pluginTrace.Count == 0)
+                                {
+                                    <p class="text-muted small mb-0">No plugin seam activity recorded.</p>
+                                }
+                                else
+                                {
+                                    <ol class="small mb-0">
+                                        @foreach (var entry in _pluginTrace)
+                                        {
+                                            <li>@entry</li>
+                                        }
+                                    </ol>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning">
+                                <strong>Error</strong>
+                                <p class="mb-0">No preview available</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+@code {
+    private bool _isLoadingPlugins;
+    private bool _isRenderingReport;
+    private string? _selectedReportId;
+    private string? _selectedReportName;
+    private string? _reportHtml;
+    private IReadOnlyList<string> _pluginTrace = Array.Empty<string>();
+    private IReadOnlyList<ExportFormatDescriptor> _availableFormats = [];
+    private string _selectedExportFormat = "html";
+    private string? _lastExportStatus;
+
+    protected override void OnInitialized()
+    {
+        RefreshAvailableFormats();
+    }
+
+    private async Task LoadPluginsAsync()
+    {
+        _isLoadingPlugins = true;
+        try
+        {
+            await PluginService.InitializePluginAsync();
+            RefreshAvailableFormats();
+        }
+        finally
+        {
+            _isLoadingPlugins = false;
+        }
+    }
+
+    private async Task UnloadPluginsAsync()
+    {
+        await PluginService.UnloadAllAsync();
+        RefreshAvailableFormats();
+    }
+
+    private async Task ViewReportAsync(ReportDefinition report)
+    {
+        _selectedReportId = report.Id;
+        _selectedReportName = report.Name;
+        _isRenderingReport = true;
+        _reportHtml = null;
+
+        try
+        {
+            // Execute report and export as HTML
+            _reportHtml = await ReportRenderService.RenderReportAsHtmlAsync(report);
+            _pluginTrace = ReportRenderService.GetLatestPluginTrace();
+        }
+        catch (Exception ex)
+        {
+            _reportHtml = $@"
+                <div class='alert alert-danger' role='alert'>
+                    <h4 class='alert-heading'>Error Rendering Report</h4>
+                    <p>{System.Net.WebUtility.HtmlEncode(ex.Message)}</p>
+                </div>";
+            _pluginTrace = ReportRenderService.GetLatestPluginTrace();
+        }
+        finally
+        {
+            _isRenderingReport = false;
+        }
+    }
+
+    private void ClosePreview()
+    {
+        _selectedReportId = null;
+        _selectedReportName = null;
+        _reportHtml = null;
+        _pluginTrace = Array.Empty<string>();
+    }
+
+    private string GetPreviewFrameSource()
+    {
+        if (string.IsNullOrEmpty(_reportHtml))
+        {
+            return "about:blank";
+        }
+
+        const string stylesheetLink = "<link rel=\"stylesheet\" href=\"/kinetic-report.css\">";
+
+        if (_reportHtml.Contains("kinetic-report.css", StringComparison.OrdinalIgnoreCase))
+        {
+            return _reportHtml;
+        }
+
+        if (_reportHtml.Contains("</head>", StringComparison.OrdinalIgnoreCase))
+        {
+            return _reportHtml.Replace(
+                "</head>",
+                stylesheetLink + "</head>",
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        return $"<html><head>{stylesheetLink}</head><body>{_reportHtml}</body></html>";
+    }
+
+    private async Task ExportReportAsync(ReportDefinition report)
+    {
+        var exportResult = await ReportRenderService.ExportReportAsync(
+            report,
+            _selectedExportFormat);
+
+        var safeBaseName = string.IsNullOrWhiteSpace(report.Name)
+            ? "report"
+            : string.Concat(report.Name.Select(ch => Path.GetInvalidFileNameChars().Contains(ch) ? '-' : ch));
+        var fileName = $"{safeBaseName}.{exportResult.FileExtension}";
+        var base64Content = Convert.ToBase64String(exportResult.Content);
+
+        await Js.InvokeVoidAsync(
+            "kineticReports.downloadFromBase64",
+            fileName,
+            exportResult.MimeType,
+            base64Content);
+
+        var trace = ReportRenderService.GetLatestPluginTrace().ToList();
+        trace.Add($"[Download] {fileName} ({exportResult.MimeType})");
+        _pluginTrace = trace;
+        _lastExportStatus =
+            $"Downloaded {fileName} ({exportResult.Content.Length} bytes, {exportResult.MimeType})";
+    }
+
+    private void RefreshAvailableFormats()
+    {
+        _availableFormats = ReportRenderService.GetAvailableExportFormats();
+        if (_availableFormats.Count == 0)
+        {
+            _availableFormats =
+            [
+                new ExportFormatDescriptor("html", "HTML", "text/html", "html")
+            ];
+        }
+
+        if (!_availableFormats.Any(f => string.Equals(f.FormatId, _selectedExportFormat, StringComparison.OrdinalIgnoreCase)))
+        {
+            _selectedExportFormat = _availableFormats[0].FormatId;
+        }
+    }
+}
