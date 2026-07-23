@@ -95,9 +95,9 @@ Target: 2 sprints
 - SkiaSharp remains on 4.x.
 
 ## Immediate Backlog (Ready Next)
-1. Introduce Blazor viewer interaction contract for hit-test/search without endpoint dependency.
-2. Create MVC standalone viewer package scaffold (Razor Class Library + render contract).
-3. Add find-next/find-previous semantics on top of text search index.
+1. Add search match highlighting in Viewer.Blazor preview output.
+2. Expand Blazor interaction regression tests (search/hit-test callbacks and click bridge).
+3. Create MVC sample host integration (package exists; sample validation pending).
 4. Add hyperlink/bookmark elements and passthrough metadata.
 5. Add accessibility metadata baseline for component hosts.
 

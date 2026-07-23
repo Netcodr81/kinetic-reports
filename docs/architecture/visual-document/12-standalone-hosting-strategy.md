@@ -20,9 +20,11 @@ Package:
 
 Host contract:
 - Host passes `ReportDefinition` and optional parameters to viewer component.
-- Host registers supporting services (engine, builder, exporters, report service adapter).
+- Host registers supporting services (engine, text layout, HTML exporters, visual builder) and calls `AddKineticReportsViewerBlazor(...)`.
 - Viewer renders in-process; no required dependency on web API endpoints.
 - Use `AddKineticReportsViewerBlazor(...)` to register component-supporting services.
+- Viewer exposes callback hooks (`OnExecutionComplete`, `OnSearchComplete`, `OnHitTestComplete`) for host integration.
+- Preview click-to-hit-test is provided by Viewer.Blazor static asset interop (`wwwroot/reportViewer.js`).
 
 Reference integration:
 - src/Samples/KineticReports.Samples.Blazor

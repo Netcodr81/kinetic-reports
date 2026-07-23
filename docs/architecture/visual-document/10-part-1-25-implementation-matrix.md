@@ -24,12 +24,12 @@ This matrix maps the ChatGPT recommendation (Parts 1-25) to current repository i
 | 7 | Typography | Planned | Baseline text rendering only | No formal font fallback, RTL/BiDi, selection/highlighting model |
 | 8 | Paint System | Planned | Basic fill/stroke/opacity behavior only | No brush abstraction, gradients, patterns, blend, shadow |
 | 9 | Layering | Partial | Header/body/footer layers implemented | No overlay/annotations/selection/debug layer taxonomy |
-| 10 | Hit Testing | Partial | Visual hit-test index + Viewer.Web hit-test API implemented | Blazor and MVC component host interaction contract still pending |
-| 11 | Search | Partial | Visual text search index + Viewer.Web search API implemented | Find-next/find-previous contract and Blazor/MVC host integration pending |
+| 10 | Hit Testing | Partial | Visual hit-test index + Viewer.Web API + Viewer.Blazor hit-test UI/callback integration implemented | Selection/highlight overlays and deeper interaction tests still pending |
+| 11 | Search | Partial | Visual text search index + Viewer.Web API + Viewer.Blazor search UI with next/previous navigation implemented | Match highlighting and broader host parity still pending |
 | 12 | Selection | Planned | None | No text or box selection data model and interactions |
 | 13 | Hyperlinks | Planned | None | No internal/external/drillthrough link model |
 | 14 | Accessibility | Planned | None | No semantic tree, reading order, alt text, tagged PDF strategy |
-| 15 | Viewer Architecture | Partial | Viewer.Blazor component host + Viewer.Web optional adapter host | Standalone MVC component package and full viewport/virtualization spec pending |
+| 15 | Viewer Architecture | Partial | Viewer.Blazor component host + callback/event surface + optional Viewer.Web adapter host | MVC sample host and full viewport/virtualization spec pending |
 | 16 | Rendering API | Partial | Existing renderer abstractions + visual adapters | No IVisualRenderer/IRenderSurface/IRenderContext/IRenderPass contracts |
 | 17 | Skia Backend | Partial | VisualSkiaRenderer baseline PDF adapter implemented | Primitive parity and advanced PDF features incomplete |
 | 18 | HTML Backend | Partial | VisualHtmlExporter implemented and wired | Strategy alternatives (canvas/svg/hybrid) not specified as formal modes |

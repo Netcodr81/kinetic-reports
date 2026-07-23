@@ -21,8 +21,10 @@ KineticReports is a deterministic reporting engine for .NET 10.
 
 - Open solution: `KineticReports.slnx`
 - Run sample: `src/Samples/KineticReports.Samples.Blazor`
-- Open home page and click **View** on sample reports.
-- Select an export format and click **Export** to download an artifact (`.html`, `.md`, etc.) based on negotiation and registered exporters.
+- Open home page, choose report type/provider, and click **Author + Compile**.
+- Use **Run / Refresh** in the viewer to render the report preview.
+- Use **Search** and **Hit Test** in the viewer to validate interaction behavior.
+- Click **Export** to download the currently supported viewer artifact (HTML in local in-process mode).
 
 ## Project Map
 

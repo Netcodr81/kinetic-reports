@@ -50,6 +50,22 @@
 | `IReportExecutor` | Viewer.Web | Server-side report execution abstraction |
 | `IReportStore` | Viewer.Web | Report definition retrieval abstraction |
 
+### Viewer.Blazor Service Surface (Current)
+
+- `RenderHtmlAsync(...)` renders a report preview payload.
+- `ExportAsync(...)` exports using the currently registered local viewer formats.
+- `HitTestAsync(...)` resolves page-local coordinates to a visual element.
+- `SearchTextAsync(...)` returns deterministic ordered text matches.
+- `GetLatestTrace()` returns latest execution/export trace entries.
+
+### Viewer.Blazor Component Surface (Current)
+
+- `ReportViewer` supports completion callbacks:
+	- `OnExecutionComplete`
+	- `OnSearchComplete`
+	- `OnHitTestComplete`
+- Preview click-to-hit-test is wired through Viewer.Blazor static asset interop (`wwwroot/reportViewer.js`) and page-local coordinate mapping.
+
 ## Junior Tips
 
 - Exporters and renderers should **never** re-layout elements.
