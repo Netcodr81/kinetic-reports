@@ -2,6 +2,7 @@
 @using KineticReports.Authoring.Components
 @using KineticReports.Samples.Blazor.Services
 @using KineticReports.Viewer.Blazor
+@using KineticReports.Viewer.Blazor.Services
 
 @using Microsoft.AspNetCore.Components.Web
 @inject IPluginService PluginService
@@ -78,8 +79,7 @@
             <div class="card-body">
                 <div class="mb-2">
                     <label class="form-label small">Saved reports</label>
-                    <select class="form-select form-select-sm"
-                            value="@_selectedCatalogItemId"
+                    <select class="form-select form-select-sm" value="@_selectedCatalogItemId"
                             @onchange="OnCatalogSelectionChanged">
                         <option value="">(none)</option>
                         @foreach (var item in _catalogItems)
@@ -90,13 +90,11 @@
                 </div>
 
                 <div class="d-grid gap-2">
-                    <button class="btn btn-outline-primary btn-sm"
-                            @onclick="LoadCatalogEntryAsync"
+                    <button class="btn btn-outline-primary btn-sm" @onclick="LoadCatalogEntryAsync"
                             disabled="@(_isBusy || string.IsNullOrWhiteSpace(_selectedCatalogItemId))">
                         Load Saved Report
                     </button>
-                    <button class="btn btn-outline-danger btn-sm"
-                            @onclick="DeleteCatalogEntryAsync"
+                    <button class="btn btn-outline-danger btn-sm" @onclick="DeleteCatalogEntryAsync"
                             disabled="@(_isBusy || string.IsNullOrWhiteSpace(_selectedCatalogItemId))">
                         Delete Saved Report
                     </button>
@@ -136,17 +134,13 @@
 
                     <div class="col-md-4">
                         <label class="form-label">Catalog Name</label>
-                        <input type="text" class="form-control form-control-sm"
-                               value="@_catalogName"
-                               @onchange="OnCatalogNameChanged"
-                               placeholder="Report name for save" />
+                        <input type="text" class="form-control form-control-sm" value="@_catalogName"
+                               @onchange="OnCatalogNameChanged" placeholder="Report name for save" />
                     </div>
                 </div>
 
                 <div class="d-flex align-items-end gap-2 flex-wrap mb-3">
-                    <button class="btn btn-primary btn-sm"
-                            @onclick="GenerateDefinitionAsync"
-                            disabled="@_isBusy">
+                    <button class="btn btn-primary btn-sm" @onclick="GenerateDefinitionAsync" disabled="@_isBusy">
                         @if (_isBusy)
                         {
                             <span class="spinner-border spinner-border-sm me-2"></span>
@@ -154,14 +148,12 @@
                         Author + Compile
                     </button>
 
-                    <button class="btn btn-outline-success btn-sm"
-                            @onclick="SaveCurrentReportAsync"
+                    <button class="btn btn-outline-success btn-sm" @onclick="SaveCurrentReportAsync"
                             disabled="@(_isBusy || _compiledDefinition is null || string.IsNullOrWhiteSpace(_json))">
                         Save To Catalog
                     </button>
 
-                    <button class="btn btn-outline-secondary btn-sm"
-                            @onclick="DownloadJsonAsync"
+                    <button class="btn btn-outline-secondary btn-sm" @onclick="DownloadJsonAsync"
                             disabled="@(_isBusy || string.IsNullOrWhiteSpace(_json))">
                         Download JSON
                     </button>
@@ -212,10 +204,10 @@
                                 }
                                 else
                                 {
-                                    <ReportViewer Definition="@_compiledDefinition"
-                                                  Parameters="@_viewerParameters"
-                                                  AutoExecute="true"
-                                                  OnExecutionComplete="OnViewerExecutionComplete" />
+                                    <ReportViewer Definition="@_compiledDefinition" Parameters="@_viewerParameters"
+                                                  AutoExecute="true" OnExecutionComplete="OnViewerExecutionComplete"
+                                                  OnSearchComplete="OnViewerSearchComplete"
+                                                  OnHitTestComplete="OnViewerHitTestComplete" />
                                 }
                             </div>
                         </div>
@@ -453,6 +445,21 @@
         }
 
         _status = $"Viewer refreshed at {result.ExecutedAt:HH:mm:ss} UTC.";
+    }
+
+    private void OnViewerSearchComplete(ReportViewerTextSearchResult result)
+    {
+        _status =
+            result.Matches.Count == 0
+                ? $"Search '{result.Query}': no matches."
+                : $"Search '{result.Query}': {result.Matches.Count} match(es).";
+    }
+
+    private void OnViewerHitTestComplete(ReportViewerHitTestResult result)
+    {
+        _status = result.Hit
+            ? $"Hit-test: page {result.PageNumber}, element {result.ElementId ?? "(unknown)"}."
+            : $"Hit-test: no element at ({result.X}, {result.Y}) on page {result.PageNumber}.";
     }
 
     private async Task DownloadJsonAsync()

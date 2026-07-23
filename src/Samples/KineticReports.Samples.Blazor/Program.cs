@@ -10,7 +10,9 @@ using KineticReports.Export.Html;
 using KineticReports.Layout;
 using KineticReports.Plugins;
 using KineticReports.Rendering.Skia;
-using KineticReports.Viewer.Blazor.Services;
+using KineticReports.Viewer.Blazor;
+using KineticReports.Visual;
+using SampleRenderingPipelineOptions = KineticReports.Samples.Blazor.Services.RenderingPipelineOptions;
 
 // ============================================================================
 // KineticReports Blazor Sample Application (Interactive Server)
@@ -43,6 +45,10 @@ builder.Services.AddRazorComponents()
 builder.Services.AddKineticReportsAuthoring();
 
 // Register custom services
+builder.Services
+    .AddOptions<SampleRenderingPipelineOptions>()
+    .Bind(builder.Configuration.GetSection(SampleRenderingPipelineOptions.SectionName));
+
 builder.Services.AddScoped<IPluginService, PluginService>();
 builder.Services.AddScoped<IPluginExecutionTraceStore, PluginExecutionTraceStore>();
 builder.Services.AddScoped<IAuthoringJsonWorkflowService, AuthoringJsonWorkflowService>();
@@ -61,11 +67,13 @@ builder.Services.AddScoped<ILayoutEngine, LayoutEngine>();
 // Register report engine and exporters
 builder.Services.AddScoped<IReportEngine, ReportEngine>();
 builder.Services.AddScoped<IHtmlExporter, HtmlExporter>();
-builder.Services.AddScoped<IReportDocumentExporter, HtmlReportDocumentExporter>();
-builder.Services.AddScoped<IReportDocumentExporter, MarkdownReportDocumentExporter>();
-builder.Services.AddScoped<IReportDocumentExporterRegistry, ReportDocumentExporterRegistry>();
-builder.Services.AddScoped<IReportRenderService, ReportRenderService>();
-builder.Services.AddScoped<IReportService, ViewerReportServiceAdapter>();
+builder.Services.AddScoped<IVisualHtmlExporter, VisualHtmlExporter>();
+builder.Services.AddScoped<IVisualDocumentBuilder, DefaultVisualDocumentBuilder>();
+builder.Services.AddKineticReportsViewerBlazor(options =>
+{
+    options.PipelineMode = builder.Configuration[$"{SampleRenderingPipelineOptions.SectionName}:PipelineMode"]
+        ?? "Legacy";
+});
 
 var app = builder.Build();
 

@@ -1,6 +1,3 @@
-using KineticReports.Core.Layout;
-using KineticReports.Core.Styling;
-
 namespace KineticReports.Viewer.Blazor.Tests;
 
 public class ReportExecutionResultTests
@@ -9,30 +6,18 @@ public class ReportExecutionResultTests
     public void ReportExecutionResult_WithSuccessful_CreatesValidInstance()
     {
         // Arrange & Act
-        var page = new PageBlock
-        {
-            Id = "page-1",
-            PageWidth = 800,
-            PageHeight = 600,
-            PageNumber = 1,
-            Header = null,
-            Footer = null,
-            Children = [],
-            Style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f }
-        };
-        var ReportDocument = new ReportDocument { Pages = [page] };
-
         var result = new ReportExecutionResult
         {
             Success = true,
             ExecutedAt = DateTime.UtcNow,
-            ReportDocument = ReportDocument
+            HtmlContent = "<html><body>ok</body></html>",
+            Trace = ["[Render] ok"]
         };
 
         // Assert
         result.Success.ShouldBeTrue();
-        result.ReportDocument.ShouldNotBeNull();
-        result.ReportDocument.Pages.Count.ShouldBe(1);
+        result.HtmlContent.ShouldContain("<html>");
+        result.Trace.Count.ShouldBe(1);
         result.ErrorMessage.ShouldBeNull();
     }
 
@@ -49,7 +34,8 @@ public class ReportExecutionResultTests
 
         // Assert
         result.Success.ShouldBeFalse();
-        result.ReportDocument.ShouldBeNull();
+        result.HtmlContent.ShouldBeEmpty();
+        result.Trace.ShouldBeEmpty();
         result.ErrorMessage.ShouldBe("Report execution failed");
     }
 

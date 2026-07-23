@@ -12,14 +12,14 @@ public class SampleReportsExpressionTests
 
         // Assert
         report.ShouldNotBeNull();
-        report.Id.ShouldBe("expression-report");
-        report.Name.ShouldBe("Expression Evaluation Report");
+        report.Id.ShouldBe("expression-report-sqlite");
+        report.Name.ShouldBe("Expression Evaluation Report (SQLite)");
         report.Description.ShouldNotBeNull();
         report.Description.ShouldContain("{FieldName}");
 
         report.DataSources.Count.ShouldBe(1);
         report.DataSources[0].Id.ShouldBe("expression-demo");
-        report.DataSources[0].ProviderType.ShouldBe("SampleInMemory");
+        report.DataSources[0].ProviderType.ShouldBe("SqlLite");
     }
 
     [Fact]
@@ -29,6 +29,6 @@ public class SampleReportsExpressionTests
         var reports = SampleReports.GetAllSampleReports();
 
         // Assert
-        reports.ShouldContain(r => r.Id == "expression-report");
+        reports.ShouldContain(r => r.Id == "expression-report-sqlite");
     }
 }

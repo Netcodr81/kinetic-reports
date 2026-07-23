@@ -11,6 +11,7 @@
    <ProjectReference Include="..\..\Authoring\KineticReports.Authoring\KineticReports.Authoring.csproj" />
     <ProjectReference Include="..\..\Core\KineticReports.Core\KineticReports.Core.csproj" />
     <ProjectReference Include="..\..\Core\KineticReports.Engine\KineticReports.Engine.csproj" />
+    <ProjectReference Include="..\..\Core\KineticReports.Visual\KineticReports.Visual.csproj" />
     <ProjectReference Include="..\..\Data\KineticReports.Data.SqlLite\KineticReports.Data.SqlLite.csproj" />
     <ProjectReference Include="..\..\Rendering\KineticReports.Rendering.Skia\KineticReports.Rendering.Skia.csproj" />
     <ProjectReference Include="..\..\Export\KineticReports.Export.Html\KineticReports.Export.Html.csproj" />

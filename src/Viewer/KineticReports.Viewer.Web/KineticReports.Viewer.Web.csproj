@@ -10,6 +10,7 @@
     <ProjectReference Include="..\..\Core\KineticReports.Core\KineticReports.Core.csproj" />
     <ProjectReference Include="..\..\Core\KineticReports.Engine\KineticReports.Engine.csproj" />
     <ProjectReference Include="..\..\Core\KineticReports.Layout\KineticReports.Layout.csproj" />
+    <ProjectReference Include="..\..\Plugins\KineticReports.Plugins\KineticReports.Plugins.csproj" />
     <ProjectReference Include="..\..\Rendering\KineticReports.Rendering\KineticReports.Rendering.csproj" />
     <ProjectReference Include="..\..\Rendering\KineticReports.Rendering.Skia\KineticReports.Rendering.Skia.csproj" />
     <ProjectReference Include="..\..\Export\KineticReports.Export.Html\KineticReports.Export.Html.csproj" />

@@ -33,6 +33,10 @@ Fluent builder examples:
 12. [12 - Glossary](./12-glossary.md)
 13. [13 - Report Authoring, Data Binding, and JSON Workflow](./13-report-authoring-and-json-workflow.md)
 
+## Architecture Handbook
+
+1. [Visual Document Architecture Handbook](./architecture/visual-document/README.md)
+
 ---
 
 ## End-to-End Mental Model

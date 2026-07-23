@@ -7,7 +7,10 @@ using KineticReports.Core.Typography;
 using KineticReports.Engine;
 using KineticReports.Export.Html;
 using KineticReports.Layout;
+using KineticReports.Visual;
 using KineticReports.Viewer.Blazor.Services;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace KineticReports.Viewer.Blazor.Tests;
 
@@ -65,14 +68,25 @@ public class LocalReportServiceTests
         }
     }
 
+    private static LocalReportService CreateService(RenderingPipelineOptions? options = null)
+    {
+        return new LocalReportService(
+            new MockReportEngine(),
+            new HtmlExporter(),
+            new VisualHtmlExporter(),
+            new DefaultVisualDocumentBuilder(),
+            new VisualHitTestIndexBuilder(),
+            new VisualTextSearchIndexBuilder(),
+            new MockTextLayout(),
+            Options.Create(options ?? new RenderingPipelineOptions()),
+            NullLogger<LocalReportService>.Instance);
+    }
+
     [Fact]
-    public async Task ExecuteAsync_WithValidDefinition_ReturnsLayoutTree()
+    public async Task RenderHtmlAsync_WithValidDefinition_ReturnsHtml()
     {
         // Arrange
-        var engine = new MockReportEngine();
-        var exporter = new HtmlExporter();
-        var TextLayout = new MockTextLayout();
-        var service = new LocalReportService(engine, exporter, TextLayout);
+        var service = CreateService();
 
         var definition = new ReportDefinition
         {
@@ -83,35 +97,30 @@ public class LocalReportServiceTests
         var parameters = new Dictionary<string, object?>();
 
         // Act
-        var result = await service.ExecuteAsync(definition, parameters);
+        var html = await service.RenderHtmlAsync(definition, parameters);
 
         // Assert
-        result.ShouldNotBeNull();
-        result.Pages.Count.ShouldBe(1);
+        html.ShouldContain("<!DOCTYPE html");
+        html.ShouldContain("<html");
+        html.ShouldContain("</html>");
     }
 
     [Fact]
-    public async Task ExecuteAsync_WithNullDefinition_ThrowsArgumentNullException()
+    public async Task RenderHtmlAsync_WithNullDefinition_ThrowsArgumentNullException()
     {
         // Arrange
-        var engine = new MockReportEngine();
-        var exporter = new HtmlExporter();
-        var TextLayout = new MockTextLayout();
-        var service = new LocalReportService(engine, exporter, TextLayout);
+        var service = CreateService();
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(async () =>
-            await service.ExecuteAsync(null!, new Dictionary<string, object?>()));
+            await service.RenderHtmlAsync(null!, new Dictionary<string, object?>()));
     }
 
     [Fact]
-    public async Task ExecuteAsync_WithNullParameters_ThrowsArgumentNullException()
+    public async Task RenderHtmlAsync_WithNullParameters_ThrowsArgumentNullException()
     {
         // Arrange
-        var engine = new MockReportEngine();
-        var exporter = new HtmlExporter();
-        var TextLayout = new MockTextLayout();
-        var service = new LocalReportService(engine, exporter, TextLayout);
+        var service = CreateService();
 
         var definition = new ReportDefinition
         {
@@ -122,31 +131,32 @@ public class LocalReportServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(async () =>
-            await service.ExecuteAsync(definition, null!));
+            await service.RenderHtmlAsync(definition, null!));
     }
 
     [Fact]
-    public async Task ExportHtmlAsync_WithNullLayoutTree_ThrowsArgumentNullException()
+    public async Task ExportAsync_WithUnsupportedFormat_ThrowsNotSupportedException()
     {
         // Arrange
-        var engine = new MockReportEngine();
-        var exporter = new HtmlExporter();
-        var TextLayout = new MockTextLayout();
-        var service = new LocalReportService(engine, exporter, TextLayout);
+        var service = CreateService();
+
+        var definition = new ReportDefinition
+        {
+            SchemaVersion = "1.0",
+            Id = "test-3a",
+            Name = "TestReport"
+        };
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(async () =>
-            await service.ExportHtmlAsync(null!));
+        await Assert.ThrowsAsync<NotSupportedException>(async () =>
+            await service.ExportAsync(definition, "pdf", new Dictionary<string, object?>()));
     }
 
     [Fact]
-    public async Task ExportHtmlAsync_WithValidLayoutTree_ReturnsHtmlString()
+    public async Task ExportAsync_WithHtmlFormat_ReturnsHtmlBytes()
     {
         // Arrange
-        var engine = new MockReportEngine();
-        var exporter = new HtmlExporter();
-        var TextLayout = new MockTextLayout();
-        var service = new LocalReportService(engine, exporter, TextLayout);
+        var service = CreateService();
 
         var definition = new ReportDefinition
         {
@@ -154,16 +164,56 @@ public class LocalReportServiceTests
             Id = "test-3",
             Name = "TestReport"
         };
-        var ReportDocument = await service.ExecuteAsync(definition, new Dictionary<string, object?>());
-        ReportDocument.ShouldNotBeNull();
 
         // Act
-        var html = await service.ExportHtmlAsync(ReportDocument);
+        var result = await service.ExportAsync(definition, "html", new Dictionary<string, object?>());
+        var html = System.Text.Encoding.UTF8.GetString(result.Content);
 
         // Assert
+        result.FormatId.ShouldBe("html");
+        result.MimeType.ShouldBe("text/html");
+        result.FileExtension.ShouldBe("html");
         html.ShouldNotBeEmpty();
         html.ShouldContain("<!DOCTYPE html");
-        html.ShouldContain("<html");
-        html.ShouldContain("</html>");
+    }
+
+    [Fact]
+    public async Task HitTestAsync_WithEmptyDocument_ReturnsMiss()
+    {
+        // Arrange
+        var service = CreateService(new RenderingPipelineOptions { PipelineMode = "Visual" });
+        var definition = new ReportDefinition
+        {
+            SchemaVersion = "1.0",
+            Id = "test-hit-1",
+            Name = "HitTestReport"
+        };
+
+        // Act
+        var result = await service.HitTestAsync(definition, new Dictionary<string, object?>(), 1, 100f, 100f);
+
+        // Assert
+        result.Hit.ShouldBeFalse();
+        result.PageNumber.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task SearchTextAsync_WithEmptyDocument_ReturnsNoMatches()
+    {
+        // Arrange
+        var service = CreateService(new RenderingPipelineOptions { PipelineMode = "Visual" });
+        var definition = new ReportDefinition
+        {
+            SchemaVersion = "1.0",
+            Id = "test-search-1",
+            Name = "SearchReport"
+        };
+
+        // Act
+        var result = await service.SearchTextAsync(definition, new Dictionary<string, object?>(), "foo");
+
+        // Assert
+        result.Query.ShouldBe("foo");
+        result.Matches.ShouldBeEmpty();
     }
 }

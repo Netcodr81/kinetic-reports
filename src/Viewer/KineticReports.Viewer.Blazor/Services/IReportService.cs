@@ -30,6 +30,27 @@ public interface IReportService
         CancellationToken ct = default);
 
     /// <summary>
+    /// Performs a page-local hit-test against the report visual tree.
+    /// </summary>
+    Task<ReportViewerHitTestResult> HitTestAsync(
+        ReportDefinition definition,
+        IReadOnlyDictionary<string, object?> parameters,
+        int pageNumber,
+        float x,
+        float y,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Searches report text content and returns deterministic ordered matches.
+    /// </summary>
+    Task<ReportViewerTextSearchResult> SearchTextAsync(
+        ReportDefinition definition,
+        IReadOnlyDictionary<string, object?> parameters,
+        string query,
+        int? pageNumber = null,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Gets trace entries from the most recent render/export request.
     /// </summary>
     IReadOnlyList<string> GetLatestTrace();
@@ -52,3 +73,32 @@ public sealed record ReportViewerExportFormat(string FormatId, string DisplayNam
 /// <param name="FileExtension">Default file extension for downloads.</param>
 /// <param name="Content">Raw exported bytes.</param>
 public sealed record ReportViewerExportResult(string FormatId, string MimeType, string FileExtension, byte[] Content);
+
+/// <summary>
+/// Represents a hit-test result from an embedded viewer host.
+/// </summary>
+public sealed record ReportViewerHitTestResult(
+    bool Hit,
+    int PageNumber,
+    float X,
+    float Y,
+    string? ElementId,
+    string? LayerName,
+    IReadOnlyDictionary<string, string> Metadata);
+
+/// <summary>
+/// Represents one text search match from an embedded viewer host.
+/// </summary>
+public sealed record ReportViewerTextSearchMatch(
+    int PageNumber,
+    string LayerName,
+    string ElementId,
+    string Text);
+
+/// <summary>
+/// Represents a text search response from an embedded viewer host.
+/// </summary>
+public sealed record ReportViewerTextSearchResult(
+    string Query,
+    int? PageNumber,
+    IReadOnlyList<ReportViewerTextSearchMatch> Matches);

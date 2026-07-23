@@ -19,6 +19,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Rendering\KineticReports.Rendering.Skia\KineticReports.Rendering.Skia.csproj" />
+    <ProjectReference Include="..\..\..\src\Core\KineticReports.Visual\KineticReports.Visual.csproj" />
+    <ProjectReference Include="..\..\..\src\Samples\KineticReports.Samples.Blazor\KineticReports.Samples.Blazor.csproj" />
   </ItemGroup>
 
 </Project>

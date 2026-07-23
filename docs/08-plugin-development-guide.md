@@ -82,7 +82,8 @@ Ordering rules for both seams:
 
 Sample host note:
 
-- The Blazor sample registers both `HtmlReportDocumentExporter` and `MarkdownReportDocumentExporter` as `IReportDocumentExporter` implementations.
+- The Blazor sample now integrates the viewer through `AddKineticReportsViewerBlazor(...)` and `IReportService`.
+- Exporter-registry wiring remains available in adapter hosts such as `KineticReports.Viewer.Web`.
 
 ## Example: Implement multiple seams in one plugin
 
