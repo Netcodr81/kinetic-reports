@@ -14,7 +14,7 @@ sequenceDiagram
 	participant Layout as ILayoutEngine
 	participant Export as Exporter/Renderer
 
-	Caller->>Engine: RunAsync(definition, parameters, LayoutSizingContext, layoutOptions)
+	Caller->>Engine: RunAsync(definition)
 	loop each DataSourceDefinition
 		Engine->>Resolver: ResolveAsync(dataSource, parameters)
 		Resolver-->>Engine: rows
@@ -26,6 +26,9 @@ sequenceDiagram
 	Engine-->>Caller: ReportDocument
 	Caller->>Export: ExportAsync(ReportDocument, stream)
 ```
+
+For advanced scenarios, use the overload that accepts runtime parameters,
+`ILayoutSizingContext`, and optional `LayoutOptions`.
 
 ## Detailed Stages
 

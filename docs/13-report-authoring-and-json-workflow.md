@@ -418,9 +418,12 @@ For an Uno/Web host app:
 
 ```csharp
 var definition = reportStore.Load(reportId); // JSON -> ReportDefinition
-var layout = await reportEngine.RunAsync(definition, parameters, sizingContext, layoutOptions, ct);
-await htmlExporter.ExportAsync(layout, outputStream, ct);
+var reportDocument = await reportEngine.RunAsync(definition, ct);
+await htmlExporter.ExportAsync(reportDocument, outputStream, ct);
 ```
+
+When you need non-default runtime inputs, use the advanced `RunAsync` overload
+with parameters, `ILayoutSizingContext`, and `LayoutOptions`.
 
 ## Suggested Next Iteration for This Repository
 

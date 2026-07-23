@@ -11,8 +11,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 public static class DataProviderServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers a singleton <see cref="PocoDataProvider"/> and exposes it as both
-    /// <see cref="ILinqDataProvider"/> and <see cref="IDataProvider"/>.
+    /// Registers a singleton <see cref="PocoDataProvider"/> and exposes it as
+    /// <see cref="ILinqDataProvider"/>.
     /// </summary>
     /// <param name="services">Service collection.</param>
     /// <param name="configure">Optional callback used to seed/modify the provider instance at startup.</param>
@@ -32,13 +32,8 @@ public static class DataProviderServiceCollectionExtensions
 
         services.TryAddSingleton<ILinqDataProvider>(provider => provider.GetRequiredService<PocoDataProvider>());
 
-        // Register as IDataProvider without replacing existing providers.
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IDataProvider>(
-            provider => provider.GetRequiredService<PocoDataProvider>()));
-
         AddNamedProviderAlias<PocoDataProvider>(services, "Poco");
         AddNamedProviderAlias<PocoDataProvider>(services, "InMemory");
-        AddNamedProviderAlias<PocoDataProvider>(services, "SampleInMemory");
 
         return services;
     }
@@ -58,9 +53,6 @@ public static class DataProviderServiceCollectionExtensions
             throw new ArgumentException("Connection string is required.", nameof(connectionString));
 
         services.TryAddSingleton<SqlServerDataProvider>(_ => new SqlServerDataProvider(connectionString));
-
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IDataProvider>(
-            provider => provider.GetRequiredService<SqlServerDataProvider>()));
 
         AddNamedProviderAlias<SqlServerDataProvider>(services, "SqlServer");
         AddNamedProviderAlias<SqlServerDataProvider>(services, "SQL Server");
@@ -83,9 +75,6 @@ public static class DataProviderServiceCollectionExtensions
             throw new ArgumentException("Connection string is required.", nameof(connectionString));
 
         services.TryAddSingleton<SqlLiteDataProvider>(_ => new SqlLiteDataProvider(connectionString));
-
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IDataProvider>(
-            provider => provider.GetRequiredService<SqlLiteDataProvider>()));
 
         AddNamedProviderAlias<SqlLiteDataProvider>(services, "SqlLite");
         AddNamedProviderAlias<SqlLiteDataProvider>(services, "SQLite");
@@ -116,8 +105,8 @@ public static class DataProviderServiceCollectionExtensions
         if (string.IsNullOrWhiteSpace(providerType))
             return;
 
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<INamedDataProvider>(provider =>
-            new NamedDataProvider(providerType, provider.GetRequiredService<TProvider>())));
+        services.AddSingleton<INamedDataProvider>(provider =>
+            new NamedDataProvider(providerType, provider.GetRequiredService<TProvider>()));
     }
 
     private sealed record NamedDataProvider(string ProviderType, IDataProvider Provider) : INamedDataProvider;

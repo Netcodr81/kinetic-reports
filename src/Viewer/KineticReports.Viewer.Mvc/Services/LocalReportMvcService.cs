@@ -68,9 +68,7 @@ public sealed class LocalReportMvcService : IReportMvcService
 
     private static LayoutOptions ResolveLayoutOptions(ReportDefinition definition)
     {
-        var metadata = definition.Metadata;
-        if (metadata.TryGetValue("authoring.compiledComponents", out var compiledComponents)
-            && compiledComponents is not null)
+        if (definition.Layout is not null)
         {
             return new LayoutOptions { PageMargins = new Thickness(0f) };
         }

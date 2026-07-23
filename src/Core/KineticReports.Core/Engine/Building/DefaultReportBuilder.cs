@@ -1,3 +1,4 @@
+using KineticReports.Core.Definition;
 using KineticReports.Core.Engine.Data;
 using KineticReports.Core.Engine.Expressions;
 using KineticReports.Core.Layout;
@@ -22,7 +23,6 @@ public sealed class DefaultReportBuilder : IReportBuilder
 {
     private static readonly IReadOnlyDictionary<string, object?> EmptyParameters =
         new Dictionary<string, object?>(StringComparer.Ordinal);
-
     private readonly List<Func<DataContext, IExpressionEvaluator, IReadOnlyList<ReportBlock>>> _steps = [];
     private readonly IPluginManager? _pluginManager;
 
@@ -752,6 +752,12 @@ public sealed class DefaultReportBuilder : IReportBuilder
         ArgumentNullException.ThrowIfNull(dataContext);
         ArgumentNullException.ThrowIfNull(evaluator);
 
+        if (_steps.Count == 0
+            && TryCreateDefinitionBackedBuilder(dataContext.Definition, out var definitionBackedBuilder))
+        {
+            return definitionBackedBuilder.Build(dataContext, evaluator);
+        }
+
         if (_steps.Count == 0)
             return [];
 
@@ -767,6 +773,86 @@ public sealed class DefaultReportBuilder : IReportBuilder
         }
 
         return ApplyPostProcessors(blocks);
+    }
+
+    private bool TryCreateDefinitionBackedBuilder(
+        ReportDefinition? definition,
+        out DefaultReportBuilder builder)
+    {
+        builder = null!;
+
+        if (definition?.Layout is null)
+            return false;
+
+        builder = _pluginManager is null ? new DefaultReportBuilder() : new DefaultReportBuilder(_pluginManager);
+        ConfigureFromLayoutDefinition(builder, definition.Layout);
+        return true;
+    }
+
+    private static void ConfigureFromLayoutDefinition(
+        DefaultReportBuilder builder,
+        ReportLayoutDefinition layout)
+    {
+        foreach (var item in layout.PageHeader)
+            AppendLayoutItem(builder, item, BlockType.PageHeader);
+
+        foreach (var item in layout.Body)
+            AppendLayoutItem(builder, item, BlockType.Detail);
+
+        foreach (var item in layout.PageFooter)
+            AppendLayoutItem(builder, item, BlockType.PageFooter);
+    }
+
+    private static void AppendLayoutItem(
+        DefaultReportBuilder builder,
+        ReportLayoutItemDefinition item,
+        BlockType blockType)
+    {
+        switch (item.Kind)
+        {
+            case ReportLayoutItemKind.Text:
+                builder.AddTextRegion(item.Id, item.Text ?? string.Empty, blockType);
+                break;
+
+            case ReportLayoutItemKind.PageBreak:
+                builder.AddPageBreak(item.Id);
+                break;
+
+            case ReportLayoutItemKind.Table:
+                if (string.IsNullOrWhiteSpace(item.DataSourceId) || item.Columns.Count == 0)
+                    break;
+
+                builder.AddDataSourceTable(
+                    dataSourceId: item.DataSourceId,
+                    regionId: $"{item.Id}-region",
+                    tableId: item.Id,
+                    columns: item.Columns.Select(column => new DataSourceTableColumn
+                    {
+                        Header = column.Header,
+                        ValueExpression = column.ValueExpression,
+                        Column = new TableColumn
+                        {
+                            MinWidth = column.MinWidth,
+                            Grow = column.Grow
+                        }
+                    }).ToList(),
+                    blockType: blockType,
+                    repeatHeaders: item.RepeatHeaders,
+                    includeHeader: item.IncludeHeader,
+                    groupByExpression: string.IsNullOrWhiteSpace(item.GroupByExpression) ? null : item.GroupByExpression,
+                    footerAggregates: item.FooterAggregates.Select(aggregate => new TableAggregateDefinition
+                    {
+                        ColumnIndex = aggregate.ColumnIndex,
+                        ValueExpression = aggregate.ValueExpression,
+                        Kind = Enum.TryParse<TableAggregateKind>(aggregate.Kind, true, out var parsedKind)
+                            ? parsedKind
+                            : TableAggregateKind.Sum,
+                        FormatString = aggregate.FormatString
+                    }).ToList(),
+                    footerLabel: item.FooterLabel,
+                    footerLabelColumnIndex: item.FooterLabelColumnIndex);
+                break;
+        }
     }
 
     private IReadOnlyList<ReportBlock> ApplyPostProcessors(IReadOnlyList<ReportBlock> blocks)
@@ -1040,6 +1126,7 @@ public sealed class DefaultReportBuilder : IReportBuilder
                 out result);
         }
     }
+
 
     private static ExpressionContext CreateExpressionContext(IReadOnlyDictionary<string, object?> row, int rowIndex)
     {

@@ -6,6 +6,7 @@ using KineticReports.Core.Engine;
 using KineticReports.Core.Engine.Building;
 using KineticReports.Core.Engine.Data;
 using KineticReports.Core.Engine.DependencyInjection;
+using KineticReports.Core.Engine.Expressions;
 using KineticReports.Core.Export.Html;
 using KineticReports.Core.Plugins;
 using KineticReports.Core.Rendering.Skia;
@@ -43,6 +44,8 @@ public static class KeneticReportsServiceCollectionExtensions
         services.AddScoped<IPluginManager, PluginServicePluginManagerAdapter>();
 
         services.AddKineticReportsEngine(configureBuilder: options.ConfigureDefaultReportBuilder);
+        services.RemoveAll<IExpressionEvaluator>();
+        services.AddScoped<IExpressionEvaluator, DefaultExpressionEvaluator>();
 
         services.AddScoped<ITextLayout, SkiaTextLayout>();
 

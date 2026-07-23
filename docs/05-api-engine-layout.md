@@ -6,7 +6,7 @@ This page documents how orchestration and layout contracts work.
 
 | Interface                | Purpose                                         | Key Methods                       |
 | ------------------------ | ----------------------------------------------- | --------------------------------- |
-| `IReportEngine`        | Main orchestration entry point                  | `RunAsync(...)`                 |
+| `IReportEngine`        | Main orchestration entry point                  | `RunAsync(definition)` and `RunAsync(...)` |
 | `IDataResolver`        | Resolves rows for each`DataSourceDefinition`  | `ResolveAsync(...)`             |
 | `IExpressionEvaluator` | Evaluates expression strings                    | `Evaluate(expression, context)` |
 | `IReportBuilder`       | Builds ordered report blocks from resolved data | `Build(dataContext, evaluator)` |
@@ -39,6 +39,16 @@ builder.Services.AddKineticReportsEngine(ServiceLifetime.Singleton);
 ```
 
 You can override any registration afterwards.
+
+## One-Call Execution
+
+Use this when you want the shortest path from `ReportDefinition` to `ReportDocument`:
+
+```csharp
+var reportDocument = await reportEngine.RunAsync(definition, cancellationToken);
+```
+
+Use the advanced overload when you need explicit parameters, sizing context, or layout options.
 
 ## DefaultReportBuilder Fluent API
 

@@ -1,0 +1,170 @@
+{
+  "schemaVersion": "1.0",
+  "id": "json-quarterly-business-review",
+  "name": "Quarterly Business Review",
+  "description": "A multi-page leadership report loaded directly as a canonical ReportDefinition.",
+  "author": "KineticReports Samples",
+  "metadata": {},
+  "parameters": [],
+  "dataSources": [
+    {
+      "id": "regional-performance",
+      "name": "Regional Performance",
+      "providerType": "InMemory",
+      "properties": {}
+    },
+    {
+      "id": "top-accounts",
+      "name": "Top Accounts",
+      "providerType": "InMemory",
+      "properties": {}
+    },
+    {
+      "id": "monthly-trend",
+      "name": "Monthly Trend",
+      "providerType": "InMemory",
+      "properties": {}
+    },
+    {
+      "id": "sales-orders-detail",
+      "name": "Selected Closed Orders",
+      "providerType": "InMemory",
+      "properties": {}
+    }
+  ],
+  "styles": [],
+  "layout": {
+    "pageHeader": [
+      {
+        "id": "qbr-title",
+        "kind": "Text",
+        "text": "Quarterly Business Review"
+      },
+      {
+        "id": "qbr-subtitle",
+        "kind": "Text",
+        "text": "FY2026 Q2 revenue performance, strategic accounts, and month-by-month trend."
+      }
+    ],
+    "body": [
+      {
+        "id": "qbr-intro",
+        "kind": "Text",
+        "text": "Prepared for the executive leadership team on {CurrentDate}. This report shows regional attainment, the current top account portfolio, and the monthly commercial trend line."
+      },
+      {
+        "id": "qbr-region-title",
+        "kind": "Text",
+        "text": "Regional Performance"
+      },
+      {
+        "id": "qbr-region-table",
+        "kind": "Table",
+        "dataSourceId": "regional-performance",
+        "columns": [
+          { "header": "Region", "valueExpression": "{Region}", "minWidth": 170, "grow": 2 },
+          { "header": "Revenue", "valueExpression": "{Revenue}", "minWidth": 120, "grow": 1 },
+          { "header": "Target", "valueExpression": "{Target}", "minWidth": 120, "grow": 1 },
+          { "header": "Variance", "valueExpression": "{Variance}", "minWidth": 120, "grow": 1 },
+          { "header": "Accounts", "valueExpression": "{Accounts}", "minWidth": 90, "grow": 1 }
+        ],
+        "footerAggregates": [
+          { "columnIndex": 1, "valueExpression": "{Revenue}", "kind": "Sum", "formatString": "0.##" },
+          { "columnIndex": 2, "valueExpression": "{Target}", "kind": "Sum", "formatString": "0.##" },
+          { "columnIndex": 3, "valueExpression": "{Variance}", "kind": "Sum", "formatString": "0.##" },
+          { "columnIndex": 4, "valueExpression": "{Accounts}", "kind": "Sum", "formatString": "0.##" }
+        ],
+        "footerLabel": "Total",
+        "footerLabelColumnIndex": 0
+      },
+      {
+        "id": "qbr-top-accounts-title",
+        "kind": "Text",
+        "text": "Top Accounts And Renewals"
+      },
+      {
+        "id": "qbr-top-accounts-table",
+        "kind": "Table",
+        "dataSourceId": "top-accounts",
+        "columns": [
+          { "header": "Customer", "valueExpression": "{Customer}", "minWidth": 180, "grow": 2 },
+          { "header": "Segment", "valueExpression": "{Segment}", "minWidth": 110, "grow": 1 },
+          { "header": "Annual Revenue", "valueExpression": "{AnnualRevenue}", "minWidth": 130, "grow": 1 },
+          { "header": "Renewal Date", "valueExpression": "{RenewalDate}", "minWidth": 120, "grow": 1 },
+          { "header": "Owner", "valueExpression": "{Owner}", "minWidth": 130, "grow": 1 }
+        ],
+        "footerAggregates": [
+          { "columnIndex": 2, "valueExpression": "{AnnualRevenue}", "kind": "Sum", "formatString": "0.##" }
+        ],
+        "footerLabel": "Portfolio ARR",
+        "footerLabelColumnIndex": 0
+      },
+      {
+        "id": "qbr-page-break",
+        "kind": "PageBreak"
+      },
+      {
+        "id": "qbr-trend-title",
+        "kind": "Text",
+        "text": "Monthly Commercial Trend"
+      },
+      {
+        "id": "qbr-trend-copy",
+        "kind": "Text",
+        "text": "The second page gives the operating cadence view that leaders expect in a board-ready review deck."
+      },
+      {
+        "id": "qbr-trend-table",
+        "kind": "Table",
+        "dataSourceId": "monthly-trend",
+        "columns": [
+          { "header": "Month", "valueExpression": "{Month}", "minWidth": 130, "grow": 2 },
+          { "header": "Billings", "valueExpression": "{Billings}", "minWidth": 130, "grow": 1 },
+          { "header": "Gross Margin", "valueExpression": "{GrossMargin}", "minWidth": 120, "grow": 1 },
+          { "header": "New Logos", "valueExpression": "{NewLogos}", "minWidth": 100, "grow": 1 }
+        ],
+        "footerAggregates": [
+          { "columnIndex": 1, "valueExpression": "{Billings}", "kind": "Sum", "formatString": "0.##" },
+          { "columnIndex": 3, "valueExpression": "{NewLogos}", "kind": "Sum", "formatString": "0.##" }
+        ],
+        "footerLabel": "Six-month total",
+        "footerLabelColumnIndex": 0
+      },
+      {
+        "id": "qbr-orders-title",
+        "kind": "Text",
+        "text": "Selected Closed Orders"
+      },
+      {
+        "id": "qbr-orders-table",
+        "kind": "Table",
+        "dataSourceId": "sales-orders-detail",
+        "columns": [
+          { "header": "Order #", "valueExpression": "{OrderNumber}", "minWidth": 95, "grow": 1 },
+          { "header": "Customer", "valueExpression": "{Customer}", "minWidth": 170, "grow": 2 },
+          { "header": "Region", "valueExpression": "{Region}", "minWidth": 120, "grow": 1 },
+          { "header": "Order Date", "valueExpression": "{OrderDate}", "minWidth": 110, "grow": 1 },
+          { "header": "Amount", "valueExpression": "{Amount}", "minWidth": 120, "grow": 1 },
+          { "header": "Status", "valueExpression": "{Status}", "minWidth": 120, "grow": 1 }
+        ],
+        "footerAggregates": [
+          { "columnIndex": 4, "valueExpression": "{Amount}", "kind": "Sum", "formatString": "0.##" }
+        ],
+        "footerLabel": "Closed-book total",
+        "footerLabelColumnIndex": 0
+      }
+    ],
+    "pageFooter": [
+      {
+        "id": "qbr-footer-page",
+        "kind": "Text",
+        "text": "Page {PageNumber}"
+      },
+      {
+        "id": "qbr-footer-generated",
+        "kind": "Text",
+        "text": "Generated {CurrentDate}"
+      }
+    ]
+  }
+}

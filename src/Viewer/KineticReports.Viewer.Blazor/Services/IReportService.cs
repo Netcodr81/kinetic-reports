@@ -1,6 +1,7 @@
 namespace KineticReports.Viewer.Blazor.Services;
 
 using KineticReports.Core.Definition;
+using KineticReports.Core.Layout;
 
 /// <summary>
 /// Contract for report execution and export operations in Blazor components.
@@ -14,6 +15,11 @@ public interface IReportService
         ReportDefinition definition,
         IReadOnlyDictionary<string, object?> parameters,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Renders a prebuilt report document as HTML for viewer preview.
+    /// </summary>
+    Task<string> RenderHtmlAsync(ReportDocument reportDocument, CancellationToken ct = default);
 
     /// <summary>
     /// Gets available export formats.
@@ -30,6 +36,14 @@ public interface IReportService
         CancellationToken ct = default);
 
     /// <summary>
+    /// Exports a prebuilt report document using the requested format.
+    /// </summary>
+    Task<ReportViewerExportResult> ExportAsync(
+        ReportDocument reportDocument,
+        string formatId,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Performs a page-local hit-test against the report visual tree.
     /// </summary>
     Task<ReportViewerHitTestResult> HitTestAsync(
@@ -41,11 +55,30 @@ public interface IReportService
         CancellationToken ct = default);
 
     /// <summary>
+    /// Performs a page-local hit-test against a prebuilt report document.
+    /// </summary>
+    Task<ReportViewerHitTestResult> HitTestAsync(
+        ReportDocument reportDocument,
+        int pageNumber,
+        float x,
+        float y,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Searches report text content and returns deterministic ordered matches.
     /// </summary>
     Task<ReportViewerTextSearchResult> SearchTextAsync(
         ReportDefinition definition,
         IReadOnlyDictionary<string, object?> parameters,
+        string query,
+        int? pageNumber = null,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Searches text content in a prebuilt report document.
+    /// </summary>
+    Task<ReportViewerTextSearchResult> SearchTextAsync(
+        ReportDocument reportDocument,
         string query,
         int? pageNumber = null,
         CancellationToken ct = default);

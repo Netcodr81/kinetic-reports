@@ -1,6 +1,7 @@
 namespace KineticReports.Core.Authoring.Compilation;
 
 using KineticReports.Core.Authoring.Components;
+using KineticReports.Core.Definition;
 
 /// <summary>
 /// Maps authoring component types to canonical runtime-oriented component hints.
@@ -46,6 +47,28 @@ internal static class ComponentCompilationMapper
                 StringComparer.Ordinal);
     }
 
+    /// <summary>
+    /// Builds a canonical layout definition from compiled components.
+    /// </summary>
+    public static ReportLayoutDefinition BuildLayout(IReadOnlyList<CompiledComponentMetadata> components)
+    {
+        ArgumentNullException.ThrowIfNull(components);
+
+        var header = new List<ReportLayoutItemDefinition>();
+        var body = new List<ReportLayoutItemDefinition>();
+        var footer = new List<ReportLayoutItemDefinition>();
+
+        foreach (var component in components)
+            AppendLayoutItems(component, body, header, footer, ReportLayoutTarget.Body);
+
+        return new ReportLayoutDefinition
+        {
+            PageHeader = header,
+            Body = body,
+            PageFooter = footer
+        };
+    }
+
     private static CompiledComponentMetadata CompileComponent(ReportComponentDefinition component)
     {
         var normalized = GetNormalization(component.Type);
@@ -87,6 +110,143 @@ internal static class ComponentCompilationMapper
             foreach (var child in Flatten(component.Children))
                 yield return child;
         }
+    }
+
+    private static void AppendLayoutItems(
+        CompiledComponentMetadata component,
+        List<ReportLayoutItemDefinition> body,
+        List<ReportLayoutItemDefinition> header,
+        List<ReportLayoutItemDefinition> footer,
+        ReportLayoutTarget currentTarget)
+    {
+        if (HasSupportRole(component, "Header"))
+        {
+            foreach (var child in component.Children)
+                AppendLayoutItems(child, body, header, footer, ReportLayoutTarget.Header);
+
+            return;
+        }
+
+        if (HasSupportRole(component, "Footer"))
+        {
+            foreach (var child in component.Children)
+                AppendLayoutItems(child, body, header, footer, ReportLayoutTarget.Footer);
+
+            return;
+        }
+
+        var target = currentTarget switch
+        {
+            ReportLayoutTarget.Header => header,
+            ReportLayoutTarget.Footer => footer,
+            _ => body
+        };
+
+        if (ForcesPageBreak(component))
+        {
+            target.Add(new ReportLayoutItemDefinition
+            {
+                Id = component.Id,
+                Kind = ReportLayoutItemKind.PageBreak
+            });
+
+            return;
+        }
+
+        if (string.Equals(component.CanonicalType, "Text", StringComparison.OrdinalIgnoreCase))
+        {
+            var text = TryGetBinding(component, "Text")
+                ?? TryGetProperty(component, "Text")
+                ?? component.Name
+                ?? component.Id;
+
+            target.Add(new ReportLayoutItemDefinition
+            {
+                Id = component.Id,
+                Kind = ReportLayoutItemKind.Text,
+                Text = NormalizeTokens(text)
+            });
+
+            return;
+        }
+
+        if (string.Equals(component.CanonicalType, "Table", StringComparison.OrdinalIgnoreCase)
+            && !string.IsNullOrWhiteSpace(component.DataSourceId))
+        {
+            var columnsJson = TryGetProperty(component, "ColumnsJson");
+            if (!string.IsNullOrWhiteSpace(columnsJson))
+            {
+                var columns = global::System.Text.Json.JsonSerializer.Deserialize<IReadOnlyList<ReportLayoutTableColumnDefinition>>(columnsJson);
+                var footerAggregatesJson = TryGetProperty(component, "FooterAggregatesJson");
+                var footerAggregates = string.IsNullOrWhiteSpace(footerAggregatesJson)
+                    ? Array.Empty<ReportLayoutTableAggregateDefinition>()
+                    : global::System.Text.Json.JsonSerializer.Deserialize<IReadOnlyList<ReportLayoutTableAggregateDefinition>>(footerAggregatesJson)
+                        ?? Array.Empty<ReportLayoutTableAggregateDefinition>();
+
+                if (columns is not null && columns.Count > 0)
+                {
+                    target.Add(new ReportLayoutItemDefinition
+                    {
+                        Id = component.Id,
+                        Kind = ReportLayoutItemKind.Table,
+                        DataSourceId = component.DataSourceId,
+                        Columns = columns,
+                        FooterAggregates = footerAggregates,
+                        FooterLabel = TryGetProperty(component, "FooterLabel") ?? "Total",
+                        FooterLabelColumnIndex = TryParseInt(TryGetProperty(component, "FooterLabelColumnIndex")) ?? 0,
+                        GroupByExpression = NormalizeNullableTokens(TryGetProperty(component, "GroupByExpression")),
+                        IncludeHeader = TryParseBool(TryGetProperty(component, "IncludeHeader")) ?? true,
+                        RepeatHeaders = TryParseBool(TryGetProperty(component, "RepeatHeaders")) ?? true
+                    });
+
+                    return;
+                }
+            }
+        }
+
+        foreach (var child in component.Children)
+            AppendLayoutItems(child, body, header, footer, currentTarget);
+    }
+
+    private static bool HasSupportRole(CompiledComponentMetadata component, string role)
+    {
+        var configuredRole = TryGetProperty(component, "support.role");
+        return string.Equals(configuredRole, role, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ForcesPageBreak(CompiledComponentMetadata component)
+    {
+        return string.Equals(TryGetProperty(component, "pagination.forcePageBreakBefore"), "true", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(component.SourceType, "PageBreak", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string? TryGetBinding(CompiledComponentMetadata component, string key)
+    {
+        return component.BoundFields.FirstOrDefault(pair => string.Equals(pair.Key, key, StringComparison.OrdinalIgnoreCase)).Value;
+    }
+
+    private static string? TryGetProperty(CompiledComponentMetadata component, string key)
+    {
+        return component.Properties.FirstOrDefault(pair => string.Equals(pair.Key, key, StringComparison.OrdinalIgnoreCase)).Value;
+    }
+
+    private static int? TryParseInt(string? value)
+        => int.TryParse(value, out var parsed) ? parsed : null;
+
+    private static bool? TryParseBool(string? value)
+        => bool.TryParse(value, out var parsed) ? parsed : null;
+
+    private static string NormalizeTokens(string expression)
+        => expression.Replace("{{", "{", StringComparison.Ordinal).Replace("}}", "}", StringComparison.Ordinal);
+
+    private static string? NormalizeNullableTokens(string? expression)
+        => string.IsNullOrWhiteSpace(expression) ? null : NormalizeTokens(expression);
+
+    private enum ReportLayoutTarget
+    {
+        Body,
+        Header,
+        Footer
     }
 
     private static ComponentNormalization GetNormalization(ReportComponentType type)

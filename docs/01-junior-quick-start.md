@@ -12,10 +12,19 @@ KineticReports is a deterministic reporting engine for .NET 10.
 ## First Things to Learn
 
 1. `ReportDefinition` is the source definition of a report.
-2. `IReportEngine` orchestrates the pipeline.
+2. `IReportEngine` orchestrates the pipeline and can run directly from definition to document.
 3. `ILayoutEngine` computes geometry and pages.
 4. `ReportDocument` is the immutable final layout model.
 5. Renderers and exporters consume `ReportDocument`.
+
+### One-Call Core API
+
+```csharp
+var reportDocument = await reportEngine.RunAsync(definition, cancellationToken);
+```
+
+This is the default path for apps that want to pass a `ReportDefinition` in and get a
+`ReportDocument` out for viewer rendering or export.
 
 ## Typical Local Run (Sample App)
 

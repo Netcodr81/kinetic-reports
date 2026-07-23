@@ -1,6 +1,7 @@
 namespace KineticReports.Core.Authoring.Serialization;
 
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using KineticReports.Core.Definition;
 
 /// <summary>
@@ -13,6 +14,11 @@ public sealed class SystemTextJsonReportDefinitionSerializer : IReportDefinition
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
     };
+
+    static SystemTextJsonReportDefinitionSerializer()
+    {
+        Options.Converters.Add(new JsonStringEnumConverter());
+    }
 
     /// <inheritdoc/>
     public string Serialize(ReportDefinition definition)

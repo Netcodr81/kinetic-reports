@@ -28,7 +28,6 @@ public sealed class DefaultDesignerDocumentCompiler : IDesignerDocumentCompiler
             ["authoring.componentTypes"] = componentSummary,
             ["authoring.componentCanonicalTypes"] = canonicalSummary,
             ["authoring.componentAliases"] = aliasMap,
-            ["authoring.compiledComponents"] = compiledComponents,
         };
 
         return new ReportDefinition
@@ -42,6 +41,7 @@ public sealed class DefaultDesignerDocumentCompiler : IDesignerDocumentCompiler
             Parameters = document.Parameters,
             DataSources = document.DataSources,
             Styles = document.Styles,
+            Layout = ComponentCompilationMapper.BuildLayout(compiledComponents),
         };
     }
 }

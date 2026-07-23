@@ -1,5 +1,6 @@
 @namespace KineticReports.Viewer.Blazor
 @using KineticReports.Core.Definition
+@using KineticReports.Core.Layout
 @using KineticReports.Viewer.Blazor.Services
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
@@ -29,7 +30,7 @@
                 }
             </select>
             <button class="btn btn-outline-secondary" @onclick="ExportAsync"
-                    disabled="@(IsLoading || Definition is null || string.IsNullOrWhiteSpace(_selectedFormatId))">
+                    disabled="@(IsLoading || !HasReportInput || string.IsNullOrWhiteSpace(_selectedFormatId))">
                 Export
             </button>
         </div>
@@ -84,11 +85,10 @@
             <div>
                 <label for="viewer-search-query" class="small text-muted">Search text</label>
                 <input id="viewer-search-query" class="form-control form-control-sm" type="text" @bind="_searchQuery"
-                       @bind:event="oninput" placeholder="Enter text to find"
-                       disabled="@(IsLoading || Definition is null)" />
+                       @bind:event="oninput" placeholder="Enter text to find" disabled="@(IsLoading || !HasReportInput)" />
             </div>
             <button class="btn btn-outline-primary btn-sm" @onclick="SearchAsync"
-                    disabled="@(IsLoading || string.IsNullOrWhiteSpace(_searchQuery) || Definition is null)">
+                    disabled="@(IsLoading || string.IsNullOrWhiteSpace(_searchQuery) || !HasReportInput)">
                 Search
             </button>
             <button class="btn btn-outline-secondary btn-sm" @onclick="SelectPreviousSearchMatch"
@@ -123,20 +123,20 @@
             <div>
                 <label for="viewer-hit-page" class="small text-muted">Page</label>
                 <input id="viewer-hit-page" class="form-control form-control-sm" type="number" min="1"
-                       @bind="_hitTestPageNumber" disabled="@(IsLoading || Definition is null)" />
+                       @bind="_hitTestPageNumber" disabled="@(IsLoading || !HasReportInput)" />
             </div>
             <div>
                 <label for="viewer-hit-x" class="small text-muted">X (DIP)</label>
                 <input id="viewer-hit-x" class="form-control form-control-sm" type="text" @bind="_hitTestX"
-                       placeholder="e.g. 120.5" disabled="@(IsLoading || Definition is null)" />
+                       placeholder="e.g. 120.5" disabled="@(IsLoading || !HasReportInput)" />
             </div>
             <div>
                 <label for="viewer-hit-y" class="small text-muted">Y (DIP)</label>
                 <input id="viewer-hit-y" class="form-control form-control-sm" type="text" @bind="_hitTestY"
-                       placeholder="e.g. 240" disabled="@(IsLoading || Definition is null)" />
+                       placeholder="e.g. 240" disabled="@(IsLoading || !HasReportInput)" />
             </div>
             <button class="btn btn-outline-primary btn-sm" @onclick="RunHitTestAsync"
-                    disabled="@(IsLoading || Definition is null)">
+                    disabled="@(IsLoading || !HasReportInput)">
                 Hit Test
             </button>
         </div>
@@ -203,7 +203,13 @@
     /// The report definition to execute.
     /// </summary>
     [Parameter]
-    public required ReportDefinition Definition { get; set; }
+    public ReportDefinition? Definition { get; set; }
+
+    /// <summary>
+    /// Optional prebuilt report document to render instead of executing a definition.
+    /// </summary>
+    [Parameter]
+    public ReportDocument? ReportDocument { get; set; }
 
     /// <summary>
     /// Parameters to pass to the report.
@@ -257,8 +263,10 @@
     private IJSObjectReference? _viewerModule;
     private DotNetObjectReference<ReportViewer>? _dotNetReference;
     private bool _viewerInteropInitialized;
+    private ReportDocument? _lastExecutedReportDocument;
 
     private bool CanNavigateSearchMatches => _searchMatches.Count > 0 && _activeSearchIndex >= 0;
+    private bool HasReportInput => ReportDocument is not null || Definition is not null;
 
     private ReportViewerTextSearchMatch? ActiveSearchMatch =>
         CanNavigateSearchMatches && _activeSearchIndex < _searchMatches.Count
@@ -279,11 +287,20 @@ StringComparison.OrdinalIgnoreCase)))
         InitializeParameterValues();
 
         if (AutoExecute
+            && ReportDocument is not null
+            && !ReferenceEquals(_lastExecutedReportDocument, ReportDocument))
+        {
+            await ExecuteReportAsync().ConfigureAwait(false);
+            _lastExecutedReportDocument = ReportDocument;
+            _lastExecutedDefinitionId = Definition?.Id;
+        }
+        else if (AutoExecute
             && Definition is not null
             && !string.Equals(_lastExecutedDefinitionId, Definition.Id, StringComparison.Ordinal))
         {
             await ExecuteReportAsync().ConfigureAwait(false);
             _lastExecutedDefinitionId = Definition.Id;
+            _lastExecutedReportDocument = ReportDocument;
         }
     }
 
@@ -319,9 +336,9 @@ StringComparison.OrdinalIgnoreCase)))
     /// </summary>
     private async Task ExecuteReportAsync()
     {
-        if (Definition == null)
+        if (!HasReportInput)
         {
-            ErrorMessage = "Report definition is required";
+            ErrorMessage = "A report definition or report document is required";
             return;
         }
 
@@ -338,12 +355,21 @@ StringComparison.OrdinalIgnoreCase)))
 
         try
         {
-            var typedParameters = BuildTypedParameters();
+            if (ReportDocument is not null)
+            {
+                HtmlContent = await ReportService.RenderHtmlAsync(
+                    ReportDocument,
+                    _cancellationTokenSource.Token);
+            }
+            else
+            {
+                var typedParameters = BuildTypedParameters();
 
-            HtmlContent = await ReportService.RenderHtmlAsync(
-                Definition,
-                typedParameters,
-                _cancellationTokenSource.Token);
+                HtmlContent = await ReportService.RenderHtmlAsync(
+                    Definition!,
+                    typedParameters,
+                    _cancellationTokenSource.Token);
+            }
 
             if (string.IsNullOrEmpty(HtmlContent))
             {
@@ -383,18 +409,30 @@ StringComparison.OrdinalIgnoreCase)))
 
     private async Task SearchAsync()
     {
-        if (Definition is null || string.IsNullOrWhiteSpace(_searchQuery))
+        if (!HasReportInput || string.IsNullOrWhiteSpace(_searchQuery))
             return;
 
         try
         {
-            var typedParameters = BuildTypedParameters();
-            var result = await ReportService.SearchTextAsync(
-                Definition,
-                typedParameters,
-                _searchQuery,
-                pageNumber: null,
-                ct: CancellationToken.None).ConfigureAwait(false);
+            ReportViewerTextSearchResult result;
+            if (ReportDocument is not null)
+            {
+                result = await ReportService.SearchTextAsync(
+                    ReportDocument,
+                    _searchQuery,
+                    pageNumber: null,
+                    ct: CancellationToken.None).ConfigureAwait(false);
+            }
+            else
+            {
+                var typedParameters = BuildTypedParameters();
+                result = await ReportService.SearchTextAsync(
+                    Definition!,
+                    typedParameters,
+                    _searchQuery,
+                    pageNumber: null,
+                    ct: CancellationToken.None).ConfigureAwait(false);
+            }
 
             _searchMatches = result.Matches;
             await OnSearchComplete.InvokeAsync(result);
@@ -436,7 +474,7 @@ StringComparison.OrdinalIgnoreCase)))
 
     private async Task RunHitTestAsync()
     {
-        if (Definition is null)
+        if (!HasReportInput)
             return;
 
         if (_hitTestPageNumber <= 0)
@@ -470,14 +508,26 @@ StringComparison.OrdinalIgnoreCase)))
 
         try
         {
-            var typedParameters = BuildTypedParameters();
-            _latestHitTestResult = await ReportService.HitTestAsync(
-                Definition,
-                typedParameters,
-                _hitTestPageNumber,
-                x,
-                y,
-                CancellationToken.None).ConfigureAwait(false);
+            if (ReportDocument is not null)
+            {
+                _latestHitTestResult = await ReportService.HitTestAsync(
+                    ReportDocument,
+                    _hitTestPageNumber,
+                    x,
+                    y,
+                    CancellationToken.None).ConfigureAwait(false);
+            }
+            else
+            {
+                var typedParameters = BuildTypedParameters();
+                _latestHitTestResult = await ReportService.HitTestAsync(
+                    Definition!,
+                    typedParameters,
+                    _hitTestPageNumber,
+                    x,
+                    y,
+                    CancellationToken.None).ConfigureAwait(false);
+            }
 
             await OnHitTestComplete.InvokeAsync(_latestHitTestResult);
 
@@ -506,7 +556,7 @@ StringComparison.OrdinalIgnoreCase)))
 
     private async Task ExportAsync()
     {
-        if (Definition is null || string.IsNullOrWhiteSpace(_selectedFormatId))
+        if (!HasReportInput || string.IsNullOrWhiteSpace(_selectedFormatId))
             return;
 
         IsLoading = true;
@@ -514,14 +564,25 @@ StringComparison.OrdinalIgnoreCase)))
 
         try
         {
-            var typedParameters = BuildTypedParameters();
-            var exportResult = await ReportService.ExportAsync(
-                Definition,
-                _selectedFormatId,
-                typedParameters,
-                CancellationToken.None).ConfigureAwait(false);
+            ReportViewerExportResult exportResult;
+            if (ReportDocument is not null)
+            {
+                exportResult = await ReportService.ExportAsync(
+                    ReportDocument,
+                    _selectedFormatId,
+                    CancellationToken.None).ConfigureAwait(false);
+            }
+            else
+            {
+                var typedParameters = BuildTypedParameters();
+                exportResult = await ReportService.ExportAsync(
+                    Definition!,
+                    _selectedFormatId,
+                    typedParameters,
+                    CancellationToken.None).ConfigureAwait(false);
+            }
 
-            var baseName = string.IsNullOrWhiteSpace(Definition.Name)
+            var baseName = string.IsNullOrWhiteSpace(Definition?.Name)
                 ? "report"
                 : string.Concat(Definition.Name.Select(ch => Path.GetInvalidFileNameChars().Contains(ch) ? '-' : ch));
             var fileName = $"{baseName}.{exportResult.FileExtension}";

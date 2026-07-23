@@ -43,4 +43,9 @@ public sealed record ReportDefinition
 
     /// <summary>Gets or inits the named style definitions used by elements in this report.</summary>
     public IReadOnlyList<StyleDefinition> Styles { get; init; } = [];
+
+    /// <summary>
+    /// Gets or inits the canonical report layout definition used by the default report builder.
+    /// </summary>
+    public ReportLayoutDefinition? Layout { get; init; }
 }

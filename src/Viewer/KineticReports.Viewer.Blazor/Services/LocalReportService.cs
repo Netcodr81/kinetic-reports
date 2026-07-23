@@ -76,6 +76,23 @@ public sealed class LocalReportService : IReportService
     }
 
     /// <inheritdoc/>
+    public async Task<string> RenderHtmlAsync(ReportDocument reportDocument, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(reportDocument);
+
+        try
+        {
+            _latestTrace = ["[Render] Using prebuilt ReportDocument", "[Export] Format: html"];
+            return await RenderHtmlCoreAsync(reportDocument, ct).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _latestTrace = [$"[Render] Failed: {ex.GetType().Name} - {ex.Message}"];
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task<ReportViewerExportResult> ExportAsync(
         ReportDefinition definition,
         string formatId,
@@ -100,6 +117,32 @@ public sealed class LocalReportService : IReportService
         {
             _latestTrace = [$"[Export] Failed: {ex.GetType().Name} - {ex.Message}"];
             System.Diagnostics.Debug.WriteLine($"HTML export failed: {ex.Message}");
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<ReportViewerExportResult> ExportAsync(
+        ReportDocument reportDocument,
+        string formatId,
+        CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(reportDocument);
+        if (string.IsNullOrWhiteSpace(formatId))
+            throw new ArgumentException("Format id is required.", nameof(formatId));
+
+        if (!string.Equals(formatId, "html", StringComparison.OrdinalIgnoreCase))
+            throw new NotSupportedException($"Local viewer service supports only 'html' export. Requested '{formatId}'.");
+
+        try
+        {
+            _latestTrace = ["[Render] Using prebuilt ReportDocument", "[Export] Format: html"];
+            var html = await RenderHtmlCoreAsync(reportDocument, ct).ConfigureAwait(false);
+            return new ReportViewerExportResult("html", "text/html", "html", System.Text.Encoding.UTF8.GetBytes(html));
+        }
+        catch (Exception ex)
+        {
+            _latestTrace = [$"[Export] Failed: {ex.GetType().Name} - {ex.Message}"];
             throw;
         }
     }
@@ -148,6 +191,43 @@ public sealed class LocalReportService : IReportService
     }
 
     /// <inheritdoc/>
+    public Task<ReportViewerHitTestResult> HitTestAsync(
+        ReportDocument reportDocument,
+        int pageNumber,
+        float x,
+        float y,
+        CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(reportDocument);
+        if (pageNumber <= 0) throw new ArgumentOutOfRangeException(nameof(pageNumber), "pageNumber must be greater than zero.");
+
+        var visualDocument = _visualDocumentBuilder.Build(reportDocument);
+        var index = _hitTestIndexBuilder.Build(visualDocument);
+        var hit = index.HitTest(pageNumber, new Point(x, y));
+
+        if (hit == null)
+        {
+            return Task.FromResult(new ReportViewerHitTestResult(
+                false,
+                pageNumber,
+                x,
+                y,
+                null,
+                null,
+                new Dictionary<string, string>()));
+        }
+
+        return Task.FromResult(new ReportViewerHitTestResult(
+            true,
+            pageNumber,
+            x,
+            y,
+            hit.Element.Id,
+            hit.LayerName,
+            hit.Element.Metadata));
+    }
+
+    /// <inheritdoc/>
     public async Task<ReportViewerTextSearchResult> SearchTextAsync(
         ReportDefinition definition,
         IReadOnlyDictionary<string, object?> parameters,
@@ -175,6 +255,31 @@ public sealed class LocalReportService : IReportService
         return new ReportViewerTextSearchResult(query, pageNumber, matches);
     }
 
+    /// <inheritdoc/>
+    public Task<ReportViewerTextSearchResult> SearchTextAsync(
+        ReportDocument reportDocument,
+        string query,
+        int? pageNumber = null,
+        CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(reportDocument);
+        if (string.IsNullOrWhiteSpace(query)) throw new ArgumentException("query is required.", nameof(query));
+        if (pageNumber.HasValue && pageNumber.Value <= 0) throw new ArgumentOutOfRangeException(nameof(pageNumber), "pageNumber must be greater than zero.");
+
+        var visualDocument = _visualDocumentBuilder.Build(reportDocument);
+        var index = _textSearchIndexBuilder.Build(visualDocument);
+
+        var matches = index.Search(query, pageNumber)
+            .Select(entry => new ReportViewerTextSearchMatch(
+                entry.PageNumber,
+                entry.LayerName,
+                entry.ElementId,
+                entry.Text))
+            .ToList();
+
+        return Task.FromResult(new ReportViewerTextSearchResult(query, pageNumber, matches));
+    }
+
     private async Task<string> RenderHtmlCoreAsync(
         ReportDefinition definition,
         IReadOnlyDictionary<string, object?> parameters,
@@ -189,6 +294,11 @@ public sealed class LocalReportService : IReportService
         ];
 
         var reportDocument = await ExecuteReportAsync(definition, parameters, ct).ConfigureAwait(false);
+        return await RenderHtmlCoreAsync(reportDocument, ct).ConfigureAwait(false);
+    }
+
+    private async Task<string> RenderHtmlCoreAsync(ReportDocument reportDocument, CancellationToken ct)
+    {
         _latestTrace = [.. _latestTrace, $"[Render] Engine produced {reportDocument.PageCount} page(s)"];
 
         using var stream = new MemoryStream();
@@ -213,9 +323,7 @@ public sealed class LocalReportService : IReportService
 
     private static LayoutOptions ResolveLayoutOptions(ReportDefinition definition)
     {
-        var metadata = definition.Metadata;
-        if (metadata.TryGetValue("authoring.compiledComponents", out var compiledComponents)
-            && compiledComponents is not null)
+        if (definition.Layout is not null)
         {
             return new LayoutOptions { PageMargins = new Thickness(0f) };
         }

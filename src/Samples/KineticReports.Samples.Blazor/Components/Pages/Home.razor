@@ -1,164 +1,83 @@
 @page "/"
-@using KineticReports.Core.Authoring.Components
+@using KineticReports.Core.Engine
+@using KineticReports.Core.Layout
 @using KineticReports.Samples.Blazor.Services
 @using KineticReports.Viewer.Blazor
 @using KineticReports.Viewer.Blazor.Services
 
 @using Microsoft.AspNetCore.Components.Web
-@inject IPluginService PluginService
-@inject IAuthoringJsonWorkflowService AuthoringWorkflowService
-@inject IAuthoredReportCatalogService ReportCatalogService
+@inject ISampleReportCatalogService ReportCatalogService
+@inject IReportEngine ReportEngine
 @inject IJSRuntime Js
 @rendermode InteractiveServer
 
 
-<PageTitle>KineticReports Samples</PageTitle>
+<PageTitle>KineticReports Realistic Sample</PageTitle>
 
 <div class="row">
-    <div class="col-lg-3">
+    <div class="col-lg-4">
         <div class="card mb-3">
             <div class="card-header">
-                <h5>Plugin Management</h5>
+                <h5 class="mb-0">Report Inputs</h5>
             </div>
             <div class="card-body">
                 <div class="mb-3">
-                    <button class="btn btn-primary w-100" @onclick="LoadPluginsAsync">
-                        @if (_isLoadingPlugins)
+                    <label class="form-label">Report Template</label>
+                    <select class="form-select form-select-sm" value="@_selectedTemplateId"
+                            @onchange="OnTemplateChanged">
+                        @foreach (var template in _templates)
                         {
-                            <span class="spinner-border spinner-border-sm me-2"></span>
-                            <span>Loading...</span>
-                        }
-                        else
-                        {
-                            <span>Load Plugins</span>
-                        }
-                    </button>
-                </div>
-
-                <div class="mb-3">
-                    <button class="btn btn-danger w-100" @onclick="UnloadPluginsAsync"
-                            disabled="@(PluginService.LoadedPlugins.Count == 0)">
-                        Unload All Plugins
-                    </button>
-                </div>
-
-                <hr />
-
-                <h6>Loaded Plugins:</h6>
-                @if (PluginService.LoadedPlugins.Count == 0)
-                {
-                    <p class="text-muted small">No plugins loaded</p>
-                }
-                else
-                {
-                    <div class="list-group">
-                        @foreach (var plugin in PluginService.LoadedPlugins)
-                        {
-                            <div class="list-group-item">
-                                <h6 class="mb-1">@plugin.Name</h6>
-                                <small class="text-muted">v@plugin.Version</small>
-                                @if (!string.IsNullOrEmpty(plugin.Author))
-                                {
-                                    <div class="small">by @plugin.Author</div>
-                                }
-                                @if (!string.IsNullOrEmpty(plugin.Description))
-                                {
-                                    <div class="small mt-1">@plugin.Description</div>
-                                }
-                            </div>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0">Report Catalog</h6>
-            </div>
-            <div class="card-body">
-                <div class="mb-2">
-                    <label class="form-label small">Saved reports</label>
-                    <select class="form-select form-select-sm" value="@_selectedCatalogItemId"
-                            @onchange="OnCatalogSelectionChanged">
-                        <option value="">(none)</option>
-                        @foreach (var item in _catalogItems)
-                        {
-                            <option value="@item.Id">@item.Name (@item.ProviderType)</option>
+                            <option value="@template.Id">@template.Name</option>
                         }
                     </select>
                 </div>
 
-                <div class="d-grid gap-2">
-                    <button class="btn btn-outline-primary btn-sm" @onclick="LoadCatalogEntryAsync"
-                            disabled="@(_isBusy || string.IsNullOrWhiteSpace(_selectedCatalogItemId))">
-                        Load Saved Report
-                    </button>
-                    <button class="btn btn-outline-danger btn-sm" @onclick="DeleteCatalogEntryAsync"
-                            disabled="@(_isBusy || string.IsNullOrWhiteSpace(_selectedCatalogItemId))">
-                        Delete Saved Report
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-9">
-        <div class="card">
-            <div class="card-header">
-                <h5>Report Workbench</h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-2 mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label">Report Type</label>
-                        <select class="form-select form-select-sm" value="@_selectedComponentType"
-                                @onchange="OnComponentTypeChanged" disabled="@_isBusy">
-                            @foreach (var componentType in _componentTypes)
-                            {
-                                <option value="@componentType">@componentType</option>
-                            }
-                        </select>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Data Source Type</label>
-                        <select class="form-select form-select-sm" value="@_selectedProviderType"
-                                @onchange="OnProviderTypeChanged" disabled="@_isBusy">
-                            @foreach (var provider in _providerOptions)
-                            {
-                                <option value="@provider.ProviderType">@provider.DisplayName</option>
-                            }
-                        </select>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Catalog Name</label>
-                        <input type="text" class="form-control form-control-sm" value="@_catalogName"
-                               @onchange="OnCatalogNameChanged" placeholder="Report name for save" />
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label">Data Provider</label>
+                    <select class="form-select form-select-sm" value="@_selectedProviderType"
+                            @onchange="OnProviderChanged">
+                        @foreach (var provider in _providers)
+                        {
+                            <option value="@provider.ProviderType">@provider.DisplayName</option>
+                        }
+                    </select>
                 </div>
 
-                <div class="d-flex align-items-end gap-2 flex-wrap mb-3">
-                    <button class="btn btn-primary btn-sm" @onclick="GenerateDefinitionAsync" disabled="@_isBusy">
+                <div class="d-grid gap-2 mb-3">
+                    <button class="btn btn-primary btn-sm" @onclick="LoadSelectedReportAsync" disabled="@_isBusy">
                         @if (_isBusy)
                         {
                             <span class="spinner-border spinner-border-sm me-2"></span>
                         }
-                        Author + Compile
+                        Load Report
                     </button>
-
-                    <button class="btn btn-outline-success btn-sm" @onclick="SaveCurrentReportAsync"
-                            disabled="@(_isBusy || _compiledDefinition is null || string.IsNullOrWhiteSpace(_json))">
-                        Save To Catalog
-                    </button>
-
                     <button class="btn btn-outline-secondary btn-sm" @onclick="DownloadJsonAsync"
-                            disabled="@(_isBusy || string.IsNullOrWhiteSpace(_json))">
-                        Download JSON
+                            disabled="@(_isBusy || string.IsNullOrWhiteSpace(_definitionJson))">
+                        Download Effective JSON
                     </button>
                 </div>
 
+                @if (!string.IsNullOrWhiteSpace(_selectedTemplateDescription))
+                {
+                    <p class="small text-muted mb-0">@_selectedTemplateDescription</p>
+                }
+            </div>
+        </div>
+
+        <div class="alert alert-secondary small mt-3 mb-0">
+            <div><strong>SQL Server provider setup:</strong></div>
+            <div>Connection string key: ConnectionStrings:SqlServer</div>
+            <div>Run the seed script at Data/sample-reports-sqlserver.seed.sql.</div>
+            <div>It creates the reporting tables used by both sample reports.</div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Report Preview</h5>
+            </div>
+            <div class="card-body">
                 @if (!string.IsNullOrWhiteSpace(_status))
                 {
                     <div class="alert alert-info py-2 mb-3">@_status</div>
@@ -173,20 +92,20 @@
                     <div class="col-lg-5 mb-3">
                         <div class="card h-100">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0">Generated JSON</h6>
-                                @if (!string.IsNullOrWhiteSpace(_selectedReportName))
+                                <h6 class="mb-0">Effective ReportDefinition JSON</h6>
+                                @if (!string.IsNullOrWhiteSpace(_activeReportName))
                                 {
-                                    <span class="small text-muted">@_selectedReportName</span>
+                                    <span class="small text-muted">@_activeReportName</span>
                                 }
                             </div>
                             <div class="card-body">
-                                @if (string.IsNullOrWhiteSpace(_json))
+                                @if (string.IsNullOrWhiteSpace(_definitionJson))
                                 {
-                                    <p class="text-muted mb-0">Click Author + Compile to produce JSON.</p>
+                                    <p class="text-muted mb-0">Select a template/provider, then click Load Report.</p>
                                 }
                                 else
                                 {
-                                    <pre class="json-preview mb-0">@_json</pre>
+                                    <pre class="json-preview mb-0">@_definitionJson</pre>
                                 }
                             </div>
                         </div>
@@ -198,13 +117,13 @@
                                 <h6 class="mb-0">Viewer</h6>
                             </div>
                             <div class="card-body">
-                                @if (_compiledDefinition is null)
+                                @if (_activeDefinition is null)
                                 {
-                                    <p class="text-muted mb-0">Create or load a report from catalog to view and export.</p>
+                                    <p class="text-muted mb-0">Load a report to preview the rendered output.</p>
                                 }
                                 else
                                 {
-                                    <ReportViewer Definition="@_compiledDefinition" Parameters="@_viewerParameters"
+                                    <ReportViewer Definition="@_activeDefinition" ReportDocument="@_activeReportDocument" Parameters="@_viewerParameters"
                                                   AutoExecute="true" OnExecutionComplete="OnViewerExecutionComplete"
                                                   OnSearchComplete="OnViewerSearchComplete"
                                                   OnHitTestComplete="OnViewerHitTestComplete" />
@@ -219,66 +138,42 @@
 </div>
 
 @code {
-    private const string MultiPageAllBlocksOption = "AllBlockTypesMultiPage";
-    private const string MultiPageAllBlocksSampleId = "all-components-multipage";
-
-    private bool _isLoadingPlugins;
     private bool _isBusy;
-    private string? _selectedReportName;
-    private string? _json;
+    private string? _activeReportName;
+    private string? _definitionJson;
     private string? _error;
     private string? _status;
-    private ReportDefinition? _compiledDefinition;
-    private IReadOnlyList<AuthoringDataProviderDescriptor> _providerOptions = [];
-    private IReadOnlyList<string> _componentTypes = [];
+    private ReportDefinition? _activeDefinition;
+    private ReportDocument? _activeReportDocument;
     private IReadOnlyDictionary<string, object?> _viewerParameters = new Dictionary<string, object?>();
-    private IReadOnlyList<AuthoredReportCatalogItem> _catalogItems = [];
-    private string _selectedComponentType = string.Empty;
+    private IReadOnlyList<SampleReportTemplateDescriptor> _templates = [];
+    private IReadOnlyList<ProviderOption> _providers =
+    [
+        new ProviderOption("InMemory", "In-Memory (Poco provider)"),
+        new ProviderOption("SqlServer", "SQL Server")
+    ];
+
+    private string _selectedTemplateId = string.Empty;
     private string _selectedProviderType = string.Empty;
-    private string _selectedCatalogItemId = string.Empty;
-    private string _catalogName = string.Empty;
+
+    private string? _selectedTemplateDescription => _templates
+        .FirstOrDefault(template => string.Equals(template.Id, _selectedTemplateId, StringComparison.Ordinal))
+        ?.Description;
 
     protected override async Task OnInitializedAsync()
     {
-        _providerOptions = AuthoringWorkflowService.GetProviderOptions();
-        _selectedProviderType = _providerOptions.FirstOrDefault()?.ProviderType ?? string.Empty;
+        _templates = ReportCatalogService.GetTemplates();
+        _selectedTemplateId = _templates.FirstOrDefault()?.Id ?? string.Empty;
+        _selectedProviderType = _providers.FirstOrDefault()?.ProviderType ?? string.Empty;
 
-        _componentTypes = Enum.GetValues<ReportComponentType>()
-            .Select(type => type.ToString())
-            .OrderBy(name => name, StringComparer.Ordinal)
-            .ToList();
-
-        _componentTypes = [MultiPageAllBlocksOption, .. _componentTypes];
-        _selectedComponentType = _componentTypes.FirstOrDefault() ?? string.Empty;
-
-        await RefreshCatalogAsync();
+        await LoadSelectedReportAsync();
     }
 
-    private async Task LoadPluginsAsync()
+    private async Task LoadSelectedReportAsync()
     {
-        _isLoadingPlugins = true;
-        try
+        if (string.IsNullOrWhiteSpace(_selectedTemplateId) || string.IsNullOrWhiteSpace(_selectedProviderType))
         {
-            await PluginService.InitializePluginAsync();
-            _status = "Plugins loaded.";
-        }
-        finally
-        {
-            _isLoadingPlugins = false;
-        }
-    }
-
-    private async Task UnloadPluginsAsync()
-    {
-        await PluginService.UnloadAllAsync();
-        _status = "Plugins unloaded.";
-    }
-
-    private async Task GenerateDefinitionAsync()
-    {
-        if (string.IsNullOrWhiteSpace(_selectedComponentType) || string.IsNullOrWhiteSpace(_selectedProviderType))
-        {
-            _error = "Select a report type and provider before authoring.";
+            _error = "Select a report template and provider.";
             return;
         }
 
@@ -287,17 +182,19 @@
 
         try
         {
-            var sampleId = ResolveSampleId(_selectedComponentType);
-            _json = AuthoringWorkflowService.GenerateSampleJson(sampleId, _selectedProviderType);
-            _compiledDefinition = AuthoringWorkflowService.CompileFromJson(_json);
-            _selectedReportName = _compiledDefinition.Name;
-            _catalogName = _selectedReportName ?? string.Empty;
-            _viewerParameters = BuildDefaultParameters(_compiledDefinition);
-            _status = $"Compiled '{_compiledDefinition.Name}' from authored JSON.";
+            _activeDefinition = await ReportCatalogService.LoadAsync(_selectedTemplateId, _selectedProviderType);
+            _definitionJson = await ReportCatalogService.LoadJsonAsync(_selectedTemplateId, _selectedProviderType);
+            _activeReportName = _activeDefinition.Name;
+            _viewerParameters = BuildDefaultParameters(_activeDefinition);
+            _activeReportDocument = await ReportEngine.RunAsync(_activeDefinition);
+            _status = $"Loaded '{_activeDefinition.Name}' using provider '{_selectedProviderType}' and built {_activeReportDocument.PageCount} page(s).";
         }
         catch (Exception ex)
         {
             _error = ex.Message;
+            _activeDefinition = null;
+            _activeReportDocument = null;
+            _definitionJson = null;
         }
         finally
         {
@@ -305,134 +202,15 @@
         }
     }
 
-    private async Task SaveCurrentReportAsync()
-    {
-        if (_compiledDefinition is null || string.IsNullOrWhiteSpace(_json))
-            return;
-
-        _isBusy = true;
-        _error = null;
-
-        try
-        {
-            var reportName = string.IsNullOrWhiteSpace(_catalogName)
-                ? _compiledDefinition.Name
-                : _catalogName.Trim();
-
-            var sampleId = ResolveSampleId(_selectedComponentType);
-            var saved = await ReportCatalogService.SaveAsync(
-                string.IsNullOrWhiteSpace(_selectedCatalogItemId) ? null : _selectedCatalogItemId,
-                reportName,
-                sampleId,
-                _selectedProviderType,
-                _json);
-
-            _selectedCatalogItemId = saved.Item.Id;
-            _catalogName = saved.Item.Name;
-            _status = $"Saved '{saved.Item.Name}' to catalog.";
-            await RefreshCatalogAsync();
-        }
-        catch (Exception ex)
-        {
-            _error = ex.Message;
-        }
-        finally
-        {
-            _isBusy = false;
-        }
-    }
-
-    private async Task LoadCatalogEntryAsync()
-    {
-        if (string.IsNullOrWhiteSpace(_selectedCatalogItemId))
-            return;
-
-        _isBusy = true;
-        _error = null;
-
-        try
-        {
-            var entry = await ReportCatalogService.GetAsync(_selectedCatalogItemId);
-            if (entry is null)
-            {
-                _error = "Selected catalog report could not be found.";
-                return;
-            }
-
-            _json = entry.Json;
-            _compiledDefinition = AuthoringWorkflowService.CompileFromJson(_json);
-            _selectedReportName = _compiledDefinition.Name;
-            _selectedProviderType = entry.Item.ProviderType;
-            _catalogName = entry.Item.Name;
-            _viewerParameters = BuildDefaultParameters(_compiledDefinition);
-            _status = $"Loaded '{entry.Item.Name}' from catalog.";
-        }
-        catch (Exception ex)
-        {
-            _error = ex.Message;
-        }
-        finally
-        {
-            _isBusy = false;
-        }
-    }
-
-    private async Task DeleteCatalogEntryAsync()
-    {
-        if (string.IsNullOrWhiteSpace(_selectedCatalogItemId))
-            return;
-
-        _isBusy = true;
-        _error = null;
-
-        try
-        {
-            var deleted = await ReportCatalogService.DeleteAsync(_selectedCatalogItemId);
-            if (!deleted)
-            {
-                _error = "Report was not found in catalog.";
-                return;
-            }
-
-            _selectedCatalogItemId = string.Empty;
-            _status = "Deleted report from catalog.";
-            await RefreshCatalogAsync();
-        }
-        catch (Exception ex)
-        {
-            _error = ex.Message;
-        }
-        finally
-        {
-            _isBusy = false;
-        }
-    }
-
-    private async Task RefreshCatalogAsync()
-    {
-        _catalogItems = await ReportCatalogService.ListAsync();
-    }
-
-    private void OnComponentTypeChanged(ChangeEventArgs args)
-    {
-        _selectedComponentType = Convert.ToString(args.Value) ?? string.Empty;
-        ResetTransientStatus();
-    }
-
-    private void OnProviderTypeChanged(ChangeEventArgs args)
+    private void OnProviderChanged(ChangeEventArgs args)
     {
         _selectedProviderType = Convert.ToString(args.Value) ?? string.Empty;
         ResetTransientStatus();
     }
 
-    private void OnCatalogNameChanged(ChangeEventArgs args)
+    private void OnTemplateChanged(ChangeEventArgs args)
     {
-        _catalogName = Convert.ToString(args.Value) ?? string.Empty;
-    }
-
-    private void OnCatalogSelectionChanged(ChangeEventArgs args)
-    {
-        _selectedCatalogItemId = Convert.ToString(args.Value) ?? string.Empty;
+        _selectedTemplateId = Convert.ToString(args.Value) ?? string.Empty;
         ResetTransientStatus();
     }
 
@@ -464,13 +242,13 @@
 
     private async Task DownloadJsonAsync()
     {
-        if (string.IsNullOrWhiteSpace(_json))
+        if (string.IsNullOrWhiteSpace(_definitionJson))
             return;
 
-        var fileName = string.IsNullOrWhiteSpace(_selectedReportName)
-            ? "authored-report.json"
-            : $"{_selectedReportName.Replace(' ', '-')}.json";
-        var payload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(_json));
+        var fileName = string.IsNullOrWhiteSpace(_activeReportName)
+            ? "report-definition.json"
+            : $"{_activeReportName.Replace(' ', '-')}.json";
+        var payload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(_definitionJson));
 
         await Js.InvokeVoidAsync(
             "kineticReports.downloadFromBase64",
@@ -501,13 +279,7 @@
         _error = null;
     }
 
-    private static string ResolveSampleId(string selectedType)
-    {
-        if (string.Equals(selectedType, MultiPageAllBlocksOption, StringComparison.OrdinalIgnoreCase))
-            return MultiPageAllBlocksSampleId;
-
-        return $"component-{selectedType.ToLowerInvariant()}";
-    }
+    private sealed record ProviderOption(string ProviderType, string DisplayName);
 }
 
 <style>

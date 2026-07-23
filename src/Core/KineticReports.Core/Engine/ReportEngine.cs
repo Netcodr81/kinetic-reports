@@ -6,6 +6,7 @@ using KineticReports.Core.Engine.Data;
 using KineticReports.Core.Engine.Expressions;
 using KineticReports.Core.Layout;
 using KineticReports.Core.LayoutEngine;
+using KineticReports.Core.Typography;
 
 /// <summary>
 /// Default implementation of <see cref="IReportEngine"/>.
@@ -22,6 +23,7 @@ public sealed class ReportEngine : IReportEngine
     private readonly IExpressionEvaluator _expressionEvaluator;
     private readonly IReportBuilder _blocksBuilder;
     private readonly ILayoutEngine _layoutEngine;
+    private readonly ITextLayout? _textLayout;
 
     /// <summary>
     /// Initialises a new <see cref="ReportEngine"/> with all required collaborators.
@@ -30,16 +32,45 @@ public sealed class ReportEngine : IReportEngine
     /// <param name="expressionEvaluator">Evaluates field-reference expressions against data rows.</param>
     /// <param name="blocksBuilder">Builds the ordered report blocks from the definition and data.</param>
     /// <param name="layoutEngine">Runs LayoutSizing, Arrange, and Pagination passes.</param>
+    /// <param name="textLayout">
+    /// Optional text layout service used by the convenience <c>RunAsync(ReportDefinition, CancellationToken)</c>
+    /// overload to create a default <see cref="LayoutSizingContext"/>.
+    /// </param>
     public ReportEngine(
         IDataResolver dataResolver,
         IExpressionEvaluator expressionEvaluator,
         IReportBuilder blocksBuilder,
-        ILayoutEngine layoutEngine)
+        ILayoutEngine layoutEngine,
+        ITextLayout? textLayout = null)
     {
         _dataResolver = dataResolver;
         _expressionEvaluator = expressionEvaluator;
         _blocksBuilder = blocksBuilder;
         _layoutEngine = layoutEngine;
+        _textLayout = textLayout;
+    }
+
+    /// <inheritdoc/>
+    public Task<ReportDocument> RunAsync(
+        ReportDefinition definition,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+
+        if (_textLayout is null)
+        {
+            throw new InvalidOperationException(
+                "No ITextLayout service is available for default report execution. " +
+                "Register an ITextLayout implementation in DI or call the RunAsync overload " +
+                "that accepts parameters and ILayoutSizingContext.");
+        }
+
+        return RunAsync(
+            definition,
+            parameters: new Dictionary<string, object?>(),
+            layoutSizingContext: new LayoutSizingContext(_textLayout),
+            layoutOptions: null,
+            cancellationToken: cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -50,6 +81,10 @@ public sealed class ReportEngine : IReportEngine
         LayoutOptions? layoutOptions = null,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(parameters);
+        ArgumentNullException.ThrowIfNull(layoutSizingContext);
+
         var options = layoutOptions ?? new LayoutOptions();
 
         // 1. Resolve all declared data sources.
@@ -75,8 +110,8 @@ public sealed class ReportEngine : IReportEngine
         var blocks = _blocksBuilder.Build(dataContext, _expressionEvaluator);
 
         // 3. Run the layout pipeline: LayoutSizing → Arrange → Pagination.
-        var ReportDocument = _layoutEngine.Layout(blocks, options, layoutSizingContext);
+        var reportDocument = _layoutEngine.Layout(blocks, options, layoutSizingContext);
 
-        return ReportDocument;
+        return reportDocument;
     }
 }
