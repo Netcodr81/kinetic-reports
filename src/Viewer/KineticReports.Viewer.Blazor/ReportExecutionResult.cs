@@ -1,7 +1,5 @@
 namespace KineticReports.Viewer.Blazor;
 
-using KineticReports.Core.Layout;
-
 /// <summary>
 /// Result of a report execution in a Blazor component.
 /// </summary>
@@ -13,8 +11,11 @@ public sealed class ReportExecutionResult
     /// <summary>Gets the timestamp of execution.</summary>
     public required DateTime ExecutedAt { get; set; }
 
-    /// <summary>Gets the resulting report layout (null if unsuccessful).</summary>
-    public ReportDocument? ReportDocument { get; set; }
+    /// <summary>Gets HTML preview content for the executed report.</summary>
+    public string HtmlContent { get; set; } = string.Empty;
+
+    /// <summary>Gets trace entries captured during execution/export.</summary>
+    public IReadOnlyList<string> Trace { get; set; } = [];
 
     /// <summary>Gets the error message if execution failed.</summary>
     public string? ErrorMessage { get; set; }

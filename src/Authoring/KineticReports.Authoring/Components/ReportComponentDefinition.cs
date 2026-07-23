@@ -25,9 +25,9 @@ public sealed record ReportComponentDefinition
     public string? RepeatPath { get; init; }
 
     /// <summary>
-    /// Gets or inits expression bindings (for example, Text={CustomerName}).
+    /// Gets or inits expression-bound fields (for example, Text={CustomerName}).
     /// </summary>
-    public IReadOnlyDictionary<string, string> Bindings { get; init; } = new Dictionary<string, string>();
+    public IReadOnlyDictionary<string, string> BoundFields { get; init; } = new Dictionary<string, string>();
 
     /// <summary>
     /// Gets or inits arbitrary component properties used by specific component types.

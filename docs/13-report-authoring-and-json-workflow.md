@@ -15,6 +15,10 @@ A lot of confusion comes from mixing two layers:
 
 The definition is static metadata. The data association happens at execution time.
 
+For authoring JSON, the source of truth is now `ReportDesignerDocument`.
+Compile that authoring contract into runtime artifacts, instead of treating runtime
+`ReportDefinition` as the primary editable authoring JSON model.
+
 The key runtime join is:
 
 1. `ReportDefinition.DataSources[*].Id` (authoring-time identifier)
@@ -95,6 +99,86 @@ var definition = new ReportDefinition
 ```csharp
 var definition = JsonSerializer.Deserialize<ReportDefinition>(json);
 ```
+
+### Preferred Authoring JSON Contract
+
+Use `ReportDesignerDocument` as the persisted authoring contract:
+
+1. Build `ReportDesignerDocument` in code (or UI editor)
+2. Serialize with `IReportDesignerDocumentSerializer`
+3. Deserialize and compile with `IDesignerDocumentCompiler` (or one-call `IDesignerDocumentCompilationService`)
+4. Execute runtime pipeline using compiled output + data
+
+```csharp
+using KineticReports.Authoring.Documents;
+using KineticReports.Authoring.Serialization;
+using KineticReports.Authoring.Components;
+
+var document = ReportDesignerDocumentBuilder
+   .Create("sales-report", "Sales Report")
+   .WithAuthor("Ops Team")
+   .AddComponent("header", ReportComponentType.Text, c =>
+      c.WithBinding("Text", "Sales Summary")
+       .WithPlacement(24, 24, 540, 36))
+   .AddComponent("sales-table", ReportComponentType.Table, c =>
+      c.BoundToDataSource("sales-orders")
+       .WithPlacement(24, 72, 540, 300))
+   .Build();
+
+IReportDesignerDocumentSerializer serializer = new SystemTextJsonReportDesignerDocumentSerializer();
+var json = serializer.Serialize(document);
+
+var loaded = serializer.Deserialize(json);
+```
+
+For a one-call compile pipeline from JSON to runtime definition:
+
+```csharp
+using KineticReports.Authoring.Compilation;
+
+IDesignerDocumentCompilationService compilation =
+   new DefaultDesignerDocumentCompilationService(
+      new SystemTextJsonReportDesignerDocumentSerializer(),
+      new DefaultDesignerDocumentCompiler());
+
+var runtimeDefinition = compilation.CompileFromJson(json);
+```
+
+In the Blazor sample app, this is wrapped by `IAuthoringJsonWorkflowService`
+(`AuthoringJsonWorkflowService`) for an end-to-end flow:
+
+1. Build sample `ReportDesignerDocument`
+2. Serialize to JSON
+3. Save JSON to disk
+4. Load JSON from disk
+5. Compile to runtime `ReportDefinition`
+
+```csharp
+// Registered in Program.cs via AddScoped<IAuthoringJsonWorkflowService, AuthoringJsonWorkflowService>()
+var document = authoringWorkflow.CreateSampleDocument();
+await authoringWorkflow.SaveDocumentJsonAsync(document, "reports/sales-report.json", ct);
+
+var definition = await authoringWorkflow.LoadAndCompileAsync("reports/sales-report.json", ct);
+```
+
+The sample UI also exposes this flow at route `/authoring-workflow` with buttons for:
+
+1. In-memory workflow (build + serialize + compile)
+2. File workflow (save JSON + load JSON + compile)
+
+The page displays generated JSON and compiled metadata for quick inspection.
+
+The same page now includes authored sample selections that demonstrate all built-in
+component categories and use cases:
+
+1. `All Components Showcase`
+2. `Structure Components Showcase`
+3. `Content Components Showcase`
+4. `Supporting Components Showcase`
+
+For components whose final renderer behavior is not fully implemented (for example,
+QR output), the samples include explicit placeholder metadata (for example,
+`barcode.format=QrCode` and `placeholder.note`) so authored intent is preserved.
 
 ## Part 2: How Data Is Associated with the Report
 
@@ -366,8 +450,84 @@ It provides:
 2. A default component catalog (`IReportComponentCatalog`)
 3. Designer document model (`ReportDesignerDocument`)
 4. Compiler contract + default implementation (`IDesignerDocumentCompiler`)
-5. JSON serializer abstraction + `System.Text.Json` implementation (`IReportDefinitionSerializer`)
-6. DI registration extension (`AddKineticReportsAuthoring`)
+5. Designer-document JSON serializer abstraction + `System.Text.Json` implementation (`IReportDesignerDocumentSerializer`)
+6. Runtime report-definition serializer abstraction + `System.Text.Json` implementation (`IReportDefinitionSerializer`)
+7. Fluent code-first authoring builders (`ReportDesignerDocumentBuilder`, `ReportComponentDefinitionBuilder`)
+8. One-call compile pipeline (`IDesignerDocumentCompilationService`)
+9. DI registration extension (`AddKineticReportsAuthoring`)
+
+The sample app also includes:
+
+1. `IAuthoringJsonWorkflowService` / `AuthoringJsonWorkflowService` for code-first JSON generation and compile workflow
+
+### Authoring Component Groups
+
+The built-in toolbox is split into three groups:
+
+1. Structure
+   - `Page`, `Section`, `Panel`, `Group`, `List`, `Table`
+2. Content
+   - `Text`, `Image`, `Chart`, `Line`, `Rectangle`, `Ellipse`, `Barcode`
+3. Supporting
+   - `Spacer`, `Divider`, `PageBreak`, `PageNumber`, `TotalPages`, `CurrentDate`, `CurrentTime`, `DocumentInfo`, `Header`, `Footer`, `Background`
+
+This organization is authoring-facing and is intentionally broader than the runtime block model.
+
+### Compile-Time Alias Normalization
+
+`DefaultDesignerDocumentCompiler` now emits canonical compile metadata so alias components can be handled consistently by downstream builders/plugins.
+
+Added metadata keys:
+
+1. `authoring.componentCanonicalTypes`
+   - Count summary grouped by canonical kind (`Structure`, `Content`, `Supporting`)
+2. `authoring.componentAliases`
+   - Map of source component type to canonical type when an alias is used
+3. `authoring.compiledComponents`
+   - Canonicalized component tree, including preset properties/bindings injected by the compiler
+
+Common alias examples:
+
+1. `List` -> canonical `Group` with repeat-mode metadata
+2. `Divider` -> canonical `Line` with `shape.kind=Line`
+3. `Spacer` -> canonical `Panel` with `support.role=Spacer`
+4. `PageNumber`, `TotalPages`, `CurrentDate`, `CurrentTime` -> canonical `Text` with token bindings
+5. `Header` and `Footer` -> canonical `Section` with support-role metadata
+
+The source component type is preserved in compiled metadata (`SourceType`) so tooling can round-trip editor intent.
+
+### Short Code-First Builder Example
+
+For code-first report generation, you can use the fluent Core builder pattern directly:
+
+```csharp
+using KineticReports.Core.Layout;
+using KineticReports.Core.Styling;
+
+var regionStyle = new AppliedStyle { FontFamily = "Arial", FontSize = 12f };
+var headerStyle = new AppliedStyle { FontFamily = "Arial", FontSize = 18f, FontWeight = FontWeight.Bold };
+var rowStyle = new AppliedStyle { FontFamily = "Arial", FontSize = 11f };
+var headerCellStyle = new AppliedStyle { FontFamily = "Arial", FontSize = 11f, FontWeight = FontWeight.SemiBold };
+var dataCellStyle = new AppliedStyle { FontFamily = "Consolas", FontSize = 11f };
+
+var columns = new[]
+{
+   new TableColumn { Width = 120f },
+   new TableColumn { Width = 180f },
+   new TableColumn { Width = 120f }
+};
+
+var blocks = new ReportLayoutBuilder()
+   .AddTextRegion("page-header", BlockType.PageHeader, regionStyle, headerStyle, "Sales Summary")
+   .BeginTable("sales-region", regionStyle, "sales-table", regionStyle, columns)
+   .AddHeaderRow("sales-header", rowStyle, headerCellStyle, ["OrderId", "Customer", "Amount"])
+   .AddDataRow("sales-row-1", rowStyle, dataCellStyle, ["SO-1001", "Contoso", "1250.00"])
+   .AddDataRow("sales-row-2", rowStyle, dataCellStyle, ["SO-1002", "Fabrikam", "980.00"])
+   .EndTable()
+   .Build();
+```
+
+This keeps block construction strongly typed while producing the same ordered `IReadOnlyList<ReportBlock>` expected by layout.
 
 The Blazor sample references and registers this package in:
 

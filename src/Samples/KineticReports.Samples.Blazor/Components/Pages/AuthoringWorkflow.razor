@@ -1,0 +1,437 @@
+@page "/authoring-workflow"
+@using KineticReports.Samples.Blazor.Services
+@inject IAuthoringJsonWorkflowService AuthoringWorkflowService
+@inject IJSRuntime Js
+@rendermode InteractiveServer
+
+<PageTitle>Authoring JSON Workflow</PageTitle>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Authoring JSON Workflow</h5>
+        <span class="text-muted small">Code-first -> JSON -> Compile</span>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">
+            This sample runs the end-to-end authoring flow:
+            build a <code>ReportDesignerDocument</code>, serialize it to JSON, persist/load it,
+            and compile to runtime <code>ReportDefinition</code>.
+        </p>
+
+        <div class="d-flex gap-2 flex-wrap mb-3">
+            <div class="d-flex align-items-center me-2">
+                <label for="sample-report-select" class="form-label mb-0 me-2 small text-muted">Sample</label>
+                <select id="sample-report-select" class="form-select form-select-sm" style="min-width: 280px;"
+                        value="@_selectedSampleId" @onchange="OnSampleChanged" disabled="@_isBusy">
+                    @foreach (var sample in _sampleReports)
+                    {
+                        <option value="@sample.Id">@GetSampleDisplayName(sample)</option>
+                    }
+                </select>
+            </div>
+
+            <div class="d-flex align-items-center me-2">
+                <label for="provider-select" class="form-label mb-0 me-2 small text-muted">Data Provider</label>
+                <select id="provider-select" class="form-select form-select-sm" style="min-width: 200px;"
+                        value="@_selectedProviderType" @onchange="OnProviderChanged" disabled="@_isBusy">
+                    @foreach (var provider in _providerOptions)
+                    {
+                        <option value="@provider.ProviderType">@provider.DisplayName</option>
+                    }
+                </select>
+            </div>
+
+            <button class="btn btn-primary" @onclick="RunInMemoryAsync" disabled="@_isBusy">
+                @if (_isBusy)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                Run In-Memory Workflow
+            </button>
+            <button class="btn btn-outline-primary" @onclick="RunFileWorkflowAsync" disabled="@_isBusy">
+                Save, Load, and Compile via File
+            </button>
+            <button class="btn btn-outline-success" @onclick="DownloadJsonAsync"
+                    disabled="@(_isBusy || string.IsNullOrWhiteSpace(_json))">
+                Download JSON
+            </button>
+            <button class="btn btn-outline-dark" @onclick="RenderPreviewAsync"
+                    disabled="@(_isBusy || _isRenderingPreview)">
+                @if (_isRenderingPreview)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                Preview Output
+            </button>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_selectedSampleDescription))
+        {
+            <div class="alert alert-secondary py-2 small">
+                @_selectedSampleDescription
+                @if (!string.IsNullOrWhiteSpace(_selectedProviderDescription))
+                {
+                    <br />
+                    <span class="text-muted">Provider: @_selectedProviderDescription</span>
+                }
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(_status))
+        {
+            <div class="alert alert-info py-2">@_status</div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <div class="alert alert-danger py-2">@_error</div>
+        }
+
+        <div class="row">
+            <div class="col-lg-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6 class="mb-0">Generated Authoring JSON</h6>
+                    </div>
+                    <div class="card-body">
+                        @if (string.IsNullOrWhiteSpace(_json))
+                        {
+                            <p class="text-muted mb-0">Run a workflow to generate JSON.</p>
+                        }
+                        else
+                        {
+                            <pre class="json-preview mb-0">@_json</pre>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6 class="mb-0">Compiled Definition Summary</h6>
+                    </div>
+                    <div class="card-body">
+                        @if (_compiledDefinition is null)
+                        {
+                            <p class="text-muted mb-0">Run a workflow to compile a definition.</p>
+                        }
+                        else
+                        {
+                            <dl class="row mb-0 small">
+                                <dt class="col-sm-5">Id</dt>
+                                <dd class="col-sm-7">@_compiledDefinition.Id</dd>
+
+                                <dt class="col-sm-5">Name</dt>
+                                <dd class="col-sm-7">@_compiledDefinition.Name</dd>
+
+                                <dt class="col-sm-5">Schema Version</dt>
+                                <dd class="col-sm-7">@_compiledDefinition.SchemaVersion</dd>
+
+                                <dt class="col-sm-5">Data Sources</dt>
+                                <dd class="col-sm-7">@_compiledDefinition.DataSources.Count</dd>
+
+                                <dt class="col-sm-5">Components</dt>
+                                <dd class="col-sm-7">@GetMetadataValue("authoring.componentCount")</dd>
+
+                                <dt class="col-sm-5">Canonical Types</dt>
+                                <dd class="col-sm-7">@GetMetadataValue("authoring.componentCanonicalTypes")</dd>
+
+                                <dt class="col-sm-5">Aliases</dt>
+                                <dd class="col-sm-7">@GetMetadataValue("authoring.componentAliases")</dd>
+                            </dl>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-2">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Rendered Output Preview</h6>
+                @if (!string.IsNullOrWhiteSpace(_renderedSampleId))
+                {
+                    <span class="small text-muted">Sample: @_renderedSampleId (@_renderedProviderType)</span>
+                }
+            </div>
+            <div class="card-body">
+                @if (_isRenderingPreview)
+                {
+                    <div class="text-center py-3">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Rendering preview...</span>
+                        </div>
+                        <p class="mt-2 mb-0">Rendering preview...</p>
+                    </div>
+                }
+                else if (!string.IsNullOrWhiteSpace(_reportHtml))
+                {
+                    <iframe title="Authoring Report Preview" srcdoc="@GetPreviewFrameSource()"
+                            style="width: 100%; height: 960px; border: 1px solid #dee2e6; border-radius: 0.375rem; background-color: #f8f9fa;">
+                    </iframe>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Click Preview Output to compile and render the selected authored sample.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private const string MultiPageAllBlocksSampleId = "all-components-multipage";
+
+    private bool _isBusy;
+    private string? _json;
+    private ReportDefinition? _compiledDefinition;
+    private string? _status;
+    private string? _error;
+    private bool _isRenderingPreview;
+    private string? _reportHtml;
+    private string? _renderedSampleId;
+    private string? _renderedProviderType;
+    private IReadOnlyList<AuthoringSampleReportDescriptor> _sampleReports = [];
+    private IReadOnlyList<AuthoringDataProviderDescriptor> _providerOptions = [];
+    private string _selectedSampleId = string.Empty;
+    private string _selectedProviderType = string.Empty;
+
+    private string? _selectedSampleDescription => _sampleReports
+        .FirstOrDefault(sample => string.Equals(sample.Id, _selectedSampleId, StringComparison.Ordinal))?
+        .Description;
+
+    private string? _selectedProviderDescription => _providerOptions
+        .FirstOrDefault(provider => string.Equals(provider.ProviderType, _selectedProviderType, StringComparison.Ordinal))?
+        .Description;
+
+    protected override void OnInitialized()
+    {
+        _sampleReports = OrderSampleReports(AuthoringWorkflowService.GetSampleReports());
+        _selectedSampleId = _sampleReports.FirstOrDefault(sample => string.Equals(sample.Id, MultiPageAllBlocksSampleId,
+StringComparison.Ordinal))?.Id
+            ?? _sampleReports.FirstOrDefault()?.Id
+            ?? string.Empty;
+
+        _providerOptions = AuthoringWorkflowService.GetProviderOptions();
+        _selectedProviderType = _providerOptions.FirstOrDefault()?.ProviderType ?? string.Empty;
+    }
+
+    private Task RunInMemoryAsync()
+    {
+        return ExecuteAsync(async () =>
+        {
+            EnsureSampleSelection();
+            EnsureProviderSelection();
+
+            _json = AuthoringWorkflowService.GenerateSampleJson(_selectedSampleId, _selectedProviderType);
+            _compiledDefinition = AuthoringWorkflowService.CompileSampleDefinition(_selectedSampleId, _selectedProviderType);
+            _status = $"In-memory workflow complete for '{_selectedSampleId}' using provider '{_selectedProviderType}'.";
+
+            await RenderCompiledDefinitionAsync(_compiledDefinition, _selectedSampleId);
+        });
+    }
+
+    private Task RunFileWorkflowAsync()
+    {
+        return ExecuteAsync(async () =>
+        {
+            EnsureSampleSelection();
+            EnsureProviderSelection();
+
+            var document = AuthoringWorkflowService.CreateSampleDocument(_selectedSampleId, _selectedProviderType);
+            var tempPath = Path.Combine(
+                Path.GetTempPath(),
+                "kineticreports",
+                $"{_selectedSampleId}-{_selectedProviderType.ToLowerInvariant()}.json");
+
+            await AuthoringWorkflowService.SaveDocumentJsonAsync(document, tempPath);
+            _compiledDefinition = await AuthoringWorkflowService.LoadAndCompileAsync(tempPath);
+            _json = await File.ReadAllTextAsync(tempPath);
+            _status = $"File workflow complete for '{_selectedSampleId}' using provider '{_selectedProviderType}'. Path: {tempPath}";
+
+            await RenderCompiledDefinitionAsync(_compiledDefinition, _selectedSampleId);
+        });
+    }
+
+    private Task RenderPreviewAsync()
+    {
+        return ExecuteAsync(async () =>
+        {
+            EnsureSampleSelection();
+            EnsureProviderSelection();
+
+            _compiledDefinition = AuthoringWorkflowService.CompileSampleDefinition(_selectedSampleId, _selectedProviderType);
+            _json = AuthoringWorkflowService.GenerateSampleJson(_selectedSampleId, _selectedProviderType);
+
+            await RenderCompiledDefinitionAsync(_compiledDefinition, _selectedSampleId);
+            _status = $"Rendered preview for '{_selectedSampleId}' using provider '{_selectedProviderType}'.";
+        });
+    }
+
+    private async Task ExecuteAsync(Func<Task> operation)
+    {
+        _isBusy = true;
+        _error = null;
+
+        try
+        {
+            await operation();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private async Task DownloadJsonAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_json))
+            return;
+
+        var bytes = System.Text.Encoding.UTF8.GetBytes(_json);
+        var base64 = Convert.ToBase64String(bytes);
+        var fileName = string.IsNullOrWhiteSpace(_selectedSampleId)
+            ? "sample-authoring-report.json"
+            : $"{_selectedSampleId}-{_selectedProviderType.ToLowerInvariant()}.json";
+
+        await Js.InvokeVoidAsync(
+            "kineticReports.downloadFromBase64",
+            fileName,
+            "application/json",
+            base64);
+
+        _status = $"Downloaded {fileName} ({bytes.Length} bytes).";
+    }
+
+    private async Task RenderCompiledDefinitionAsync(ReportDefinition definition, string sampleId)
+    {
+        _ = definition;
+
+        _isRenderingPreview = true;
+        _reportHtml = null;
+
+        try
+        {
+            _reportHtml = AuthoringWorkflowService.GenerateAuthoringPreviewHtml(_selectedSampleId, _selectedProviderType);
+            _renderedSampleId = sampleId;
+            _renderedProviderType = _selectedProviderType;
+        }
+        finally
+        {
+            _isRenderingPreview = false;
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private void OnSampleChanged(ChangeEventArgs args)
+    {
+        _selectedSampleId = Convert.ToString(args.Value) ?? string.Empty;
+        ResetPreviewState();
+    }
+
+    private void OnProviderChanged(ChangeEventArgs args)
+    {
+        _selectedProviderType = Convert.ToString(args.Value) ?? string.Empty;
+        ResetPreviewState();
+    }
+
+    private void ResetPreviewState()
+    {
+        _json = null;
+        _compiledDefinition = null;
+        _reportHtml = null;
+        _renderedSampleId = null;
+        _renderedProviderType = null;
+        _status = null;
+        _error = null;
+    }
+
+    private void EnsureSampleSelection()
+    {
+        if (string.IsNullOrWhiteSpace(_selectedSampleId))
+            throw new InvalidOperationException("No authored sample report is selected.");
+    }
+
+    private void EnsureProviderSelection()
+    {
+        if (string.IsNullOrWhiteSpace(_selectedProviderType))
+            throw new InvalidOperationException("No data provider is selected.");
+    }
+
+    private static IReadOnlyList<AuthoringSampleReportDescriptor> OrderSampleReports(
+        IReadOnlyList<AuthoringSampleReportDescriptor> samples)
+    {
+        var featured = samples
+            .Where(sample => string.Equals(sample.Id, MultiPageAllBlocksSampleId, StringComparison.Ordinal))
+            .ToList();
+
+        var remaining = samples
+            .Where(sample => !string.Equals(sample.Id, MultiPageAllBlocksSampleId, StringComparison.Ordinal))
+            .ToList();
+
+        return [.. featured, .. remaining];
+    }
+
+    private static string GetSampleDisplayName(AuthoringSampleReportDescriptor sample)
+    {
+        if (string.Equals(sample.Id, MultiPageAllBlocksSampleId, StringComparison.Ordinal))
+            return $"Featured: {sample.Name}";
+
+        return sample.Name;
+    }
+
+    private string GetMetadataValue(string key)
+    {
+        if (_compiledDefinition?.Metadata is null)
+            return "-";
+
+        if (!_compiledDefinition.Metadata.TryGetValue(key, out var value) || value is null)
+            return "-";
+
+        if (value is IReadOnlyDictionary<string, int> intMap)
+            return string.Join(", ", intMap.Select(pair => $"{pair.Key}={pair.Value}"));
+
+        if (value is IReadOnlyDictionary<string, string> stringMap)
+            return string.Join(", ", stringMap.Select(pair => $"{pair.Key}->{pair.Value}"));
+
+        return Convert.ToString(value) ?? "-";
+    }
+
+    private string GetPreviewFrameSource()
+    {
+        if (string.IsNullOrEmpty(_reportHtml))
+            return "about:blank";
+
+        const string stylesheetLink = "<link rel=\"stylesheet\" href=\"/kinetic-report.css\">";
+
+        if (_reportHtml.Contains("kinetic-report.css", StringComparison.OrdinalIgnoreCase))
+            return _reportHtml;
+
+        if (_reportHtml.Contains("</head>", StringComparison.OrdinalIgnoreCase))
+        {
+            return _reportHtml.Replace(
+                "</head>",
+                stylesheetLink + "</head>",
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        return $"<html><head>{stylesheetLink}</head><body>{_reportHtml}</body></html>";
+    }
+}
+
+<style>
+    .json-preview {
+        max-height: 420px;
+        overflow: auto;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        font-size: 0.8rem;
+    }
+</style>

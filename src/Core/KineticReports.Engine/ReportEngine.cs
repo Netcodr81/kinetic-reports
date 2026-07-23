@@ -65,7 +65,11 @@ public sealed class ReportEngine : IReportEngine
             resolvedSources[ds.Id] = rows;
         }
 
-        var dataContext = new DataContext { DataSources = resolvedSources };
+        var dataContext = new DataContext
+        {
+            Definition = definition,
+            DataSources = resolvedSources
+        };
 
         // 2. Build report blocks (data binding + expression evaluation).
         var blocks = _blocksBuilder.Build(dataContext, _expressionEvaluator);

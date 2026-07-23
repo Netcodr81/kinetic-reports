@@ -1,7 +1,7 @@
 namespace KineticReports.Viewer.Blazor.Services;
 
 using KineticReports.Core.Definition;
-using KineticReports.Core.Layout;
+using KineticReports.Core.Geometry;
 using KineticReports.Core.Typography;
 using KineticReports.Engine;
 using KineticReports.Export.Html;
@@ -12,9 +12,15 @@ using KineticReports.Layout;
 /// </summary>
 public sealed class LocalReportService : IReportService
 {
+    private static readonly IReadOnlyList<ReportViewerExportFormat> DefaultFormats =
+    [
+        new ReportViewerExportFormat("html", "HTML", "text/html", "html")
+    ];
+
     private readonly IReportEngine _engine;
     private readonly IHtmlExporter _exporter;
     private readonly ITextLayout _textLayout;
+    private IReadOnlyList<string> _latestTrace = [];
 
     /// <summary>
     /// Initializes the service with required dependencies.
@@ -29,10 +35,11 @@ public sealed class LocalReportService : IReportService
         _textLayout = textLayout ?? throw new ArgumentNullException(nameof(textLayout));
     }
 
-    /// <summary>
-    /// Executes a report locally.
-    /// </summary>
-    public async Task<ReportDocument?> ExecuteAsync(
+    /// <inheritdoc/>
+    public IReadOnlyList<ReportViewerExportFormat> GetAvailableExportFormats() => DefaultFormats;
+
+    /// <inheritdoc/>
+    public async Task<string> RenderHtmlAsync(
         ReportDefinition definition,
         IReadOnlyDictionary<string, object?> parameters,
         CancellationToken ct = default)
@@ -42,39 +49,75 @@ public sealed class LocalReportService : IReportService
 
         try
         {
-            var context = new LayoutSizingContext(_textLayout);
-            var layoutOptions = new LayoutOptions();
-            return await _engine.RunAsync(definition, parameters, context, layoutOptions, ct);
+            _latestTrace = ["[Render] Executing with local viewer service", "[Export] Format: html"];
+            return await RenderHtmlCoreAsync(definition, parameters, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
+            _latestTrace = [$"[Render] Failed: {ex.GetType().Name} - {ex.Message}"];
             System.Diagnostics.Debug.WriteLine($"Report execution failed: {ex.Message}");
-            return null;
+            throw;
         }
     }
 
-    /// <summary>
-    /// Exports a report document to HTML.
-    /// </summary>
-    public async Task<string> ExportHtmlAsync(
-        ReportDocument reportDocument,
+    /// <inheritdoc/>
+    public async Task<ReportViewerExportResult> ExportAsync(
+        ReportDefinition definition,
+        string formatId,
+        IReadOnlyDictionary<string, object?> parameters,
         CancellationToken ct = default)
     {
-        if (reportDocument == null) throw new ArgumentNullException(nameof(reportDocument));
+        if (definition == null) throw new ArgumentNullException(nameof(definition));
+        if (parameters == null) throw new ArgumentNullException(nameof(parameters));
+        if (string.IsNullOrWhiteSpace(formatId))
+            throw new ArgumentException("Format id is required.", nameof(formatId));
+
+        if (!string.Equals(formatId, "html", StringComparison.OrdinalIgnoreCase))
+            throw new NotSupportedException($"Local viewer service supports only 'html' export. Requested '{formatId}'.");
 
         try
         {
-            using var stream = new MemoryStream();
-            await _exporter.ExportAsync(reportDocument, stream, ct);
-            stream.Position = 0;
-
-            using var reader = new StreamReader(stream);
-            return await reader.ReadToEndAsync();
+            _latestTrace = ["[Render] Executing with local viewer service", "[Export] Format: html"];
+            var html = await RenderHtmlCoreAsync(definition, parameters, ct).ConfigureAwait(false);
+            return new ReportViewerExportResult("html", "text/html", "html", System.Text.Encoding.UTF8.GetBytes(html));
         }
         catch (Exception ex)
         {
+            _latestTrace = [$"[Export] Failed: {ex.GetType().Name} - {ex.Message}"];
             System.Diagnostics.Debug.WriteLine($"HTML export failed: {ex.Message}");
-            return string.Empty;
+            throw;
         }
+    }
+
+    /// <inheritdoc/>
+    public IReadOnlyList<string> GetLatestTrace() => _latestTrace;
+
+    private async Task<string> RenderHtmlCoreAsync(
+        ReportDefinition definition,
+        IReadOnlyDictionary<string, object?> parameters,
+        CancellationToken ct)
+    {
+        var context = new LayoutSizingContext(_textLayout);
+        var layoutOptions = ResolveLayoutOptions(definition);
+        var reportDocument = await _engine.RunAsync(definition, parameters, context, layoutOptions, ct).ConfigureAwait(false);
+
+        using var stream = new MemoryStream();
+        await _exporter.ExportAsync(reportDocument, stream, ct).ConfigureAwait(false);
+        stream.Position = 0;
+
+        using var reader = new StreamReader(stream);
+        return await reader.ReadToEndAsync().ConfigureAwait(false);
+    }
+
+    private static LayoutOptions ResolveLayoutOptions(ReportDefinition definition)
+    {
+        var metadata = definition.Metadata;
+        if (metadata.TryGetValue("authoring.compiledComponents", out var compiledComponents)
+            && compiledComponents is not null)
+        {
+            return new LayoutOptions { PageMargins = new Thickness(0f) };
+        }
+
+        return new LayoutOptions();
     }
 }

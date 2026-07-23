@@ -1,6 +1,7 @@
 namespace KineticReports.Samples.Blazor.Services;
 
 using KineticReports.Core.Definition;
+using KineticReports.Core.Geometry;
 using KineticReports.Core.Typography;
 using KineticReports.Engine;
 using KineticReports.Layout;
@@ -141,7 +142,7 @@ public sealed class ReportRenderService : IReportRenderService
             }
 
             var context = new LayoutSizingContext(_textLayout);
-            var layoutOptions = new LayoutOptions();
+            var layoutOptions = ResolveLayoutOptions(definition);
 
             var ReportDocument = await _engine.RunAsync(
                 definition,
@@ -221,4 +222,17 @@ public sealed class ReportRenderService : IReportRenderService
 
     /// <inheritdoc/>
     public IReadOnlyList<string> GetLatestPluginTrace() => _traceStore.Entries;
+
+    private static LayoutOptions ResolveLayoutOptions(ReportDefinition definition)
+    {
+        var metadata = definition.Metadata;
+        if (metadata.TryGetValue("authoring.compiledComponents", out var compiledComponents)
+            && compiledComponents is not null)
+        {
+            // Authored placements use full-page coordinates, so margins must be zero.
+            return new LayoutOptions { PageMargins = new Thickness(0f) };
+        }
+
+        return new LayoutOptions();
+    }
 }

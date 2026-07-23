@@ -10,10 +10,41 @@
 .kinetic-report-viewer .report-header {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 1rem;
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid #e9ecef;
+}
+
+.kinetic-report-viewer .export-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.kinetic-report-viewer .export-controls .form-select {
+    min-width: 180px;
+}
+
+.kinetic-report-viewer .parameter-panel {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    background: #ffffff;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.kinetic-report-viewer .parameter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+}
+
+.kinetic-report-viewer .parameter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
 .kinetic-report-viewer .report-header button {
@@ -99,8 +130,16 @@
     background: white;
     border: 1px solid #dee2e6;
     border-radius: 0.375rem;
-    padding: 2rem;
+    padding: 0.75rem;
     overflow-x: auto;
+}
+
+.kinetic-report-viewer .trace-output {
+    margin-top: 0.75rem;
+    border: 1px solid #e3e6eb;
+    background: #ffffff;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
 }
 
 /* Print styles */
