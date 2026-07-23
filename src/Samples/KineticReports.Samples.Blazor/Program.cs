@@ -12,7 +12,6 @@ using KineticReports.Plugins;
 using KineticReports.Rendering.Skia;
 using KineticReports.Viewer.Blazor;
 using KineticReports.Visual;
-using SampleRenderingPipelineOptions = KineticReports.Samples.Blazor.Services.RenderingPipelineOptions;
 
 // ============================================================================
 // KineticReports Blazor Sample Application (Interactive Server)
@@ -29,14 +28,6 @@ using SampleRenderingPipelineOptions = KineticReports.Samples.Blazor.Services.Re
 
 var builder = WebApplication.CreateBuilder(args);
 
-SampleSqlLiteDatabaseInitializer.EnsureSeeded(builder.Environment.ContentRootPath);
-
-if (args.Any(arg => string.Equals(arg, "--seed-sqlite", StringComparison.OrdinalIgnoreCase)))
-{
-    Console.WriteLine("SQLite sample database seeded.");
-    return;
-}
-
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -44,35 +35,25 @@ builder.Services.AddRazorComponents()
 // Register authoring contracts/services for JSON-first and drag-and-drop flows.
 builder.Services.AddKineticReportsAuthoring();
 
-// Register custom services
-builder.Services
-    .AddOptions<SampleRenderingPipelineOptions>()
-    .Bind(builder.Configuration.GetSection(SampleRenderingPipelineOptions.SectionName));
-
+// Register sample-specific services
 builder.Services.AddScoped<IPluginService, PluginService>();
 builder.Services.AddScoped<IPluginExecutionTraceStore, PluginExecutionTraceStore>();
 builder.Services.AddScoped<IAuthoringJsonWorkflowService, AuthoringJsonWorkflowService>();
 builder.Services.AddSingleton<IAuthoredReportCatalogService, AuthoredReportCatalogService>();
 
-// Register report execution services
 builder.Services.AddScoped<ITextLayout, SkiaTextLayout>();
-
-// Register report engine dependencies
 builder.Services.AddScoped<IExpressionEvaluator, LiteralEvaluator>();
 builder.Services.AddScoped<IDataResolver, SampleDataResolver>();
 builder.Services.AddScoped<SampleReportBuilder>();
 builder.Services.AddScoped<IReportBuilder, PluginAwareReportBuilder>();
 builder.Services.AddScoped<ILayoutEngine, LayoutEngine>();
-
-// Register report engine and exporters
 builder.Services.AddScoped<IReportEngine, ReportEngine>();
 builder.Services.AddScoped<IHtmlExporter, HtmlExporter>();
 builder.Services.AddScoped<IVisualHtmlExporter, VisualHtmlExporter>();
 builder.Services.AddScoped<IVisualDocumentBuilder, DefaultVisualDocumentBuilder>();
 builder.Services.AddKineticReportsViewerBlazor(options =>
 {
-    options.PipelineMode = builder.Configuration[$"{SampleRenderingPipelineOptions.SectionName}:PipelineMode"]
-        ?? "Legacy";
+    options.PipelineMode = builder.Configuration["Rendering:PipelineMode"] ?? "Legacy";
 });
 
 var app = builder.Build();

@@ -12,10 +12,10 @@ It is optimized for incremental delivery with regression safety and no big-bang 
 
 ## Current Codebase Mapping
 - Semantic document model: src/Core/KineticReports.Core/Layout
-- Engine pipeline: src/Core/KineticReports.Engine
-- HTML export: src/Export/KineticReports.Export.Html
-- Rendering abstractions: src/Core/KineticReports.Core/Rendering and src/Rendering/KineticReports.Rendering
-- Skia PDF/PNG: src/Rendering/KineticReports.Rendering.Skia
+- Engine pipeline: src/Core/KineticReports.Core/Engine
+- HTML export: src/Core/KineticReports.Core/Export/Html
+- Rendering abstractions: src/Core/KineticReports.Core/Rendering
+- Skia PDF/PNG: src/Core/KineticReports.Core/Rendering/Skia
 - Viewer hosts: src/Viewer/KineticReports.Viewer.Blazor and src/Viewer/KineticReports.Viewer.Web
 - Sample integration surface: src/Samples/KineticReports.Samples.Blazor
 
@@ -70,7 +70,7 @@ Target Sprint: 1-2
 
 ### Story E2-S1: Add Visual model project
 Projects:
-- src/Core (new project recommended: KineticReports.Visual)
+- src/Core/KineticReports.Core/Visual
 
 Tasks:
 - Create project and wire into solution.
@@ -94,7 +94,7 @@ Acceptance Criteria:
 
 ### Story E2-S2: Serialization contract for VisualDocument
 Projects:
-- src/Core/KineticReports.Visual
+- src/Core/KineticReports.Core/Visual
 - tests/unit-tests
 
 Tasks:
@@ -113,7 +113,7 @@ Target Sprint: 2
 
 ### Story E3-S1: Create builder interface and default implementation
 Projects:
-- src/Core/KineticReports.Engine or src/Rendering/KineticReports.Rendering (shared placement decision in ADR)
+- src/Core/KineticReports.Core
 
 Tasks:
 - Define IVisualDocumentBuilder.
@@ -130,8 +130,7 @@ Acceptance Criteria:
 
 ### Story E3-S2: Coordinate normalization and clipping rules
 Projects:
-- src/Core/KineticReports.Visual
-- src/Core/KineticReports.Engine (or builder home)
+- src/Core/KineticReports.Core
 
 Tasks:
 - Define canonical coordinate behavior in DIPs.
@@ -183,7 +182,7 @@ Target Sprint: 3
 
 ### Story E5-S1: Add VisualHtmlExporter
 Projects:
-- src/Export/KineticReports.Export.Html
+- src/Core/KineticReports.Core/Export/Html
 
 Tasks:
 - Introduce VisualHtmlExporter consuming VisualDocument.
@@ -197,7 +196,7 @@ Acceptance Criteria:
 
 ### Story E5-S2: Reuse and adapt stylesheet tokens
 Projects:
-- src/Export/KineticReports.Export.Html/Styles
+- src/Core/KineticReports.Core/Export/Html/Styles
 
 Tasks:
 - Ensure CSS classes cover visual node types.
@@ -214,7 +213,7 @@ Target Sprint: 3-4
 
 ### Story E6-S1: Add VisualSkiaRenderer adapter
 Projects:
-- src/Rendering/KineticReports.Rendering.Skia
+- src/Core/KineticReports.Core/Rendering/Skia
 
 Tasks:
 - Add adapter to draw VisualDocument primitives onto Skia canvas.

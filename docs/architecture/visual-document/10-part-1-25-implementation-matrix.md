@@ -53,9 +53,9 @@ This is present in:
 - Sample and Viewer.Web pipeline integrations
 
 ## Implemented Evidence (Code)
-- Core model and builder: src/Core/KineticReports.Visual/
-- Visual HTML exporter: src/Export/KineticReports.Export.Html/VisualHtmlExporter.cs
-- Visual Skia renderer: src/Rendering/KineticReports.Rendering.Skia/VisualSkiaRenderer.cs
+- Core model and builder: src/Core/KineticReports.Core/Visual/
+- Visual HTML exporter: src/Core/KineticReports.Core/Export/Html/VisualHtmlExporter.cs
+- Visual Skia renderer: src/Core/KineticReports.Core/Rendering/Skia/VisualSkiaRenderer.cs
 - Sample host integration: src/Samples/KineticReports.Samples.Blazor/
 - Viewer.Web integration: src/Viewer/KineticReports.Viewer.Web/
 

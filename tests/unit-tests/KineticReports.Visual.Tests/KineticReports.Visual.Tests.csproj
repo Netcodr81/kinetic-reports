@@ -19,7 +19,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Core\KineticReports.Core\KineticReports.Core.csproj" />
-    <ProjectReference Include="..\..\..\src\Core\KineticReports.Visual\KineticReports.Visual.csproj" />
   </ItemGroup>
 
 </Project>

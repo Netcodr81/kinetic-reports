@@ -28,12 +28,11 @@ KineticReports is a deterministic reporting engine for .NET 10.
 
 ## Project Map
 
-- `src/Core/KineticReports.Core` - domain types and contracts
-- `src/Core/KineticReports.Engine` - orchestration pipeline
-- `src/Core/KineticReports.Layout` - LayoutSizing/Arrange/Pagination
-- `src/Rendering/*` - renderer pipeline
-- `src/Export/*` - exporters
-- `src/Plugins/*` - plugin infrastructure
+- `src/Core/KineticReports.Core` - primary runtime package containing domain types, authoring, engine, layout, rendering, built-in HTML/PDF export, plugins, and SQL data providers
+- `src/Viewer/*` - optional viewer packages for Blazor, MVC, and Web hosts
+- `src/Export/KineticReports.Export.Excel` - example exporter package
+- `src/Plugins/KineticReports.Samples.Plugins` - example plugin project
+- `src/Samples/KineticReports.Samples.Blazor` - sample app consuming Core plus Viewer.Blazor
 
 ## Core Rules You Must Follow
 

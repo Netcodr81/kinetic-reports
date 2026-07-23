@@ -18,10 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Export\KineticReports.Export.Html\KineticReports.Export.Html.csproj" />
     <ProjectReference Include="..\..\..\src\Core\KineticReports.Core\KineticReports.Core.csproj" />
-    <ProjectReference Include="..\..\..\src\Core\KineticReports.Visual\KineticReports.Visual.csproj" />
-    <ProjectReference Include="..\..\..\src\Core\KineticReports.Layout\KineticReports.Layout.csproj" />
     <ProjectReference Include="..\KineticReports.Rendering.Tests\KineticReports.Rendering.Tests.csproj" />
   </ItemGroup>
 

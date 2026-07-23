@@ -18,8 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Core\KineticReports.Engine\KineticReports.Engine.csproj" />
-    <ProjectReference Include="..\..\..\src\Core\KineticReports.Layout\KineticReports.Layout.csproj" />
+    <ProjectReference Include="..\..\..\src\Core\KineticReports.Core\KineticReports.Core.csproj" />
   </ItemGroup>
 
 </Project>

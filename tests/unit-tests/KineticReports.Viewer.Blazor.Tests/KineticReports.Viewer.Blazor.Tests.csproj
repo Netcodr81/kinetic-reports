@@ -15,10 +15,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Core\KineticReports.Core\KineticReports.Core.csproj" />
-    <ProjectReference Include="..\..\..\src\Core\KineticReports.Layout\KineticReports.Layout.csproj" />
-    <ProjectReference Include="..\..\..\src\Core\KineticReports.Engine\KineticReports.Engine.csproj" />
-    <ProjectReference Include="..\..\..\src\Rendering\KineticReports.Rendering\KineticReports.Rendering.csproj" />
-    <ProjectReference Include="..\..\..\src\Export\KineticReports.Export.Html\KineticReports.Export.Html.csproj" />
     <ProjectReference Include="..\..\..\src\Samples\KineticReports.Samples.Blazor\KineticReports.Samples.Blazor.csproj" />
     <ProjectReference Include="..\KineticReports.Rendering.Tests\KineticReports.Rendering.Tests.csproj" />
     <ProjectReference Include="..\..\..\src\Viewer\KineticReports.Viewer.Blazor\KineticReports.Viewer.Blazor.csproj" />

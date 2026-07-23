@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Rendering\KineticReports.Rendering\KineticReports.Rendering.csproj" />
+    <ProjectReference Include="..\..\..\src\Core\KineticReports.Core\KineticReports.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -381,37 +381,29 @@ Validate:
 
 ## Part 4: Recommended NuGet Package Design (Uno/Web Friendly)
 
-If your goal is a reusable package for report authoring + data association + JSON transport, split responsibilities by package.
+If your goal is a reusable package for report authoring + data association + JSON transport, keep host-specific viewers optional and place the default runtime in the main package.
 
 ### Package Layout
 
-1. `KineticReports.Contracts`
+1. `KineticReports.Core`
    - `ReportDefinition` DTOs
-   - JSON serializer options + schema validation
-   - No renderer or platform UI dependency
-
-2. `KineticReports.Runtime`
+   - Authoring contracts and compiler services
    - `IReportEngine`, `IDataResolver`, `IReportBuilder`
-   - Layout and exporter orchestration
-   - Extension points
+   - Layout, visual model, rendering, built-in HTML/PDF exporters, plugins, and SQL data providers
 
-3. `KineticReports.Authoring`
-   - Fluent authoring API for end users
-   - Helpers for creating sections/tables/groups/expressions
-   - Converts fluent model to `ReportDefinition`
+2. `KineticReports.Export.Excel`
+   - Optional/example Excel exporter package
 
-4. `KineticReports.Export.*`
-   - Html/Excel/PDF/etc. exporters
-
-5. Optional UI helpers:
-   - `KineticReports.UI.Uno`
-   - `KineticReports.UI.Web`
+3. Optional UI/viewer helpers:
+   - `KineticReports.Viewer.Blazor`
+   - `KineticReports.Viewer.Mvc`
+   - `KineticReports.Viewer.Web`
 
 ### Why This Split Works
 
-1. Uno and Web can both reference contracts + runtime.
-2. UI-specific editors/viewers remain optional.
-3. JSON compatibility is stable and testable independently.
+1. Host apps can reference a single primary runtime package.
+2. Viewer-specific UI packages remain optional.
+3. JSON compatibility is still stable and testable independently.
 
 ## Part 5: End-to-End Host Integration Pattern
 
@@ -432,7 +424,7 @@ await htmlExporter.ExportAsync(layout, outputStream, ct);
 
 ## Suggested Next Iteration for This Repository
 
-1. Add `KineticReports.Contracts` package with explicit JSON versioning policy.
+1. Add explicit JSON versioning policy and compatibility guidance inside `KineticReports.Core`.
 2. Add `IReportDefinitionSerializer` abstraction (default `System.Text.Json`).
 3. Add validation package with clear diagnostics (`ReportValidationResult`).
 4. Add sample "definition loaded from JSON" in both Blazor and Console samples.
@@ -440,9 +432,9 @@ await htmlExporter.ExportAsync(layout, outputStream, ct);
 
 ## Implemented Baseline (Current Repository)
 
-The repository now includes a starter authoring NuGet project:
+The repository now includes the authoring baseline inside the main runtime package:
 
-1. `src/Authoring/KineticReports.Authoring/KineticReports.Authoring.csproj`
+1. `src/Core/KineticReports.Core/Authoring`
 
 It provides:
 

@@ -22,7 +22,7 @@ Target: 1-2 sprints
 - Define visual renderer contracts (IVisualRenderer family).
 
 ### Deliverables
-- Expanded types under src/Core/KineticReports.Visual/
+- Expanded types under src/Core/KineticReports.Core/Visual/
 - New renderer interfaces and adapter shims
 - JSON contract tests under tests/unit-tests/KineticReports.Visual.Tests/
 

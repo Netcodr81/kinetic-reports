@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Plugins\KineticReports.Plugins\KineticReports.Plugins.csproj" />
+    <ProjectReference Include="..\..\..\src\Core\KineticReports.Core\KineticReports.Core.csproj" />
   </ItemGroup>
 
 </Project>

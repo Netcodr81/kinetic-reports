@@ -5,7 +5,7 @@
 ## Step 1: Create a class library
 
 - Target `net10.0`
-- Reference `KineticReports.Plugins`
+- Reference `KineticReports.Core`
 
 ## Step 2: Implement plugin type
 
@@ -84,6 +84,11 @@ Sample host note:
 
 - The Blazor sample now integrates the viewer through `AddKineticReportsViewerBlazor(...)` and `IReportService`.
 - Exporter-registry wiring remains available in adapter hosts such as `KineticReports.Viewer.Web`.
+
+Packaging note:
+
+- Plugin contracts and runtime types now ship from `KineticReports.Core`.
+- The repository's example plugin lives at `src/Plugins/KineticReports.Samples.Plugins`.
 
 ## Example: Implement multiple seams in one plugin
 

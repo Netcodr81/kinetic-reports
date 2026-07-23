@@ -18,7 +18,7 @@ Defines renderer contracts for consuming VisualDocument.
 - Removing existing renderer contracts in phase 1.
 
 ## Implementation Notes
-- Implemented baseline contract in `KineticReports.Visual`:
+- Implemented baseline contract in `KineticReports.Core` under `src/Core/KineticReports.Core/Visual`:
 	- `IVisualRenderer`
 	- `VisualRenderFormatDescriptor`
 - Implemented adapter shims:

@@ -4,6 +4,36 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageId>KineticReports.Core</PackageId>
+    <Version>1.0.0</Version>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Title>KineticReports Core</Title>
+    <Description>Core KineticReports runtime package containing authoring, engine, layout, visual model, rendering, Skia integration, built-in HTML/PDF export, plugins, and SQL data providers.</Description>
+    <Authors>Mike Eckel</Authors>
+    <Company>KineticReports</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/michaeleckel/kinetic-reports</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/michaeleckel/kinetic-reports</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>1.0.0: Consolidated the KineticReports runtime into KineticReports.Core with built-in authoring, engine, layout, rendering, Skia, HTML/PDF export, plugins, and SQL data providers.</PackageReleaseNotes>
+    <PackageTags>reporting;pdf;html;skia;blazor;aspnetcore</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0" />
+    <PackageReference Include="SkiaSharp" Version="4.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
+    <EmbeddedResource Include="Export\Html\Styles\kinetic-report.css">
+      <LogicalName>KineticReports.Export.Html.Styles.kinetic-report.css</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 
 </Project>

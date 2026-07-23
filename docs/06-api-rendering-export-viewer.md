@@ -10,11 +10,11 @@
 
 ## Rendering Implementations
 
-| Type | Project | Purpose |
+| Type | Package | Purpose |
 |---|---|---|
-| `SkiaRenderer` | `KineticReports.Rendering.Skia` | Skia-backed renderer |
-| `SkiaGraphicsContext` | `KineticReports.Rendering.Skia` | Skia implementation of draw primitives |
-| `SkiaTextLayout` | `KineticReports.Rendering.Skia` | `ITextLayout` implementation |
+| `SkiaRenderer` | `KineticReports.Core` | Default Skia-backed renderer |
+| `SkiaGraphicsContext` | `KineticReports.Core` | Skia implementation of draw primitives |
+| `SkiaTextLayout` | `KineticReports.Core` | Default `ITextLayout` implementation |
 
 ## Export Contracts
 
@@ -26,10 +26,12 @@
 
 ## Export Implementations
 
-| Type | Project | Purpose |
+| Type | Package | Purpose |
 |---|---|---|
-| `HtmlExporter` | `KineticReports.Export.Html` | HTML exporter with inline CSS |
-| `ExcelExporter` (if present) | `KineticReports.Export.Excel` | XLSX export implementation |
+| `HtmlExporter` | `KineticReports.Core` | Built-in HTML exporter with inline CSS |
+| `HtmlReportDocumentExporter` | `KineticReports.Core` | Registry-backed HTML document exporter |
+| `PdfReportDocumentExporter` | `KineticReports.Core` | Built-in PDF document exporter using Skia |
+| `ExcelExporter` (if present) | `KineticReports.Export.Excel` | XLSX example export implementation |
 
 ## Plugin Contracts
 
@@ -49,6 +51,12 @@
 | `IReportService` | Viewer.Blazor | Viewer-level report operations |
 | `IReportExecutor` | Viewer.Web | Server-side report execution abstraction |
 | `IReportStore` | Viewer.Web | Report definition retrieval abstraction |
+
+## Packaging Notes
+
+- `KineticReports.Core` is the primary package and contains the default rendering/export/runtime implementation surface.
+- `KineticReports.Viewer.Blazor`, `KineticReports.Viewer.Mvc`, and `KineticReports.Viewer.Web` are optional host-specific packages that layer on top of Core.
+- `KineticReports.Export.Excel` remains separate as an example exporter package.
 
 ### Viewer.Blazor Service Surface (Current)
 

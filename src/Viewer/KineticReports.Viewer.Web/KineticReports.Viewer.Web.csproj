@@ -4,16 +4,36 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageId>KineticReports.Viewer.Web</PackageId>
+    <Version>1.0.0</Version>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Title>KineticReports Viewer Web Host</Title>
+    <Description>ASP.NET Core web host package for serving KineticReports preview, export, hit-test, and text-search endpoints.</Description>
+    <Authors>Mike Eckel</Authors>
+    <Company>KineticReports</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/michaeleckel/kinetic-reports</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/michaeleckel/kinetic-reports</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>1.0.0: Initial Core-centric package layout with optional ASP.NET Core web host and endpoint adapter support.</PackageReleaseNotes>
+    <PackageTags>reporting;aspnetcore;webapi;viewer</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\KineticReports.Core\KineticReports.Core.csproj" />
-    <ProjectReference Include="..\..\Core\KineticReports.Engine\KineticReports.Engine.csproj" />
-    <ProjectReference Include="..\..\Core\KineticReports.Layout\KineticReports.Layout.csproj" />
-    <ProjectReference Include="..\..\Plugins\KineticReports.Plugins\KineticReports.Plugins.csproj" />
-    <ProjectReference Include="..\..\Rendering\KineticReports.Rendering\KineticReports.Rendering.csproj" />
-    <ProjectReference Include="..\..\Rendering\KineticReports.Rendering.Skia\KineticReports.Rendering.Skia.csproj" />
-    <ProjectReference Include="..\..\Export\KineticReports.Export.Html\KineticReports.Export.Html.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Services\RenderingPipelineOptions.cs" />
+    <Compile Remove="Services\HtmlReportDocumentExporter.cs" />
+    <Compile Remove="Services\PdfReportDocumentExporter.cs" />
   </ItemGroup>
 
 </Project>

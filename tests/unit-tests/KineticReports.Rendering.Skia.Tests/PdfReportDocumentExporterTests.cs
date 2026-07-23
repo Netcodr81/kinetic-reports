@@ -3,9 +3,10 @@ namespace KineticReports.Rendering.Skia.Tests;
 using System.Text;
 using KineticReports.Core.Layout;
 using KineticReports.Core.Styling;
-using KineticReports.Samples.Blazor.Services;
 using KineticReports.Visual;
+using KineticReports.Viewer.Web.Services;
 using Microsoft.Extensions.Options;
+using PdfRenderingPipelineOptions = KineticReports.Viewer.Web.Services.RenderingPipelineOptions;
 
 public class PdfReportDocumentExporterTests
 {
@@ -15,7 +16,7 @@ public class PdfReportDocumentExporterTests
         var reportDocument = CreateReportDocument();
         var visualBuilder = new TrackingVisualDocumentBuilder(CreateVisualDocument());
         var visualRenderer = new VisualSkiaRenderer();
-        var options = Options.Create(new RenderingPipelineOptions { PipelineMode = "Legacy" });
+        var options = Options.Create(new PdfRenderingPipelineOptions { PipelineMode = "Legacy" });
         var sut = new PdfReportDocumentExporter(visualBuilder, visualRenderer, options);
 
         var artifact = await sut.ExportAsync(reportDocument);
@@ -31,7 +32,7 @@ public class PdfReportDocumentExporterTests
         var reportDocument = CreateReportDocument();
         var visualBuilder = new TrackingVisualDocumentBuilder(CreateVisualDocument());
         var visualRenderer = new VisualSkiaRenderer();
-        var options = Options.Create(new RenderingPipelineOptions { PipelineMode = "Visual" });
+        var options = Options.Create(new PdfRenderingPipelineOptions { PipelineMode = "Visual" });
         var sut = new PdfReportDocumentExporter(visualBuilder, visualRenderer, options);
 
         var artifact = await sut.ExportAsync(reportDocument);

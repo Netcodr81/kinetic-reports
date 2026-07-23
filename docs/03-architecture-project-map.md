@@ -6,18 +6,13 @@ This document maps repository projects to responsibilities.
 
 | Project | Responsibility |
 |---|---|
-| `KineticReports.Core` | Core domain model, geometry, styling, definition, layout element contracts |
-| `KineticReports.Engine` | Report orchestration pipeline |
-| `KineticReports.Layout` | LayoutSizing/Arrange/Pagination implementation |
-| `KineticReports.Rendering` | Backend-agnostic render traversal |
-| `KineticReports.Rendering.Skia` | Skia implementation for rendering and text layout |
-| `KineticReports.Export.Html` | HTML exporter |
+| `KineticReports.Core` | Primary runtime package containing domain model, authoring, engine, layout, visual model, rendering, Skia integration, built-in HTML/PDF exporters, plugin runtime, and SQL data providers |
 | `KineticReports.Export.Excel` | Excel exporter |
-| `KineticReports.Data.SqlServer` | SQL provider implementation |
-| `KineticReports.Plugins` | Plugin contracts + manager |
 | `KineticReports.Viewer.Web` | ASP.NET viewer hosting |
 | `KineticReports.Viewer.Blazor` | Blazor viewer component library |
-| `KineticReports.Samples.*` | Sample applications and sample plugins |
+| `KineticReports.Viewer.Mvc` | MVC viewer package |
+| `KineticReports.Samples.Blazor` | Sample application consuming Core + Viewer.Blazor |
+| `KineticReports.Samples.Plugins` | Example plugin project under the Plugins folder |
 
 ## Architecture Boundaries
 
@@ -25,26 +20,29 @@ This document maps repository projects to responsibilities.
 flowchart TB
 	subgraph Core
 	  C1[Definition]
-	  C2[Layout Contracts]
-	  C3[Styling/Typography]
-	  C4[Rendering Contracts]
+	  C2[Authoring]
+	  C3[Engine and Layout]
+	  C4[Visual and Rendering]
+	  C5[Built-in HTML and PDF Export]
+	  C6[Plugins and Data Providers]
 	end
 
-	subgraph Runtime
-	  E1[Engine]
-	  E2[Layout]
+	subgraph OptionalPackages
+	  V1[Viewer.Blazor]
+	  V2[Viewer.Mvc]
+	  V3[Viewer.Web]
+	  X1[Export.Excel]
 	end
 
-	subgraph Output
-	  R1[Renderers]
-	  X1[Exporters]
-	end
-
-	C1 --> E1
-	C2 --> E2
-	E1 --> E2
-	E2 --> R1
-	E2 --> X1
+	C1 --> C3
+	C2 --> C3
+	C3 --> C4
+	C4 --> C5
+	C6 --> C5
+	C4 --> V1
+	C4 --> V2
+	C4 --> V3
+	C3 --> X1
 ```
 
 ## Important Constraints

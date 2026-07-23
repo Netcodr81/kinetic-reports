@@ -4,6 +4,21 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageId>KineticReports.Viewer.Blazor</PackageId>
+    <Version>1.0.0</Version>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Title>KineticReports Viewer for Blazor</Title>
+    <Description>Embeddable Blazor viewer components for rendering, exporting, searching, and hit-testing KineticReports documents.</Description>
+    <Authors>Mike Eckel</Authors>
+    <Company>KineticReports</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/michaeleckel/kinetic-reports</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/michaeleckel/kinetic-reports</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>1.0.0: Initial Core-centric package layout with embeddable Blazor viewer support.</PackageReleaseNotes>
+    <PackageTags>reporting;blazor;viewer;components</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,9 +28,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\KineticReports.Core\KineticReports.Core.csproj" />
-    <ProjectReference Include="..\..\Core\KineticReports.Engine\KineticReports.Engine.csproj" />
-    <ProjectReference Include="..\..\Core\KineticReports.Layout\KineticReports.Layout.csproj" />
-    <ProjectReference Include="..\..\Export\KineticReports.Export.Html\KineticReports.Export.Html.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 
 </Project>
