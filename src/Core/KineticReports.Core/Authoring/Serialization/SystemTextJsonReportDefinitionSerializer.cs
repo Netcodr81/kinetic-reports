@@ -1,4 +1,4 @@
-namespace KineticReports.Authoring.Serialization;
+namespace KineticReports.Core.Authoring.Serialization;
 
 using System.Text.Json;
 using KineticReports.Core.Definition;

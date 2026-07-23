@@ -1,4 +1,4 @@
-namespace KineticReports.Visual;
+namespace KineticReports.Core.Visual;
 
 /// <summary>
 /// Represents a 2D affine transform applied to a visual element.

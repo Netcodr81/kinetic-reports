@@ -1,15 +1,16 @@
 using System.Text;
 using KineticReports.Core.Layout;
 using KineticReports.Core.Styling;
-using KineticReports.Export.Html;
-using KineticReports.Plugins;
-using KineticReports.Rendering.Skia;
-using KineticReports.Visual;
 using KineticReports.Viewer.Web.Endpoints;
 using KineticReports.Viewer.Web.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using KineticReports.Core.Plugins;
+using KineticReports.Core.Visual;
+using KineticReports.Core.Export.Html;
+using KineticReports.Core.Export.Document;
+using KineticReports.Core.Rendering.Skia;
 
 namespace KineticReports.Viewer.Web.Tests;
 
@@ -18,7 +19,7 @@ public class ReportEndpointsExportTests
     [Fact]
     public async Task GetAvailableFormats_ReturnsRegisteredFormats()
     {
-        await using var app = await BuildAppAsync("Legacy");
+        await using var app = await BuildAppAsync();
         var client = app.GetTestClient();
 
         var response = await client.GetAsync("/api/reports/formats");
@@ -33,12 +34,10 @@ public class ReportEndpointsExportTests
         json.ShouldContain("\"mimeType\":\"application/pdf\"");
     }
 
-    [Theory]
-    [InlineData("Legacy")]
-    [InlineData("Visual")]
-    public async Task ExportHtml_WithExistingOperationId_ReturnsHtmlForBothPipelineModes(string pipelineMode)
+    [Fact]
+    public async Task ExportHtml_WithExistingOperationId_ReturnsHtml()
     {
-        await using var app = await BuildAppAsync(pipelineMode);
+        await using var app = await BuildAppAsync();
         var client = app.GetTestClient();
 
         var response = await client.GetAsync("/api/reports/op-html/html");
@@ -51,12 +50,10 @@ public class ReportEndpointsExportTests
         html.ShouldContain("<html");
     }
 
-    [Theory]
-    [InlineData("Legacy")]
-    [InlineData("Visual")]
-    public async Task ExportPdf_WithExistingOperationId_ReturnsPdfForBothPipelineModes(string pipelineMode)
+    [Fact]
+    public async Task ExportPdf_WithExistingOperationId_ReturnsPdf()
     {
-        await using var app = await BuildAppAsync(pipelineMode);
+        await using var app = await BuildAppAsync();
         var client = app.GetTestClient();
 
         var response = await client.GetAsync("/api/reports/op-pdf/pdf");
@@ -70,17 +67,14 @@ public class ReportEndpointsExportTests
     }
 
     [Theory]
-    [InlineData("Legacy", "html", "text/html", "<!DOCTYPE html>")]
-    [InlineData("Visual", "html", "text/html", "<!DOCTYPE html>")]
-    [InlineData("Legacy", "pdf", "application/pdf", "%PDF")]
-    [InlineData("Visual", "pdf", "application/pdf", "%PDF")]
+    [InlineData("html", "text/html", "<!DOCTYPE html>")]
+    [InlineData("pdf", "application/pdf", "%PDF")]
     public async Task ExportByFormat_WithSupportedFormat_ReturnsExpectedArtifact(
-        string pipelineMode,
         string formatId,
         string expectedMediaType,
         string expectedPrefix)
     {
-        await using var app = await BuildAppAsync(pipelineMode);
+        await using var app = await BuildAppAsync();
         var client = app.GetTestClient();
 
         var response = await client.GetAsync($"/api/reports/op-generic/export/{formatId}");
@@ -96,7 +90,7 @@ public class ReportEndpointsExportTests
     [Fact]
     public async Task HitTest_WithHitPoint_ReturnsHitElement()
     {
-        await using var app = await BuildAppAsync("Legacy");
+        await using var app = await BuildAppAsync();
         var client = app.GetTestClient();
 
         var response = await client.GetAsync("/api/reports/op-hit/hit-test?pageNumber=1&x=24&y=24");
@@ -111,7 +105,7 @@ public class ReportEndpointsExportTests
     [Fact]
     public async Task HitTest_WithMissPoint_ReturnsMissPayload()
     {
-        await using var app = await BuildAppAsync("Legacy");
+        await using var app = await BuildAppAsync();
         var client = app.GetTestClient();
 
         var response = await client.GetAsync("/api/reports/op-hit/hit-test?pageNumber=1&x=500&y=500");
@@ -125,7 +119,7 @@ public class ReportEndpointsExportTests
     [Fact]
     public async Task HitTest_WithUnknownOperation_ReturnsNotFound()
     {
-        await using var app = await BuildAppAsync("Legacy");
+        await using var app = await BuildAppAsync();
         var client = app.GetTestClient();
 
         var response = await client.GetAsync("/api/reports/unknown/hit-test?pageNumber=1&x=24&y=24");
@@ -136,7 +130,7 @@ public class ReportEndpointsExportTests
     [Fact]
     public async Task SearchText_WithQuery_ReturnsOrderedMatches()
     {
-        await using var app = await BuildAppAsync("Legacy");
+        await using var app = await BuildAppAsync();
         var client = app.GetTestClient();
 
         var response = await client.GetAsync("/api/reports/op-hit/search?query=hit");
@@ -152,7 +146,7 @@ public class ReportEndpointsExportTests
     [Fact]
     public async Task SearchText_WithPageFilter_ReturnsScopedMatches()
     {
-        await using var app = await BuildAppAsync("Legacy");
+        await using var app = await BuildAppAsync();
         var client = app.GetTestClient();
 
         var response = await client.GetAsync("/api/reports/op-hit/search?query=hit&pageNumber=1");
@@ -166,7 +160,7 @@ public class ReportEndpointsExportTests
     [Fact]
     public async Task SearchText_WithUnknownOperation_ReturnsNotFound()
     {
-        await using var app = await BuildAppAsync("Legacy");
+        await using var app = await BuildAppAsync();
         var client = app.GetTestClient();
 
         var response = await client.GetAsync("/api/reports/unknown/search?query=hit");
@@ -174,14 +168,10 @@ public class ReportEndpointsExportTests
         response.StatusCode.ShouldBe(System.Net.HttpStatusCode.NotFound);
     }
 
-    private static async Task<WebApplication> BuildAppAsync(string pipelineMode)
+    private static async Task<WebApplication> BuildAppAsync()
     {
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseTestServer();
-
-        builder.Services
-            .AddOptions<RenderingPipelineOptions>()
-            .Configure(options => options.PipelineMode = pipelineMode);
 
         builder.Services
             .AddSingleton<IHtmlExporter, HtmlExporter>()

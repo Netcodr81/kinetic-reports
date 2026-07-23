@@ -1,15 +1,14 @@
 namespace KineticReports.Viewer.Blazor.Services;
 
 using KineticReports.Core.Definition;
+using KineticReports.Core.Engine;
+using KineticReports.Core.Export.Html;
 using KineticReports.Core.Geometry;
 using KineticReports.Core.Layout;
+using KineticReports.Core.LayoutEngine;
 using KineticReports.Core.Typography;
-using KineticReports.Engine;
-using KineticReports.Export.Html;
-using KineticReports.Layout;
-using KineticReports.Visual;
+using KineticReports.Core.Visual;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 /// <summary>
 /// Blazor implementation of report service that executes and exports reports locally.
@@ -22,13 +21,11 @@ public sealed class LocalReportService : IReportService
     ];
 
     private readonly IReportEngine _engine;
-    private readonly IHtmlExporter _exporter;
     private readonly IVisualHtmlExporter _visualHtmlExporter;
     private readonly IVisualDocumentBuilder _visualDocumentBuilder;
     private readonly VisualHitTestIndexBuilder _hitTestIndexBuilder;
     private readonly VisualTextSearchIndexBuilder _textSearchIndexBuilder;
     private readonly ITextLayout _textLayout;
-    private readonly RenderingPipelineOptions _pipelineOptions;
     private readonly ILogger<LocalReportService> _logger;
     private IReadOnlyList<string> _latestTrace = [];
 
@@ -37,23 +34,19 @@ public sealed class LocalReportService : IReportService
     /// </summary>
     public LocalReportService(
         IReportEngine engine,
-        IHtmlExporter exporter,
         IVisualHtmlExporter visualHtmlExporter,
         IVisualDocumentBuilder visualDocumentBuilder,
         VisualHitTestIndexBuilder hitTestIndexBuilder,
         VisualTextSearchIndexBuilder textSearchIndexBuilder,
         ITextLayout textLayout,
-        IOptions<RenderingPipelineOptions> pipelineOptions,
         ILogger<LocalReportService> logger)
     {
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
-        _exporter = exporter ?? throw new ArgumentNullException(nameof(exporter));
         _visualHtmlExporter = visualHtmlExporter ?? throw new ArgumentNullException(nameof(visualHtmlExporter));
         _visualDocumentBuilder = visualDocumentBuilder ?? throw new ArgumentNullException(nameof(visualDocumentBuilder));
         _hitTestIndexBuilder = hitTestIndexBuilder ?? throw new ArgumentNullException(nameof(hitTestIndexBuilder));
         _textSearchIndexBuilder = textSearchIndexBuilder ?? throw new ArgumentNullException(nameof(textSearchIndexBuilder));
         _textLayout = textLayout ?? throw new ArgumentNullException(nameof(textLayout));
-        _pipelineOptions = pipelineOptions?.Value ?? throw new ArgumentNullException(nameof(pipelineOptions));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -187,41 +180,20 @@ public sealed class LocalReportService : IReportService
         IReadOnlyDictionary<string, object?> parameters,
         CancellationToken ct)
     {
-        var selectedPipeline = _pipelineOptions.UseVisualPipeline ? "Visual" : "Legacy";
-        _logger.LogInformation("Viewer local report pipeline mode selected: {PipelineMode}", selectedPipeline);
-
-        if (_pipelineOptions.UseVisualPipeline)
-        {
-            _logger.LogInformation("Visual pipeline mode requested; using VisualHtmlExporter execution path.");
-            _latestTrace =
-            [
-                .. _latestTrace,
-                "[Pipeline] Mode requested: Visual",
-                "[Pipeline] Visual mode requested; using VisualHtmlExporter execution path."
-            ];
-        }
-        else
-        {
-            _latestTrace =
-            [
-                .. _latestTrace,
-                "[Pipeline] Mode requested: Legacy"
-            ];
-        }
+        _logger.LogInformation("Viewer local report pipeline mode selected: Visual");
+        _latestTrace =
+        [
+            .. _latestTrace,
+            "[Pipeline] Mode selected: Visual",
+            "[Pipeline] Visual mode uses VisualHtmlExporter execution path."
+        ];
 
         var reportDocument = await ExecuteReportAsync(definition, parameters, ct).ConfigureAwait(false);
         _latestTrace = [.. _latestTrace, $"[Render] Engine produced {reportDocument.PageCount} page(s)"];
 
         using var stream = new MemoryStream();
-        if (_pipelineOptions.UseVisualPipeline)
-        {
-            var visualDocument = _visualDocumentBuilder.Build(reportDocument);
-            await _visualHtmlExporter.ExportAsync(visualDocument, stream, ct).ConfigureAwait(false);
-        }
-        else
-        {
-            await _exporter.ExportAsync(reportDocument, stream, ct).ConfigureAwait(false);
-        }
+        var visualDocument = _visualDocumentBuilder.Build(reportDocument);
+        await _visualHtmlExporter.ExportAsync(visualDocument, stream, ct).ConfigureAwait(false);
 
         stream.Position = 0;
 

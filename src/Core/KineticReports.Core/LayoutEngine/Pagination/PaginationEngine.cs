@@ -1,7 +1,8 @@
-namespace KineticReports.Layout.Pagination;
+namespace KineticReports.Core.LayoutEngine.Pagination;
 
 using KineticReports.Core.Geometry;
 using KineticReports.Core.Layout;
+using KineticReports.Core.LayoutEngine;
 using KineticReports.Core.Styling;
 
 /// <summary>

@@ -1,8 +1,8 @@
-namespace KineticReports.Export.Html;
+namespace KineticReports.Core.Export.Html;
 
+using KineticReports.Core.Export.Html.Styles;
 using KineticReports.Core.Styling;
-using KineticReports.Export.Html.Styles;
-using KineticReports.Visual;
+using KineticReports.Core.Visual;
 using System.Text;
 using System.Text.Json;
 

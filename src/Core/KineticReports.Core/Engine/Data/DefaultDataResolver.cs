@@ -1,6 +1,6 @@
 using KineticReports.Core.Definition;
 
-namespace KineticReports.Engine.Data;
+namespace KineticReports.Core.Engine.Data;
 
 /// <summary>
 /// Default implementation of <see cref="IDataResolver"/> that returns empty result sets.

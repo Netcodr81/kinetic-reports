@@ -1,6 +1,6 @@
-namespace KineticReports.Authoring.Compilation;
+namespace KineticReports.Core.Authoring.Compilation;
 
-using KineticReports.Authoring.Components;
+using KineticReports.Core.Authoring.Components;
 
 /// <summary>
 /// Maps authoring component types to canonical runtime-oriented component hints.

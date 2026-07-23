@@ -2,6 +2,7 @@ namespace KineticReports.Export.Html.Tests;
 
 using System.Text;
 using KineticReports.Core.Geometry;
+using KineticReports.Core.Visual;
 using KineticReports.Visual;
 
 public class VisualHtmlRendererAdapterTests

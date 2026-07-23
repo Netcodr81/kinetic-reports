@@ -1,4 +1,4 @@
-namespace KineticReports.Authoring.Components;
+namespace KineticReports.Core.Authoring.Components;
 
 /// <summary>
 /// Describes one component type available to a report designer toolbox.

@@ -1,4 +1,4 @@
-namespace KineticReports.Visual;
+namespace KineticReports.Core.Visual;
 
 /// <summary>
 /// Represents an ordered logical layer of visual elements.

@@ -1,4 +1,4 @@
-namespace KineticReports.Plugins;
+namespace KineticReports.Core.Plugins;
 
 /// <summary>
 /// Deterministic orchestration helpers for export-related plugin seams.

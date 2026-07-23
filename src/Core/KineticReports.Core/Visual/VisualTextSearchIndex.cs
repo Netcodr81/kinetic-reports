@@ -1,4 +1,4 @@
-namespace KineticReports.Visual;
+namespace KineticReports.Core.Visual;
 
 /// <summary>
 /// Immutable index of searchable visual text entries.

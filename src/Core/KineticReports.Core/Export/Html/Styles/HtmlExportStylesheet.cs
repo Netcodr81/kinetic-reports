@@ -1,5 +1,6 @@
-namespace KineticReports.Export.Html.Styles;
+namespace KineticReports.Core.Export.Html.Styles;
 
+using KineticReports.Core.Export.Html;
 using System.Reflection;
 
 /// <summary>

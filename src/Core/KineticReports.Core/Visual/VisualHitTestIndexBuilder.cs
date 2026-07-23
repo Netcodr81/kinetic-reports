@@ -1,4 +1,4 @@
-namespace KineticReports.Visual;
+namespace KineticReports.Core.Visual;
 
 /// <summary>
 /// Builds hit-test indices for visual documents.

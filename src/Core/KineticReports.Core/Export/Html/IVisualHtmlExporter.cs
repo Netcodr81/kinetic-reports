@@ -1,6 +1,6 @@
-namespace KineticReports.Export.Html;
+namespace KineticReports.Core.Export.Html;
 
-using KineticReports.Visual;
+using KineticReports.Core.Visual;
 
 /// <summary>
 /// Exports an immutable <see cref="VisualDocument"/> to HTML format.

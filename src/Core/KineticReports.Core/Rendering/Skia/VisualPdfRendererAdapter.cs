@@ -1,6 +1,6 @@
-namespace KineticReports.Rendering.Skia;
+namespace KineticReports.Core.Rendering.Skia;
 
-using KineticReports.Visual;
+using KineticReports.Core.Visual;
 
 /// <summary>
 /// Adapts <see cref="VisualSkiaRenderer"/> to the generic <see cref="IVisualRenderer"/> contract for PDF output.

@@ -1,4 +1,4 @@
-namespace KineticReports.Engine.Expressions;
+namespace KineticReports.Core.Engine.Expressions;
 
 /// <summary>
 /// Provides contextual data available during expression evaluation,

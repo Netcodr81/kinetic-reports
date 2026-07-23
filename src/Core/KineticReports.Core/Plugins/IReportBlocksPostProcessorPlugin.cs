@@ -1,4 +1,4 @@
-namespace KineticReports.Plugins;
+namespace KineticReports.Core.Plugins;
 
 using KineticReports.Core.Layout;
 

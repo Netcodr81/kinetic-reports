@@ -1,4 +1,4 @@
-namespace KineticReports.Plugins;
+namespace KineticReports.Core.Plugins;
 
 /// <summary>
 /// Base class for plugins, providing common initialization and lifecycle management.

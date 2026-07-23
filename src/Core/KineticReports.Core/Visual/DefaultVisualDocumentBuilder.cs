@@ -1,4 +1,4 @@
-namespace KineticReports.Visual;
+namespace KineticReports.Core.Visual;
 
 using KineticReports.Core.Layout;
 using KineticReports.Core.Styling;
@@ -37,7 +37,7 @@ public sealed class DefaultVisualDocumentBuilder : IVisualDocumentBuilder
     private static VisualPage BuildPage(PageBlock page, BuildMetrics metrics)
     {
         var layers = new List<VisualLayer>();
-        var pageBounds = new KineticReports.Core.Geometry.Rect(0f, 0f, page.PageWidth, page.PageHeight);
+        var pageBounds = new Geometry.Rect(0f, 0f, page.PageWidth, page.PageHeight);
 
         if (page.Header != null)
         {
@@ -75,7 +75,7 @@ public sealed class DefaultVisualDocumentBuilder : IVisualDocumentBuilder
 
     private static IReadOnlyList<VisualElement> BuildElements(
         IEnumerable<LayoutBlock> blocks,
-        KineticReports.Core.Geometry.Rect pageBounds,
+        Geometry.Rect pageBounds,
         BuildMetrics metrics)
     {
         var elements = new List<VisualElement>();
@@ -88,7 +88,7 @@ public sealed class DefaultVisualDocumentBuilder : IVisualDocumentBuilder
 
     private static VisualElement BuildElement(
         LayoutBlock block,
-        KineticReports.Core.Geometry.Rect pageBounds,
+        Geometry.Rect pageBounds,
         BuildMetrics metrics)
     {
         var normalizedBounds = NormalizeBounds(block.Bounds, pageBounds, out var boundsWereNormalized);
@@ -135,7 +135,7 @@ public sealed class DefaultVisualDocumentBuilder : IVisualDocumentBuilder
         return element;
     }
 
-    private static VisualText BuildText(TextBlock block, KineticReports.Core.Geometry.Rect bounds)
+    private static VisualText BuildText(TextBlock block, Geometry.Rect bounds)
     {
         return new VisualText
         {
@@ -150,7 +150,7 @@ public sealed class DefaultVisualDocumentBuilder : IVisualDocumentBuilder
         };
     }
 
-    private static VisualImage BuildImage(ImageBlock block, KineticReports.Core.Geometry.Rect bounds)
+    private static VisualImage BuildImage(ImageBlock block, Geometry.Rect bounds)
     {
         return new VisualImage
         {
@@ -162,7 +162,7 @@ public sealed class DefaultVisualDocumentBuilder : IVisualDocumentBuilder
         };
     }
 
-    private static VisualShape BuildShape(ShapeBlock block, KineticReports.Core.Geometry.Rect bounds)
+    private static VisualShape BuildShape(ShapeBlock block, Geometry.Rect bounds)
     {
         return new VisualShape
         {
@@ -176,7 +176,7 @@ public sealed class DefaultVisualDocumentBuilder : IVisualDocumentBuilder
         };
     }
 
-    private static VisualTablePlaceholder BuildTable(TableBlock block, KineticReports.Core.Geometry.Rect bounds)
+    private static VisualTablePlaceholder BuildTable(TableBlock block, Geometry.Rect bounds)
     {
         return new VisualTablePlaceholder
         {
@@ -190,8 +190,8 @@ public sealed class DefaultVisualDocumentBuilder : IVisualDocumentBuilder
 
     private static VisualContainer BuildContainer(
         ContainerBlock block,
-        KineticReports.Core.Geometry.Rect bounds,
-        KineticReports.Core.Geometry.Rect pageBounds,
+        Geometry.Rect bounds,
+        Geometry.Rect pageBounds,
         BuildMetrics metrics)
     {
         return new VisualContainer
@@ -206,8 +206,8 @@ public sealed class DefaultVisualDocumentBuilder : IVisualDocumentBuilder
     private static VisualContainer BuildContainerLike(
         LayoutBlock source,
         IEnumerable<LayoutBlock> children,
-        KineticReports.Core.Geometry.Rect bounds,
-        KineticReports.Core.Geometry.Rect pageBounds,
+        Geometry.Rect bounds,
+        Geometry.Rect pageBounds,
         BuildMetrics metrics)
     {
         return new VisualContainer
@@ -221,7 +221,7 @@ public sealed class DefaultVisualDocumentBuilder : IVisualDocumentBuilder
 
     private static VisualUnsupportedElement BuildUnsupported(
         LayoutBlock block,
-        KineticReports.Core.Geometry.Rect bounds,
+        Geometry.Rect bounds,
         string reason)
     {
         var metadata = new Dictionary<string, string>(CreateBlockMetadata(block), StringComparer.Ordinal)
@@ -239,9 +239,9 @@ public sealed class DefaultVisualDocumentBuilder : IVisualDocumentBuilder
         };
     }
 
-    private static KineticReports.Core.Geometry.Rect NormalizeBounds(
-        KineticReports.Core.Geometry.Rect source,
-        KineticReports.Core.Geometry.Rect pageBounds,
+    private static Geometry.Rect NormalizeBounds(
+        Geometry.Rect source,
+        Geometry.Rect pageBounds,
         out bool changed)
     {
         var x = source.X;
@@ -306,13 +306,13 @@ public sealed class DefaultVisualDocumentBuilder : IVisualDocumentBuilder
             changed = true;
         }
 
-        return new KineticReports.Core.Geometry.Rect(x, y, width, height);
+        return new Geometry.Rect(x, y, width, height);
     }
 
     private static VisualClip? CreateClipIfNeeded(
-        KineticReports.Core.Geometry.Rect source,
-        KineticReports.Core.Geometry.Rect pageBounds,
-        KineticReports.Core.Geometry.Rect normalized,
+        Geometry.Rect source,
+        Geometry.Rect pageBounds,
+        Geometry.Rect normalized,
         out bool clipped)
     {
         var overflowedLeft = source.X < 0f;

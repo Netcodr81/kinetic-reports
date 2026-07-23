@@ -1,4 +1,4 @@
-namespace KineticReports.Visual;
+namespace KineticReports.Core.Visual;
 
 /// <summary>
 /// Represents one hit-testable element entry.

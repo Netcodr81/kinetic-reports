@@ -1,4 +1,4 @@
-namespace KineticReports.Plugins;
+namespace KineticReports.Core.Plugins;
 
 /// <summary>
 /// Resolves report exporters by format ID.

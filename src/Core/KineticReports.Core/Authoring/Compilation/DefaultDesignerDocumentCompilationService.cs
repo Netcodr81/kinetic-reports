@@ -1,7 +1,7 @@
-namespace KineticReports.Authoring.Compilation;
+namespace KineticReports.Core.Authoring.Compilation;
 
-using KineticReports.Authoring.Documents;
-using KineticReports.Authoring.Serialization;
+using KineticReports.Core.Authoring.Documents;
+using KineticReports.Core.Authoring.Serialization;
 using KineticReports.Core.Definition;
 
 /// <summary>

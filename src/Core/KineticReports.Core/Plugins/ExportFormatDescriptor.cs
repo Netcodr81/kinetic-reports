@@ -1,4 +1,4 @@
-namespace KineticReports.Plugins;
+namespace KineticReports.Core.Plugins;
 
 /// <summary>
 /// Describes an export format available to the host.

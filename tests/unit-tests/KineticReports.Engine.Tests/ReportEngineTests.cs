@@ -1,9 +1,10 @@
 namespace KineticReports.Engine.Tests;
 
 using KineticReports.Core.Definition;
+using KineticReports.Core.Engine;
+using KineticReports.Core.LayoutEngine;
 using KineticReports.Engine.Expressions;
 using KineticReports.Engine.Tests.Fakes;
-using KineticReports.Layout;
 
 public class ReportEngineTests
 {

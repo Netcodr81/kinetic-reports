@@ -1,7 +1,7 @@
-namespace KineticReports.Layout;
+namespace KineticReports.Core.LayoutEngine;
 
 using KineticReports.Core.Layout;
-using KineticReports.Layout.Pagination;
+using KineticReports.Core.LayoutEngine.Pagination;
 
 /// <summary>
 /// Default implementation of <see cref="ILayoutEngine"/>.

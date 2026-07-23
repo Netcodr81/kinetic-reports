@@ -3,6 +3,7 @@ namespace KineticReports.Visual.Tests;
 using KineticReports.Core.Geometry;
 using KineticReports.Core.Layout;
 using KineticReports.Core.Styling;
+using KineticReports.Core.Visual;
 using Shouldly;
 using Xunit;
 

@@ -1,6 +1,7 @@
 namespace KineticReports.Rendering.Skia.Tests;
 
 using KineticReports.Core.Geometry;
+using KineticReports.Core.Visual;
 using KineticReports.Visual;
 
 public class VisualSkiaRendererTests

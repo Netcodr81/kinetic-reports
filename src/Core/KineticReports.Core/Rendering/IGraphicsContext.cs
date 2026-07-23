@@ -1,8 +1,7 @@
-namespace KineticReports.Rendering;
+namespace KineticReports.Core.Rendering;
 
 using KineticReports.Core.Geometry;
 using KineticReports.Core.Layout;
-using KineticReports.Core.Rendering;
 using KineticReports.Core.Styling;
 
 /// <summary>

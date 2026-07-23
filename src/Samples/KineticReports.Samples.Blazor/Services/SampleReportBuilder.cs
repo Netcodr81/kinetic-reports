@@ -1,12 +1,12 @@
 namespace KineticReports.Samples.Blazor.Services;
 
 using System.Globalization;
-using KineticReports.Authoring.Compilation;
+using KineticReports.Core.Authoring.Compilation;
+using KineticReports.Core.Engine.Building;
+using KineticReports.Core.Engine.Data;
+using KineticReports.Core.Engine.Expressions;
 using KineticReports.Core.Layout;
 using KineticReports.Core.Styling;
-using KineticReports.Engine.Building;
-using KineticReports.Engine.Data;
-using KineticReports.Engine.Expressions;
 
 /// <summary>
 /// Builds simple, data-backed report blocks for the Blazor sample reports.

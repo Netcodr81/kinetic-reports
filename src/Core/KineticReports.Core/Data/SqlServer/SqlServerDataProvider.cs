@@ -1,4 +1,4 @@
-namespace KineticReports.Data.SqlServer;
+namespace KineticReports.Core.Data.SqlServer;
 
 using System.Diagnostics;
 using Microsoft.Data.SqlClient;

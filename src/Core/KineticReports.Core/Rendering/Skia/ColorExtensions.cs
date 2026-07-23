@@ -1,4 +1,4 @@
-namespace KineticReports.Rendering.Skia.Extensions;
+namespace KineticReports.Core.Rendering.Skia;
 
 using KineticReports.Core.Styling;
 using SkiaSharp;

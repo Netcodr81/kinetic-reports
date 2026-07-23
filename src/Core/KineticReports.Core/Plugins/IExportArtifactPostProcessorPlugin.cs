@@ -1,4 +1,4 @@
-namespace KineticReports.Plugins;
+namespace KineticReports.Core.Plugins;
 
 /// <summary>
 /// Plugin seam that post-processes exported artifacts after exporter execution.

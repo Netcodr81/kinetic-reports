@@ -1,8 +1,8 @@
 namespace KineticReports.Viewer.Web.Services;
 
 using KineticReports.Core.Geometry;
+using KineticReports.Core.Visual;
 using KineticReports.Viewer.Web.Models;
-using KineticReports.Visual;
 
 /// <summary>
 /// Default implementation of <see cref="IReportHitTestService"/>.

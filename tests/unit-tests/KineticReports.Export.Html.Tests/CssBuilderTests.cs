@@ -1,5 +1,6 @@
 namespace KineticReports.Export.Html.Tests;
 
+using KineticReports.Core.Export.Html;
 using KineticReports.Core.Geometry;
 using KineticReports.Core.Styling;
 

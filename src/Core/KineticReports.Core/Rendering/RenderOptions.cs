@@ -1,4 +1,4 @@
-namespace KineticReports.Rendering;
+namespace KineticReports.Core.Rendering;
 
 /// <summary>
 /// Controls which file format <see cref="IRenderer"/> implementations write to the output stream.
@@ -33,9 +33,9 @@ public sealed record RenderOptions
 
     /// <summary>
     /// Gets the page background color drawn before all content.
-    /// Default is <see cref="Core.Styling.Color.White"/>.
+    /// Default is <see cref="Styling.Color.White"/>.
     /// </summary>
-    public Core.Styling.Color Background { get; init; } = Core.Styling.Color.White;
+    public Styling.Color Background { get; init; } = Core.Styling.Color.White;
 
     /// <summary>
     /// Gets the output format written to the render stream.

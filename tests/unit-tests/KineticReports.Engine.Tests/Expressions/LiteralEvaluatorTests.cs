@@ -1,6 +1,6 @@
 namespace KineticReports.Engine.Tests.Expressions;
 
-using KineticReports.Engine.Expressions;
+using KineticReports.Core.Engine.Expressions;
 
 public class LiteralEvaluatorTests
 {

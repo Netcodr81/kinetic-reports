@@ -1,8 +1,8 @@
-namespace KineticReports.Engine;
+namespace KineticReports.Core.Engine;
 
 using KineticReports.Core.Definition;
 using KineticReports.Core.Layout;
-using KineticReports.Layout;
+using KineticReports.Core.LayoutEngine;
 
 /// <summary>
 /// Orchestrates the full report pipeline: data resolution, expression evaluation,

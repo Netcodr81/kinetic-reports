@@ -1,4 +1,4 @@
-namespace KineticReports.Authoring.Components;
+namespace KineticReports.Core.Authoring.Components;
 
 /// <summary>
 /// Provides available component descriptors for drag-and-drop report designers.

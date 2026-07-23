@@ -1,4 +1,4 @@
-namespace KineticReports.Authoring.Components;
+namespace KineticReports.Core.Authoring.Components;
 
 /// <summary>
 /// Default component catalog containing the built-in authoring components.

@@ -4,7 +4,6 @@ using KineticReports.Core.Rendering;
 using KineticReports.Core.Styling;
 using KineticReports.Core.Typography;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 
 namespace KineticReports.Viewer.Web.Tests;
 
@@ -27,11 +26,10 @@ public class ReportExecutorTests
     public void ReportExecutor_WithNullEngine_ThrowsArgumentNullException()
     {
         var textLayout = new NoOpTextLayout();
-        var options = Options.Create(new RenderingPipelineOptions());
         var logger = NullLogger<ReportExecutor>.Instance;
 
         // Act & Assert
         Should.Throw<ArgumentNullException>(
-            () => new ReportExecutor(null!, textLayout, options, logger));
+            () => new ReportExecutor(null!, textLayout, logger));
     }
 }

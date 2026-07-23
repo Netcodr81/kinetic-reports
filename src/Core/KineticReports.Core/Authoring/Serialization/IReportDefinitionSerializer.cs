@@ -1,4 +1,4 @@
-namespace KineticReports.Authoring.Serialization;
+namespace KineticReports.Core.Authoring.Serialization;
 
 using KineticReports.Core.Definition;
 

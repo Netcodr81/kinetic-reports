@@ -1,4 +1,4 @@
-namespace KineticReports.Engine.Expressions;
+namespace KineticReports.Core.Engine.Expressions;
 
 /// <summary>
 /// Evaluates a report expression string within a given <see cref="ExpressionContext"/>.

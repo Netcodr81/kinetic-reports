@@ -1,5 +1,6 @@
 namespace KineticReports.Plugins.Tests;
 
+using KineticReports.Core.Plugins;
 using Shouldly;
 using Xunit;
 

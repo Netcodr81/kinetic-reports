@@ -2,14 +2,14 @@ namespace KineticReports.Samples.Blazor.Services;
 
 using KineticReports.Core.Data;
 using KineticReports.Core.Definition;
-using KineticReports.Data.SqlLite;
-using KineticReports.Engine.Data;
+using KineticReports.Core.Engine.Data;
+using KineticReports.Core.Data.SqlLite;
 using Microsoft.AspNetCore.Hosting;
 
 /// <summary>
 /// Resolves sample data by querying the SQLite sample database.
 /// </summary>
-internal sealed class SampleDataResolver : IDataResolver
+internal sealed class SampleDataResolver : IDataSourceResolver
 {
     private const string SqlLiteProviderType = "SqlLite";
     private const string InMemoryProviderType = "SampleInMemory";
@@ -21,6 +21,15 @@ internal sealed class SampleDataResolver : IDataResolver
     public SampleDataResolver(IWebHostEnvironment hostEnvironment)
     {
         _contentRootPath = hostEnvironment.ContentRootPath;
+    }
+
+    /// <inheritdoc/>
+    public bool CanResolve(DataSourceDefinition definition)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+
+        return string.Equals(definition.ProviderType, SqlLiteProviderType, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(definition.ProviderType, InMemoryProviderType, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <inheritdoc/>

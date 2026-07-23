@@ -1,4 +1,4 @@
-namespace KineticReports.Layout;
+namespace KineticReports.Core.LayoutEngine;
 
 using KineticReports.Core.Layout;
 

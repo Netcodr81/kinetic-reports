@@ -1,7 +1,7 @@
 namespace KineticReports.Engine.Tests.Fakes;
 
 using KineticReports.Core.Definition;
-using KineticReports.Engine.Data;
+using KineticReports.Core.Engine.Data;
 
 /// <summary>
 /// A configurable <see cref="IDataResolver"/> stub that returns pre-set rows.

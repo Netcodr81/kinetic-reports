@@ -20,6 +20,76 @@ This page documents how orchestration and layout contracts work.
 | `ExpressionContext` | Evaluation context with current row + parameters |
 | `LiteralEvaluator`  | Default evaluator behavior                       |
 
+## Dependency Injection
+
+Use the built-in engine registration extension from Core:
+
+```csharp
+using KineticReports.Core.Engine.DependencyInjection;
+
+builder.Services.AddKineticReportsEngine();
+```
+
+This registers `IExpressionEvaluator`, `IDataResolver`, `IReportBuilder`, `ILayoutEngine`, and `IReportEngine` with default implementations.
+
+To run singleton engine services (for example, in lightweight API hosts):
+
+```csharp
+builder.Services.AddKineticReportsEngine(ServiceLifetime.Singleton);
+```
+
+You can override any registration afterwards.
+
+## DefaultReportBuilder Fluent API
+
+`DefaultReportBuilder` is a production-capable code-first builder for report blocks.
+
+Common capabilities:
+- Static regions: text, image, chart, barcode, shapes, page breaks
+- Data-driven regions: row repeaters and expression binding
+- Data tables: columns, optional grouping headers, optional footer aggregates
+
+Example:
+
+```csharp
+using KineticReports.Core.Engine.Building;
+using KineticReports.Core.Layout;
+
+var builder = DefaultReportBuilder.Create()
+	.AddTextRegion("title", "Sales by Region", BlockType.ReportHeader)
+	.AddDataSourceTable(
+		dataSourceId: "orders",
+		regionId: "orders-region",
+		tableId: "orders-table",
+		columns:
+		[
+			new DefaultReportBuilder.DataSourceTableColumn
+			{
+				Header = "Region",
+				ValueExpression = "{Region}",
+				Column = new TableColumn { MinWidth = 120f, Grow = 1f }
+			},
+			new DefaultReportBuilder.DataSourceTableColumn
+			{
+				Header = "Amount",
+				ValueExpression = "{Amount}",
+				Column = new TableColumn { Width = 100f, MinWidth = 100f, Grow = 0f }
+			}
+		],
+		groupByExpression: "{Region}",
+		footerAggregates:
+		[
+			new DefaultReportBuilder.TableAggregateDefinition
+			{
+				ColumnIndex = 1,
+				ValueExpression = "{Amount}",
+				Kind = DefaultReportBuilder.TableAggregateKind.Sum,
+				FormatString = "0.00"
+			}
+		],
+		footerLabel: "Grand Total");
+```
+
 ## Layout Interfaces and Types
 
 | Type                    | Kind      | Purpose                           | Key Members                                    |

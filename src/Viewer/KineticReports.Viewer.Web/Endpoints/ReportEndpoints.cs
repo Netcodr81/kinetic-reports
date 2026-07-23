@@ -2,7 +2,7 @@ namespace KineticReports.Viewer.Web.Endpoints;
 
 using System.Text.Json;
 using KineticReports.Core.Definition;
-using KineticReports.Plugins;
+using KineticReports.Core.Plugins;
 using KineticReports.Viewer.Web.Models;
 using KineticReports.Viewer.Web.Services;
 using Microsoft.AspNetCore.Mvc;

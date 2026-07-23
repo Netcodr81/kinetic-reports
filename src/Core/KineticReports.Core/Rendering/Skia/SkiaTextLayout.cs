@@ -1,4 +1,4 @@
-namespace KineticReports.Rendering.Skia;
+namespace KineticReports.Core.Rendering.Skia;
 
 using System.Text;
 using KineticReports.Core.Geometry;

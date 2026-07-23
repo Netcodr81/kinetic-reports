@@ -4,13 +4,12 @@ using KineticReports.Core.Layout;
 using KineticReports.Core.Rendering;
 using KineticReports.Core.Styling;
 using KineticReports.Core.Typography;
-using KineticReports.Engine;
-using KineticReports.Export.Html;
-using KineticReports.Layout;
-using KineticReports.Visual;
+using KineticReports.Core.Export.Html;
+using KineticReports.Core.Visual;
 using KineticReports.Viewer.Blazor.Services;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
+using KineticReports.Core.Engine;
+using KineticReports.Core.LayoutEngine;
 
 namespace KineticReports.Viewer.Blazor.Tests;
 
@@ -68,17 +67,15 @@ public class LocalReportServiceTests
         }
     }
 
-    private static LocalReportService CreateService(RenderingPipelineOptions? options = null)
+    private static LocalReportService CreateService()
     {
         return new LocalReportService(
             new MockReportEngine(),
-            new HtmlExporter(),
             new VisualHtmlExporter(),
             new DefaultVisualDocumentBuilder(),
             new VisualHitTestIndexBuilder(),
             new VisualTextSearchIndexBuilder(),
             new MockTextLayout(),
-            Options.Create(options ?? new RenderingPipelineOptions()),
             NullLogger<LocalReportService>.Instance);
     }
 
@@ -181,7 +178,7 @@ public class LocalReportServiceTests
     public async Task HitTestAsync_WithEmptyDocument_ReturnsMiss()
     {
         // Arrange
-        var service = CreateService(new RenderingPipelineOptions { PipelineMode = "Visual" });
+        var service = CreateService();
         var definition = new ReportDefinition
         {
             SchemaVersion = "1.0",
@@ -201,7 +198,7 @@ public class LocalReportServiceTests
     public async Task SearchTextAsync_WithEmptyDocument_ReturnsNoMatches()
     {
         // Arrange
-        var service = CreateService(new RenderingPipelineOptions { PipelineMode = "Visual" });
+        var service = CreateService();
         var definition = new ReportDefinition
         {
             SchemaVersion = "1.0",

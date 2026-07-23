@@ -1,8 +1,8 @@
-namespace KineticReports.Authoring.Serialization;
+namespace KineticReports.Core.Authoring.Serialization;
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using KineticReports.Authoring.Documents;
+using KineticReports.Core.Authoring.Documents;
 
 /// <summary>
 /// JSON serializer implementation for designer documents using System.Text.Json.

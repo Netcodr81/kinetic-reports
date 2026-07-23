@@ -1,10 +1,10 @@
 namespace KineticReports.Engine.Tests.Fakes;
 
+using KineticReports.Core.Engine.Building;
+using KineticReports.Core.Engine.Data;
+using KineticReports.Core.Engine.Expressions;
 using KineticReports.Core.Layout;
 using KineticReports.Core.Styling;
-using KineticReports.Engine.Building;
-using KineticReports.Engine.Data;
-using KineticReports.Engine.Expressions;
 
 /// <summary>
 /// A configurable <see cref="IReportBuilder"/> stub that returns a pre-set content-region list.

@@ -1,8 +1,8 @@
-namespace KineticReports.Authoring.DependencyInjection;
+namespace KineticReports.Core.Authoring.DependencyInjection;
 
-using KineticReports.Authoring.Compilation;
-using KineticReports.Authoring.Components;
-using KineticReports.Authoring.Serialization;
+using KineticReports.Core.Authoring.Compilation;
+using KineticReports.Core.Authoring.Components;
+using KineticReports.Core.Authoring.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 
 /// <summary>

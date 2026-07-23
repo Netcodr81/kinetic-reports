@@ -1,10 +1,10 @@
-namespace KineticReports.Export.Html;
+namespace KineticReports.Core.Export.Html;
 
 using KineticReports.Core.Layout;
 using KineticReports.Core.Styling;
-using KineticReports.Export.Html.Styles;
 using System.Text.Json;
 using System.Text;
+using KineticReports.Core.Export.Html.Styles;
 
 /// <summary>
 /// Exports an immutable ReportDocument to semantic HTML with inline CSS.

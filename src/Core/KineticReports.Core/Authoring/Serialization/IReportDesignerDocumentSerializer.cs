@@ -1,6 +1,6 @@
-namespace KineticReports.Authoring.Serialization;
+namespace KineticReports.Core.Authoring.Serialization;
 
-using KineticReports.Authoring.Documents;
+using KineticReports.Core.Authoring.Documents;
 
 /// <summary>
 /// Serializes and deserializes <see cref="ReportDesignerDocument"/> to and from JSON.

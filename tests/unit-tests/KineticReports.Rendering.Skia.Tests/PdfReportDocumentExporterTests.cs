@@ -1,39 +1,21 @@
+using KineticReports.Core.Export.Document;
+
 namespace KineticReports.Rendering.Skia.Tests;
 
 using System.Text;
 using KineticReports.Core.Layout;
 using KineticReports.Core.Styling;
-using KineticReports.Visual;
-using KineticReports.Viewer.Web.Services;
-using Microsoft.Extensions.Options;
-using PdfRenderingPipelineOptions = KineticReports.Viewer.Web.Services.RenderingPipelineOptions;
+using KineticReports.Core.Visual;
 
 public class PdfReportDocumentExporterTests
 {
     [Fact]
-    public async Task ExportAsync_WithLegacyMode_DoesNotUseVisualBuilderAndReturnsPdf()
+    public async Task ExportAsync_UsesVisualBuilderAndReturnsPdf()
     {
         var reportDocument = CreateReportDocument();
         var visualBuilder = new TrackingVisualDocumentBuilder(CreateVisualDocument());
         var visualRenderer = new VisualSkiaRenderer();
-        var options = Options.Create(new PdfRenderingPipelineOptions { PipelineMode = "Legacy" });
-        var sut = new PdfReportDocumentExporter(visualBuilder, visualRenderer, options);
-
-        var artifact = await sut.ExportAsync(reportDocument);
-
-        visualBuilder.BuildCallCount.ShouldBe(0);
-        artifact.Length.ShouldBeGreaterThan(100);
-        Encoding.ASCII.GetString(artifact, 0, 4).ShouldBe("%PDF");
-    }
-
-    [Fact]
-    public async Task ExportAsync_WithVisualMode_UsesVisualBuilderAndReturnsPdf()
-    {
-        var reportDocument = CreateReportDocument();
-        var visualBuilder = new TrackingVisualDocumentBuilder(CreateVisualDocument());
-        var visualRenderer = new VisualSkiaRenderer();
-        var options = Options.Create(new PdfRenderingPipelineOptions { PipelineMode = "Visual" });
-        var sut = new PdfReportDocumentExporter(visualBuilder, visualRenderer, options);
+        var sut = new PdfReportDocumentExporter(visualBuilder, visualRenderer);
 
         var artifact = await sut.ExportAsync(reportDocument);
 

@@ -1,4 +1,4 @@
-namespace KineticReports.Engine.Expressions;
+namespace KineticReports.Core.Engine.Expressions;
 
 /// <summary>
 /// A simple <see cref="IExpressionEvaluator"/> that resolves field references

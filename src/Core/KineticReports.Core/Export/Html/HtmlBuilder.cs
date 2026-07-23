@@ -1,4 +1,4 @@
-namespace KineticReports.Export.Html;
+namespace KineticReports.Core.Export.Html;
 
 using System.Net;
 using System.Text;

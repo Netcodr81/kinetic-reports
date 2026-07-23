@@ -1,8 +1,8 @@
 namespace KineticReports.Samples.Plugins;
 
 using KineticReports.Core.Layout;
+using KineticReports.Core.Plugins;
 using KineticReports.Core.Styling;
-using KineticReports.Plugins;
 
 /// <summary>
 /// Sample plugin demonstrating custom watermark rendering.

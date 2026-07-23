@@ -1,6 +1,7 @@
 namespace KineticReports.Visual.Tests;
 
 using KineticReports.Core.Geometry;
+using KineticReports.Core.Visual;
 using Shouldly;
 using Xunit;
 

@@ -1,6 +1,6 @@
 namespace KineticReports.Samples.Blazor.Services;
 
-using KineticReports.Plugins;
+using KineticReports.Core.Plugins;
 using System.Reflection;
 
 /// <summary>

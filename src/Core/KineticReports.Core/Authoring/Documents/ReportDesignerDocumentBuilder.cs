@@ -1,6 +1,6 @@
-namespace KineticReports.Authoring.Documents;
+namespace KineticReports.Core.Authoring.Documents;
 
-using KineticReports.Authoring.Components;
+using KineticReports.Core.Authoring.Components;
 using KineticReports.Core.Definition;
 using KineticReports.Core.Styling;
 

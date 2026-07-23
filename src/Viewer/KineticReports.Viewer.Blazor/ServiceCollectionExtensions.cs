@@ -1,7 +1,7 @@
 namespace KineticReports.Viewer.Blazor;
 
+using KineticReports.Core.Visual;
 using KineticReports.Viewer.Blazor.Services;
-using KineticReports.Visual;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 

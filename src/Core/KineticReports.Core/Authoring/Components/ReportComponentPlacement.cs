@@ -1,4 +1,4 @@
-namespace KineticReports.Authoring.Components;
+namespace KineticReports.Core.Authoring.Components;
 
 /// <summary>
 /// Absolute placement metadata for a designer component on a page canvas (in DIPs).

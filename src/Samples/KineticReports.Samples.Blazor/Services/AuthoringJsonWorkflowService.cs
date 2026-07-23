@@ -1,12 +1,12 @@
 namespace KineticReports.Samples.Blazor.Services;
 
+using KineticReports.Core.Authoring.Compilation;
+using KineticReports.Core.Authoring.Components;
+using KineticReports.Core.Authoring.Documents;
+using KineticReports.Core.Authoring.Serialization;
+using KineticReports.Core.Definition;
 using System.Net;
 using System.Text;
-using KineticReports.Authoring.Compilation;
-using KineticReports.Authoring.Components;
-using KineticReports.Authoring.Documents;
-using KineticReports.Authoring.Serialization;
-using KineticReports.Core.Definition;
 
 /// <summary>
 /// Demonstrates an end-to-end authoring JSON workflow in the sample app.

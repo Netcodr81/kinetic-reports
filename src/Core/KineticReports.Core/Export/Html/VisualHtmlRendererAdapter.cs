@@ -1,6 +1,6 @@
-namespace KineticReports.Export.Html;
+namespace KineticReports.Core.Export.Html;
 
-using KineticReports.Visual;
+using KineticReports.Core.Visual;
 
 /// <summary>
 /// Adapts <see cref="IVisualHtmlExporter"/> to the generic <see cref="IVisualRenderer"/> contract.

@@ -1,6 +1,7 @@
 namespace KineticReports.Layout.Tests;
 
 using KineticReports.Core.Layout;
+using KineticReports.Core.LayoutEngine;
 using KineticReports.Core.Styling;
 using KineticReports.Layout.Tests.Fakes;
 

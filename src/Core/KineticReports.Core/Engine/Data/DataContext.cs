@@ -1,4 +1,4 @@
-namespace KineticReports.Engine.Data;
+namespace KineticReports.Core.Engine.Data;
 
 using KineticReports.Core.Definition;
 

@@ -1,17 +1,5 @@
 using KineticReports.Samples.Blazor.Components;
-using KineticReports.Samples.Blazor.Services;
-using KineticReports.Authoring.DependencyInjection;
-using KineticReports.Core.Typography;
-using KineticReports.Engine;
-using KineticReports.Engine.Building;
-using KineticReports.Engine.Data;
-using KineticReports.Engine.Expressions;
-using KineticReports.Export.Html;
-using KineticReports.Layout;
-using KineticReports.Plugins;
-using KineticReports.Rendering.Skia;
-using KineticReports.Viewer.Blazor;
-using KineticReports.Visual;
+using KineticReports.Samples.Blazor.DependencyInjection;
 
 // ============================================================================
 // KineticReports Blazor Sample Application (Interactive Server)
@@ -32,29 +20,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Register authoring contracts/services for JSON-first and drag-and-drop flows.
-builder.Services.AddKineticReportsAuthoring();
-
-// Register sample-specific services
-builder.Services.AddScoped<IPluginService, PluginService>();
-builder.Services.AddScoped<IPluginExecutionTraceStore, PluginExecutionTraceStore>();
-builder.Services.AddScoped<IAuthoringJsonWorkflowService, AuthoringJsonWorkflowService>();
-builder.Services.AddSingleton<IAuthoredReportCatalogService, AuthoredReportCatalogService>();
-
-builder.Services.AddScoped<ITextLayout, SkiaTextLayout>();
-builder.Services.AddScoped<IExpressionEvaluator, LiteralEvaluator>();
-builder.Services.AddScoped<IDataResolver, SampleDataResolver>();
-builder.Services.AddScoped<SampleReportBuilder>();
-builder.Services.AddScoped<IReportBuilder, PluginAwareReportBuilder>();
-builder.Services.AddScoped<ILayoutEngine, LayoutEngine>();
-builder.Services.AddScoped<IReportEngine, ReportEngine>();
-builder.Services.AddScoped<IHtmlExporter, HtmlExporter>();
-builder.Services.AddScoped<IVisualHtmlExporter, VisualHtmlExporter>();
-builder.Services.AddScoped<IVisualDocumentBuilder, DefaultVisualDocumentBuilder>();
-builder.Services.AddKineticReportsViewerBlazor(options =>
-{
-    options.PipelineMode = builder.Configuration["Rendering:PipelineMode"] ?? "Legacy";
-});
+builder.Services
+    .AddKeneticReports()
+    .AddBlazorViewer()
+    .UseSampleDataResolver()
+    .UseSampleAuthoringServices();
 
 var app = builder.Build();
 

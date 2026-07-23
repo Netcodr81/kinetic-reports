@@ -1,7 +1,7 @@
-namespace KineticReports.Rendering.Skia;
+namespace KineticReports.Core.Rendering.Skia;
 
 using KineticReports.Core.Geometry;
-using KineticReports.Visual;
+using KineticReports.Core.Visual;
 using SkiaSharp;
 
 /// <summary>

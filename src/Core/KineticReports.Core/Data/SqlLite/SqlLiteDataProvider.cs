@@ -1,4 +1,4 @@
-namespace KineticReports.Data.SqlLite;
+namespace KineticReports.Core.Data.SqlLite;
 
 using System.Diagnostics;
 using KineticReports.Core.Data;

@@ -1,4 +1,4 @@
-namespace KineticReports.Plugins;
+namespace KineticReports.Core.Plugins;
 
 /// <summary>
 /// Default implementation of <see cref="IReportDocumentExporterRegistry"/>.

@@ -1,8 +1,9 @@
-namespace KineticReports.Engine.Building;
+namespace KineticReports.Core.Engine.Building;
 
+using KineticReports.Core.Engine.Data;
+using KineticReports.Core.Engine.Expressions;
 using KineticReports.Core.Layout;
-using KineticReports.Engine.Data;
-using KineticReports.Engine.Expressions;
+using KineticReports.Core.LayoutEngine;
 
 /// <summary>
 /// Builds report blocks from a data context and an expression evaluator.

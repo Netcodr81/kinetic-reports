@@ -1,22 +1,19 @@
 using KineticReports.Core.Typography;
-using KineticReports.Engine;
-using KineticReports.Export.Html;
-using KineticReports.Plugins;
-using KineticReports.Rendering.Skia;
-using KineticReports.Visual;
 using KineticReports.Viewer.Web.Endpoints;
 using KineticReports.Viewer.Web.Services;
+using KineticReports.Core.Plugins;
+using KineticReports.Core.Engine.DependencyInjection;
+using KineticReports.Core.Visual;
+using KineticReports.Core.Export.Html;
+using KineticReports.Core.Export.Document;
+using KineticReports.Core.Rendering.Skia;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services
-    .AddOptions<RenderingPipelineOptions>()
-    .Bind(builder.Configuration.GetSection(RenderingPipelineOptions.SectionName));
 
 // Register core report engine components
 builder.Services
     .AddSingleton<ITextLayout, SkiaTextLayout>()
-    .AddSingleton<IReportEngine, ReportEngine>();
+    .AddKineticReportsEngine(ServiceLifetime.Singleton);
 
 // Register export implementations
 builder.Services
