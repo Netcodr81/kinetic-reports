@@ -1,5 +1,7 @@
 namespace KineticReports.Viewer.Blazor;
 
+using KineticReports.Core.Export.Html;
+using KineticReports.Core.Rendering.Skia;
 using KineticReports.Core.Visual;
 using KineticReports.Viewer.Blazor.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +28,8 @@ public static class ServiceCollectionExtensions
         if (configure != null)
             services.Configure(configure);
 
+        services.TryAddScoped<IHtmlExporter, HtmlExporter>();
+        services.TryAddScoped<VisualSkiaRenderer>();
         services.TryAddScoped<VisualHitTestIndexBuilder>();
         services.TryAddScoped<VisualTextSearchIndexBuilder>();
         services.TryAddScoped<IReportService, LocalReportService>();

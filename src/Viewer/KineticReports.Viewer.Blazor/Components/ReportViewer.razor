@@ -6,6 +6,8 @@
 @implements IAsyncDisposable
 @inject IReportService ReportService
 @inject IJSRuntime Js
+@using System.Text
+@using System.Text.RegularExpressions
 
 <div class="kinetic-report-viewer">
     <div class="report-header">
@@ -172,9 +174,7 @@
     @if (!string.IsNullOrEmpty(HtmlContent))
     {
         <div class="report-output">
-            <iframe id="@_previewFrameId" title="Report Preview" srcdoc="@GetPreviewFrameSource()"
-                    style="width: 100%; height: 960px; border: 1px solid #dee2e6; border-radius: 0.375rem; background-color: #f8f9fa;">
-            </iframe>
+            <div id="@_previewContainerId" class="preview-content">@((MarkupString)GetInlinePreviewMarkup())</div>
         </div>
 
         @if (_latestTrace.Count > 0)
@@ -244,7 +244,7 @@
     private string HtmlContent { get; set; } = string.Empty;
     private string ErrorMessage { get; set; } = string.Empty;
     private bool IsLoading { get; set; } = false;
-    private readonly string _previewFrameId = $"kr-viewer-preview-{Guid.NewGuid():N}";
+    private readonly string _previewContainerId = $"kr-viewer-preview-{Guid.NewGuid():N}";
     private CancellationTokenSource? _cancellationTokenSource;
     private string? _lastExecutedDefinitionId;
     private IReadOnlyList<ReportViewerExportFormat> _availableFormats = [];
@@ -306,22 +306,22 @@ StringComparison.OrdinalIgnoreCase)))
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_viewerInteropInitialized)
-            return;
-
         try
         {
-            _dotNetReference ??= DotNetObjectReference.Create(this);
+            if (!_viewerInteropInitialized)
+            {
+                _dotNetReference ??= DotNetObjectReference.Create(this);
 
-            _viewerModule ??= await Js
-                .InvokeAsync<IJSObjectReference>("import", "./_content/KineticReports.Viewer.Blazor/reportViewer.js")
-                .ConfigureAwait(false);
+                _viewerModule ??= await Js
+                    .InvokeAsync<IJSObjectReference>("import", "./_content/KineticReports.Viewer.Blazor/reportViewer.js")
+                    .ConfigureAwait(false);
 
-            await _viewerModule
-                .InvokeVoidAsync("registerHost", _dotNetReference, _previewFrameId)
-                .ConfigureAwait(false);
+                await _viewerModule
+                    .InvokeVoidAsync("registerHost", _dotNetReference, _previewContainerId)
+                    .ConfigureAwait(false);
 
-            _viewerInteropInitialized = true;
+                _viewerInteropInitialized = true;
+            }
         }
         catch (InvalidOperationException ex) when (
             ex.Message.Contains("statically rendered", StringComparison.OrdinalIgnoreCase)
@@ -691,45 +691,33 @@ boolValue,
             : bool.TryParse(Convert.ToString(args.Value), out var parsed) && parsed;
     }
 
-    private string GetPreviewFrameSource()
+    private string GetInlinePreviewMarkup()
     {
         if (string.IsNullOrEmpty(HtmlContent))
-            return "about:blank";
+            return string.Empty;
 
-        const string stylesheetLink = "<link rel=\"stylesheet\" href=\"/kinetic-report.css\">";
-
-        const string clickBridgeMarker = "kr-preview-click-bridge";
-        const string clickBridgeScript = "<script id=\"kr-preview-click-bridge\">(function(){if(window.__krPreviewBridgeInstalled){return;}window.__krPreviewBridgeInstalled=true;document.addEventListener('click',function(e){try{var t=e&&e.target?e.target:null;var page=t&&t.closest?t.closest('.kinetic-page'):null;var pageNumber=1;var x=e.clientX;var y=e.clientY;if(page){var r=page.getBoundingClientRect();x=e.clientX-r.left;y=e.clientY-r.top;var id=page.id||'';var m=id.match(/page-(\\d+)/i);if(m&&m[1]){var p=parseInt(m[1],10);if(!isNaN(p)&&p>0){pageNumber=p;}}}window.parent.postMessage({type:'kr-preview-click',x:x,y:y,pageNumber:pageNumber},'*');}catch(_){}});})();</script>";
-
-        var content = HtmlContent;
-
-        if (!content.Contains(clickBridgeMarker, StringComparison.OrdinalIgnoreCase))
+        var styleBuilder = new StringBuilder();
+        var styleRegex = new Regex("<style\\b[^>]*>[\\s\\S]*?</style>", RegexOptions.IgnoreCase |
+RegexOptions.CultureInvariant);
+        foreach (Match match in styleRegex.Matches(HtmlContent))
         {
-            if (content.Contains("</body>", StringComparison.OrdinalIgnoreCase))
-            {
-                content = content.Replace(
-                    "</body>",
-                    clickBridgeScript + "</body>",
-                    StringComparison.OrdinalIgnoreCase);
-            }
-            else
-            {
-                content += clickBridgeScript;
-            }
+            styleBuilder.Append(match.Value);
         }
 
-        if (content.Contains("kinetic-report.css", StringComparison.OrdinalIgnoreCase))
-            return content;
+        var bodyStart = HtmlContent.IndexOf("<body", StringComparison.OrdinalIgnoreCase);
+        if (bodyStart < 0)
+            return styleBuilder + HtmlContent;
 
-        if (content.Contains("</head>", StringComparison.OrdinalIgnoreCase))
-        {
-            return content.Replace(
-                "</head>",
-                stylesheetLink + "</head>",
-                StringComparison.OrdinalIgnoreCase);
-        }
+        var bodyOpenEnd = HtmlContent.IndexOf('>', bodyStart);
+        if (bodyOpenEnd < 0)
+            return styleBuilder + HtmlContent;
 
-        return $"<html><head>{stylesheetLink}</head><body>{content}</body></html>";
+        var bodyCloseStart = HtmlContent.IndexOf("</body>", bodyOpenEnd, StringComparison.OrdinalIgnoreCase);
+        if (bodyCloseStart < 0)
+            bodyCloseStart = HtmlContent.Length;
+
+        var bodyMarkup = HtmlContent.Substring(bodyOpenEnd + 1, bodyCloseStart - bodyOpenEnd - 1);
+        return styleBuilder + bodyMarkup;
     }
 
     private void ClearError()

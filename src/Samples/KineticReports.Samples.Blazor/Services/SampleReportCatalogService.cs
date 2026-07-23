@@ -28,7 +28,8 @@ public sealed record SampleReportTemplateDescriptor(
 internal sealed class SampleReportCatalogService : ISampleReportCatalogService
 {
     private const string InMemoryProviderType = "InMemory";
-    private const string SqlServerProviderType = "SqlServer";
+    private const string SqlLiteProviderType = "SqlLite";
+    private const string SqliteAliasProviderType = "SQLite";
 
     private static readonly IReadOnlyList<SampleReportTemplateDescriptor> Templates =
     [
@@ -201,69 +202,74 @@ internal sealed class SampleReportCatalogService : ISampleReportCatalogService
 
     private static IReadOnlyDictionary<string, string> BuildDataSourceProperties(string dataSourceId, string providerType)
     {
-        if (string.Equals(providerType, SqlServerProviderType, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(providerType, SqlLiteProviderType, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(providerType, SqliteAliasProviderType, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(providerType, "SqlServer", StringComparison.OrdinalIgnoreCase))
         {
             return new Dictionary<string, string>(StringComparer.Ordinal)
             {
-                ["Query"] = BuildSqlServerQuery(dataSourceId)
+                ["Query"] = BuildSqlLiteQuery(dataSourceId)
             };
         }
 
         return new Dictionary<string, string>(StringComparer.Ordinal);
     }
 
-    private static string BuildSqlServerQuery(string dataSourceId) => dataSourceId switch
+    private static string BuildSqlLiteQuery(string dataSourceId) => dataSourceId switch
     {
         "regional-performance" => """
             SELECT Region, Revenue, Target, Variance, Accounts
-            FROM dbo.RegionalPerformance
+            FROM RegionalPerformance
             ORDER BY Revenue DESC;
             """,
         "top-accounts" => """
             SELECT Customer, Segment, AnnualRevenue, RenewalDate, Owner
-            FROM dbo.TopAccounts
+            FROM TopAccounts
             ORDER BY AnnualRevenue DESC;
             """,
         "monthly-trend" => """
             SELECT [Month], Billings, GrossMargin, NewLogos
-            FROM dbo.MonthlyTrend
+            FROM MonthlyTrend
             ORDER BY MonthOrder;
             """,
         "sales-orders-detail" => """
             SELECT OrderNumber, Customer, Region, OrderDate, Amount, Status
-            FROM dbo.SalesOrdersDetail
+            FROM SalesOrdersDetail
             ORDER BY OrderDate, OrderNumber;
             """,
         "implementation-milestones" => """
             SELECT Customer, Workstream, Stage, GoLiveDate, ExecutiveSponsor
-            FROM dbo.ImplementationMilestones
+            FROM ImplementationMilestones
             ORDER BY GoLiveDate, Customer;
             """,
         "support-escalations" => """
             SELECT Ticket, Customer, Severity, Owner, DaysOpen, Status
-            FROM dbo.SupportEscalations
+            FROM SupportEscalations
             ORDER BY DaysOpen DESC, Ticket;
             """,
         "renewal-pipeline" => """
             SELECT Customer, RenewalQuarter, ARR, ExpansionPotential, Stage
-            FROM dbo.RenewalPipeline
+            FROM RenewalPipeline
             ORDER BY RenewalQuarter, Customer;
             """,
-        _ => throw new InvalidOperationException($"No SQL Server query mapping is defined for data source '{dataSourceId}'.")
+        _ => throw new InvalidOperationException($"No SQLite query mapping is defined for data source '{dataSourceId}'.")
     };
 
     private static string NormalizeProviderType(string providerType)
     {
-        if (string.Equals(providerType, SqlServerProviderType, StringComparison.OrdinalIgnoreCase))
-            return SqlServerProviderType;
+        if (string.Equals(providerType, SqlLiteProviderType, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(providerType, SqliteAliasProviderType, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(providerType, "SqlServer", StringComparison.OrdinalIgnoreCase))
+            return SqlLiteProviderType;
 
         return InMemoryProviderType;
     }
 
     private static string GetProviderDisplayName(string providerType)
     {
-        return string.Equals(providerType, SqlServerProviderType, StringComparison.OrdinalIgnoreCase)
-            ? "SQL Server"
+        return string.Equals(providerType, SqlLiteProviderType, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(providerType, SqliteAliasProviderType, StringComparison.OrdinalIgnoreCase)
+            ? "SQLite"
             : "In-Memory";
     }
 

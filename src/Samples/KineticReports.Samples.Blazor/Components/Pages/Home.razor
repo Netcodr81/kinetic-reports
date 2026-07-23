@@ -8,6 +8,7 @@
 @using Microsoft.AspNetCore.Components.Web
 @inject ISampleReportCatalogService ReportCatalogService
 @inject IReportEngine ReportEngine
+@inject IReportService ViewerReportService
 @inject IJSRuntime Js
 @rendermode InteractiveServer
 
@@ -43,6 +44,29 @@
                     </select>
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label">Display Options</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="include-header"
+                               checked="@_includePageHeader"
+                               @onchange="OnIncludeHeaderChanged" />
+                        <label class="form-check-label small" for="include-header">Include page header</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="include-footer"
+                               checked="@_includePageFooter"
+                               @onchange="OnIncludeFooterChanged" />
+                        <label class="form-check-label small" for="include-footer">Include page footer</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="include-page-numbers"
+                               checked="@_includePageNumbers"
+                               @onchange="OnIncludePageNumbersChanged"
+                               disabled="@(!_includePageFooter)" />
+                        <label class="form-check-label small" for="include-page-numbers">Include page numbers</label>
+                    </div>
+                </div>
+
                 <div class="d-grid gap-2 mb-3">
                     <button class="btn btn-primary btn-sm" @onclick="LoadSelectedReportAsync" disabled="@_isBusy">
                         @if (_isBusy)
@@ -55,6 +79,14 @@
                             disabled="@(_isBusy || string.IsNullOrWhiteSpace(_definitionJson))">
                         Download Effective JSON
                     </button>
+                    <button class="btn btn-outline-secondary btn-sm" @onclick="ExportHtmlAsync"
+                            disabled="@(_isBusy || _activeDefinition is null || _activeReportDocument is null)">
+                        Export HTML
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" @onclick="ExportPdfAsync"
+                            disabled="@(_isBusy || _activeDefinition is null || _activeReportDocument is null)">
+                        Export PDF
+                    </button>
                 </div>
 
                 @if (!string.IsNullOrWhiteSpace(_selectedTemplateDescription))
@@ -65,9 +97,9 @@
         </div>
 
         <div class="alert alert-secondary small mt-3 mb-0">
-            <div><strong>SQL Server provider setup:</strong></div>
-            <div>Connection string key: ConnectionStrings:SqlServer</div>
-            <div>Run the seed script at Data/sample-reports-sqlserver.seed.sql.</div>
+            <div><strong>SQLite provider setup:</strong></div>
+            <div>Connection string key: ConnectionStrings:SqlLite</div>
+            <div>The sample auto-seeds a local database at startup using Data/sample-reports-sqlite.seed.sql.</div>
             <div>It creates the reporting tables used by both sample reports.</div>
         </div>
     </div>
@@ -138,6 +170,13 @@
 </div>
 
 @code {
+    private static readonly IReadOnlySet<string> LayoutItemTypes = new HashSet<string>(StringComparer.Ordinal)
+    {
+        nameof(ReportLayoutItemKind.Text),
+        nameof(ReportLayoutItemKind.Table),
+        nameof(ReportLayoutItemKind.PageBreak)
+    };
+
     private bool _isBusy;
     private string? _activeReportName;
     private string? _definitionJson;
@@ -150,11 +189,14 @@
     private IReadOnlyList<ProviderOption> _providers =
     [
         new ProviderOption("InMemory", "In-Memory (Poco provider)"),
-        new ProviderOption("SqlServer", "SQL Server")
+        new ProviderOption("SqlLite", "SQLite")
     ];
 
     private string _selectedTemplateId = string.Empty;
     private string _selectedProviderType = string.Empty;
+    private bool _includePageHeader = true;
+    private bool _includePageFooter = true;
+    private bool _includePageNumbers = true;
 
     private string? _selectedTemplateDescription => _templates
         .FirstOrDefault(template => string.Equals(template.Id, _selectedTemplateId, StringComparison.Ordinal))
@@ -182,8 +224,9 @@
 
         try
         {
-            _activeDefinition = await ReportCatalogService.LoadAsync(_selectedTemplateId, _selectedProviderType);
-            _definitionJson = await ReportCatalogService.LoadJsonAsync(_selectedTemplateId, _selectedProviderType);
+            var loadedDefinition = await ReportCatalogService.LoadAsync(_selectedTemplateId, _selectedProviderType);
+            _activeDefinition = ApplyLayoutDisplayOptions(loadedDefinition);
+            _definitionJson = BuildDisplayDefinitionJson(_activeDefinition);
             _activeReportName = _activeDefinition.Name;
             _viewerParameters = BuildDefaultParameters(_activeDefinition);
             _activeReportDocument = await ReportEngine.RunAsync(_activeDefinition);
@@ -211,6 +254,26 @@
     private void OnTemplateChanged(ChangeEventArgs args)
     {
         _selectedTemplateId = Convert.ToString(args.Value) ?? string.Empty;
+        ResetTransientStatus();
+    }
+
+    private void OnIncludeHeaderChanged(ChangeEventArgs args)
+    {
+        _includePageHeader = args.Value is bool b && b;
+        ResetTransientStatus();
+    }
+
+    private void OnIncludeFooterChanged(ChangeEventArgs args)
+    {
+        _includePageFooter = args.Value is bool b && b;
+        if (!_includePageFooter)
+            _includePageNumbers = false;
+        ResetTransientStatus();
+    }
+
+    private void OnIncludePageNumbersChanged(ChangeEventArgs args)
+    {
+        _includePageNumbers = args.Value is bool b && b;
         ResetTransientStatus();
     }
 
@@ -259,6 +322,52 @@
         _status = $"Downloaded {fileName}.";
     }
 
+    private Task ExportHtmlAsync() => ExportCurrentReportAsync("html");
+
+    private Task ExportPdfAsync() => ExportCurrentReportAsync("pdf");
+
+    private async Task ExportCurrentReportAsync(string formatId)
+    {
+        if (_activeDefinition is null || _activeReportDocument is null)
+        {
+            _error = "Load a report before exporting.";
+            return;
+        }
+
+        _isBusy = true;
+        _error = null;
+
+        try
+        {
+            var exportResult = await ViewerReportService
+                .ExportAsync(_activeReportDocument, formatId)
+                .ConfigureAwait(false);
+
+            var fileBaseName = string.IsNullOrWhiteSpace(_activeDefinition.Name)
+                ? "report"
+                : string.Concat(_activeDefinition.Name.Select(ch => Path.GetInvalidFileNameChars().Contains(ch) ? '-' : ch));
+
+            var fileName = $"{fileBaseName}.{exportResult.FileExtension}";
+            var payload = Convert.ToBase64String(exportResult.Content);
+
+            await Js.InvokeVoidAsync(
+                "kineticReports.downloadFromBase64",
+                fileName,
+                exportResult.MimeType,
+                payload);
+
+            _status = $"Exported {fileName}.";
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
     private static IReadOnlyDictionary<string, object?> BuildDefaultParameters(ReportDefinition definition)
     {
         var values = new Dictionary<string, object?>(StringComparer.Ordinal);
@@ -273,10 +382,107 @@
         return values;
     }
 
+    private ReportDefinition ApplyLayoutDisplayOptions(ReportDefinition definition)
+    {
+        if (definition.Layout is null)
+            return definition;
+
+        var header = _includePageHeader
+            ? definition.Layout.PageHeader.ToList()
+            : [];
+
+        var footer = _includePageFooter
+            ? definition.Layout.PageFooter.ToList()
+            : [];
+
+        if (_includePageFooter)
+        {
+            if (!_includePageNumbers)
+            {
+                footer = footer
+                    .Where(item => !IsPageNumberFooterItem(item))
+                    .ToList();
+            }
+            else if (!footer.Any(IsPageNumberFooterItem))
+            {
+                footer.Add(new ReportLayoutItemDefinition
+                {
+                    Id = "runtime-page-number",
+                    Kind = ReportLayoutItemKind.Text,
+                    Text = "Page {PageNumber}"
+                });
+            }
+        }
+
+        return definition with
+        {
+            Layout = definition.Layout with
+            {
+                PageHeader = header,
+                PageFooter = footer
+            }
+        };
+    }
+
+    private static bool IsPageNumberFooterItem(ReportLayoutItemDefinition item)
+    {
+        if (item.Kind != ReportLayoutItemKind.Text)
+            return false;
+
+        return !string.IsNullOrWhiteSpace(item.Text)
+            && item.Text.Contains("{PageNumber}", StringComparison.OrdinalIgnoreCase);
+    }
+
     private void ResetTransientStatus()
     {
         _status = null;
         _error = null;
+    }
+
+    private static string BuildDisplayDefinitionJson(ReportDefinition definition)
+    {
+        var options = new System.Text.Json.JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+        };
+        options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+
+        var node = System.Text.Json.JsonSerializer.SerializeToNode(definition, options)
+            ?? throw new InvalidOperationException("Failed to build JSON preview for the active report definition.");
+
+        RenameLayoutItemKindToType(node);
+
+        return node.ToJsonString(options);
+    }
+
+    private static void RenameLayoutItemKindToType(System.Text.Json.Nodes.JsonNode node)
+    {
+        if (node is System.Text.Json.Nodes.JsonObject obj)
+        {
+            if (obj.TryGetPropertyValue("kind", out var kindNode)
+                && kindNode is System.Text.Json.Nodes.JsonValue kindValue
+                && kindValue.TryGetValue<string>(out var kindText)
+                && LayoutItemTypes.Contains(kindText))
+            {
+                obj.Remove("kind");
+                obj["type"] = kindText;
+            }
+
+            foreach (var child in obj.ToList())
+            {
+                if (child.Value is not null)
+                    RenameLayoutItemKindToType(child.Value);
+            }
+        }
+        else if (node is System.Text.Json.Nodes.JsonArray arr)
+        {
+            foreach (var child in arr)
+            {
+                if (child is not null)
+                    RenameLayoutItemKindToType(child);
+            }
+        }
     }
 
     private sealed record ProviderOption(string ProviderType, string DisplayName);

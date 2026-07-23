@@ -73,7 +73,7 @@ public sealed class HtmlExporter : IHtmlExporter
         if (page.Header != null)
         {
             html.OpenTag("header", classAttr: "page-header-region");
-            RenderElement(html, page.Header, 0f, 0f);
+            RenderElement(html, page.Header, 0f, 0f, page.PageNumber);
             html.CloseTag("header");
         }
 
@@ -81,7 +81,7 @@ public sealed class HtmlExporter : IHtmlExporter
         html.OpenTag("main", classAttr: "page-body-region");
         foreach (var child in page.Children)
         {
-            RenderElement(html, child, 0f, 0f);
+            RenderElement(html, child, 0f, 0f, page.PageNumber);
         }
         html.CloseTag("main");
 
@@ -89,7 +89,7 @@ public sealed class HtmlExporter : IHtmlExporter
         if (page.Footer != null)
         {
             html.OpenTag("footer", classAttr: "page-footer-region");
-            RenderElement(html, page.Footer, 0f, 0f);
+            RenderElement(html, page.Footer, 0f, 0f, page.PageNumber);
             html.CloseTag("footer");
         }
 
@@ -147,7 +147,7 @@ public sealed class HtmlExporter : IHtmlExporter
         };
     }
 
-    private static void RenderElement(HtmlBuilder html, LayoutBlock element, float parentX, float parentY)
+    private static void RenderElement(HtmlBuilder html, LayoutBlock element, float parentX, float parentY, int pageNumber)
     {
         var style = BuildElementStyle(element, parentX, parentY);
 
@@ -156,7 +156,7 @@ public sealed class HtmlExporter : IHtmlExporter
         switch (element)
         {
             case TextBlock textElem:
-                RenderTextBlock(html, textElem);
+                RenderTextBlock(html, textElem, pageNumber);
                 break;
 
             case ImageBlock imgElem:
@@ -168,32 +168,32 @@ public sealed class HtmlExporter : IHtmlExporter
                 break;
 
             case TableBlock tableElem:
-                RenderTableElement(html, tableElem);
+                RenderTableElement(html, tableElem, pageNumber);
                 break;
 
             case ContainerBlock container:
                 foreach (var child in container.Children)
-                    RenderElement(html, child, element.Bounds.X, element.Bounds.Y);
+                    RenderElement(html, child, element.Bounds.X, element.Bounds.Y, pageNumber);
                 break;
 
             case SectionBlock section:
                 foreach (var child in section.Children)
-                    RenderElement(html, child, element.Bounds.X, element.Bounds.Y);
+                    RenderElement(html, child, element.Bounds.X, element.Bounds.Y, pageNumber);
                 break;
 
             case ReportBlock block:
                 foreach (var child in block.Children)
-                    RenderElement(html, child, element.Bounds.X, element.Bounds.Y);
+                    RenderElement(html, child, element.Bounds.X, element.Bounds.Y, pageNumber);
                 break;
 
             case RowBlock row:
                 foreach (var cell in row.Cells)
-                    RenderElement(html, cell, element.Bounds.X, element.Bounds.Y);
+                    RenderElement(html, cell, element.Bounds.X, element.Bounds.Y, pageNumber);
                 break;
 
             case CellBlock cell:
                 foreach (var child in cell.Children)
-                    RenderElement(html, child, element.Bounds.X, element.Bounds.Y);
+                    RenderElement(html, child, element.Bounds.X, element.Bounds.Y, pageNumber);
                 break;
 
             case ChartBlock:
@@ -208,11 +208,11 @@ public sealed class HtmlExporter : IHtmlExporter
         html.CloseTag("div");
     }
 
-    private static void RenderTextBlock(HtmlBuilder html, TextBlock textBlock)
+    private static void RenderTextBlock(HtmlBuilder html, TextBlock textBlock, int pageNumber)
     {
         if (textBlock.TextRuns.Count == 0)
         {
-            html.Text(textBlock.Text);
+            html.Text(ResolveSystemTextTokens(textBlock.Text, pageNumber));
         }
         else
         {
@@ -221,7 +221,7 @@ public sealed class HtmlExporter : IHtmlExporter
                 var runStyle = CssBuilder.BuildStyle(run.Style);
                 html
                     .OpenTag("p", style: runStyle)
-                    .Text(run.Text)
+                    .Text(ResolveSystemTextTokens(run.Text, pageNumber))
                     .CloseTag("p");
             }
         }
@@ -279,7 +279,7 @@ public sealed class HtmlExporter : IHtmlExporter
         };
     }
 
-    private static void RenderTableElement(HtmlBuilder html, TableBlock tableElem)
+    private static void RenderTableElement(HtmlBuilder html, TableBlock tableElem, int pageNumber)
     {
         html.OpenTag("table", classAttr: "kinetic-table");
 
@@ -291,7 +291,7 @@ public sealed class HtmlExporter : IHtmlExporter
             html.OpenTag("thead");
             foreach (var row in headerRows)
             {
-                RenderTableRow(html, row, "th");
+                RenderTableRow(html, row, "th", pageNumber);
             }
             html.CloseTag("thead");
         }
@@ -299,14 +299,14 @@ public sealed class HtmlExporter : IHtmlExporter
         html.OpenTag("tbody");
         foreach (var row in bodyRows)
         {
-            RenderTableRow(html, row, "td");
+            RenderTableRow(html, row, "td", pageNumber);
         }
         html.CloseTag("tbody");
 
         html.CloseTag("table");
     }
 
-    private static void RenderTableRow(HtmlBuilder html, RowBlock row, string cellTag)
+    private static void RenderTableRow(HtmlBuilder html, RowBlock row, string cellTag, int pageNumber)
     {
         html.OpenTag("tr", classAttr: row.RowType == RowType.Header ? "kinetic-table-header-row" : "kinetic-table-row");
 
@@ -324,7 +324,7 @@ public sealed class HtmlExporter : IHtmlExporter
             html.OpenTag(cellTag, style: cellStyle, attributes: attributes.Count == 0 ? null : attributes);
 
             foreach (var child in cell.Children)
-                RenderTableCellChild(html, child);
+                RenderTableCellChild(html, child, pageNumber);
 
             html.CloseTag(cellTag);
         }
@@ -332,24 +332,24 @@ public sealed class HtmlExporter : IHtmlExporter
         html.CloseTag("tr");
     }
 
-    private static void RenderTableCellChild(HtmlBuilder html, LayoutBlock child)
+    private static void RenderTableCellChild(HtmlBuilder html, LayoutBlock child, int pageNumber)
     {
         if (child is TextBlock textElem)
         {
-            RenderTextBlockInline(html, textElem);
+            RenderTextBlockInline(html, textElem, pageNumber);
             return;
         }
 
-        RenderElement(html, child, child.Bounds.X, child.Bounds.Y);
+        RenderElement(html, child, child.Bounds.X, child.Bounds.Y, pageNumber);
     }
 
-    private static void RenderTextBlockInline(HtmlBuilder html, TextBlock textBlock)
+    private static void RenderTextBlockInline(HtmlBuilder html, TextBlock textBlock, int pageNumber)
     {
         if (textBlock.TextRuns.Count == 0)
         {
             html
                 .OpenTag("span", style: CssBuilder.BuildStyle(textBlock.Style))
-                .Text(textBlock.Text)
+                .Text(ResolveSystemTextTokens(textBlock.Text, pageNumber))
                 .CloseTag("span");
             return;
         }
@@ -358,9 +358,20 @@ public sealed class HtmlExporter : IHtmlExporter
         {
             html
                 .OpenTag("span", style: CssBuilder.BuildStyle(run.Style))
-                .Text(run.Text)
+                .Text(ResolveSystemTextTokens(run.Text, pageNumber))
                 .CloseTag("span");
         }
+    }
+
+    private static string ResolveSystemTextTokens(string text, int pageNumber)
+    {
+        if (string.IsNullOrEmpty(text))
+            return string.Empty;
+
+        return text
+            .Replace("{PageNumber}", pageNumber.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase)
+            .Replace("{CurrentDate}", DateTime.UtcNow.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase)
+            .Replace("{CurrentTime}", DateTime.UtcNow.ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase);
     }
 
     private static string BuildElementStyle(LayoutBlock element, float parentX, float parentY)

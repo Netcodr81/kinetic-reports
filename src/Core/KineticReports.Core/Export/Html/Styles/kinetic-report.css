@@ -1,6 +1,7 @@
 :root {
   --kr-font-family: Arial, sans-serif;
   --kr-font-size-base: 12px;
+  --kr-line-height-base: 1.2;
   --kr-body-bg: #f5f6f8;
   --kr-text-color: #222;
 
@@ -10,7 +11,10 @@
   --kr-page-gap: 20px;
 
   --kr-table-border: #ddd;
-  --kr-table-cell-padding: 4px;
+  --kr-table-cell-padding-x: 8px;
+  --kr-table-cell-padding-y: 6px;
+  --kr-table-gap-x: 0px;
+  --kr-table-gap-y: 0px;
 
   --kr-placeholder-bg: #f3f6fc;
   --kr-placeholder-border: #c5d2ea;
@@ -115,14 +119,17 @@ body {
 .table-element table {
   width: 100%;
   border-collapse: collapse;
+  border-spacing: 0;
+  table-layout: fixed;
 }
 
 .kinetic-table td,
 .kinetic-table th,
 .table-element td,
 .table-element th {
-  border: 1px solid var(--kr-table-border);
-  padding: var(--kr-table-cell-padding);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 @media print {

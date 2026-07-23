@@ -134,6 +134,12 @@
     overflow-x: auto;
 }
 
+.kinetic-report-viewer .preview-content {
+    width: max-content;
+    min-width: 100%;
+    min-height: 960px;
+}
+
 .kinetic-report-viewer .trace-output {
     margin-top: 0.75rem;
     border: 1px solid #e3e6eb;

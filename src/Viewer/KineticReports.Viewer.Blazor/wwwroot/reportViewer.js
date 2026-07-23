@@ -1,55 +1,55 @@
 let dotNetRef = null;
-let messageHandler = null;
-let frameWindow = null;
+let previewContainer = null;
+let clickHandler = null;
 
-export function registerHost(reference, frameId) {
+export function registerHost(reference, previewContainerId) {
     dotNetRef = reference;
 
-    const frameElement = typeof frameId === "string"
-        ? document.getElementById(frameId)
-        : null;
-    frameWindow = frameElement && frameElement.contentWindow
-        ? frameElement.contentWindow
+    const containerElement = typeof previewContainerId === "string"
+        ? document.getElementById(previewContainerId)
         : null;
 
-    if (messageHandler !== null) {
-        window.removeEventListener("message", messageHandler);
+    if (previewContainer && clickHandler) {
+        previewContainer.removeEventListener("click", clickHandler);
     }
 
-    messageHandler = (event) => {
-        const payload = event?.data;
-        if (!payload || payload.type !== "kr-preview-click" || dotNetRef === null) {
+    previewContainer = containerElement;
+    if (!previewContainer) {
+        return;
+    }
+
+    clickHandler = (event) => {
+        if (!dotNetRef) {
             return;
         }
 
-        if (frameWindow !== null && event.source !== frameWindow) {
+        const target = event.target;
+        const page = target && target.closest ? target.closest(".kinetic-page") : null;
+        if (!page) {
             return;
         }
 
-        const x = Number(payload.x);
-        const y = Number(payload.y);
-        const pageNumber = Number(payload.pageNumber);
+        const rect = page.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
 
-        if (!Number.isFinite(x) || !Number.isFinite(y)) {
-            return;
-        }
+        const id = page.id || "";
+        const match = id.match(/page-(\d+)/i);
+        const parsedPage = match && match[1] ? parseInt(match[1], 10) : 1;
+        const pageNumber = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
-        dotNetRef.invokeMethodAsync(
-            "OnPreviewClicked",
-            x,
-            y,
-            Number.isFinite(pageNumber) ? pageNumber : 1);
+        dotNetRef.invokeMethodAsync("OnPreviewClicked", x, y, pageNumber);
     };
 
-    window.addEventListener("message", messageHandler);
+    previewContainer.addEventListener("click", clickHandler);
 }
 
 export function dispose() {
-    if (messageHandler !== null) {
-        window.removeEventListener("message", messageHandler);
-        messageHandler = null;
+    if (previewContainer && clickHandler) {
+        previewContainer.removeEventListener("click", clickHandler);
     }
 
-    frameWindow = null;
+    clickHandler = null;
+    previewContainer = null;
     dotNetRef = null;
 }

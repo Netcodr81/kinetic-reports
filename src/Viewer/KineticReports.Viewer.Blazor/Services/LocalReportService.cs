@@ -6,6 +6,7 @@ using KineticReports.Core.Export.Html;
 using KineticReports.Core.Geometry;
 using KineticReports.Core.Layout;
 using KineticReports.Core.LayoutEngine;
+using KineticReports.Core.Rendering.Skia;
 using KineticReports.Core.Typography;
 using KineticReports.Core.Visual;
 using Microsoft.Extensions.Logging;
@@ -17,15 +18,17 @@ public sealed class LocalReportService : IReportService
 {
     private static readonly IReadOnlyList<ReportViewerExportFormat> DefaultFormats =
     [
-        new ReportViewerExportFormat("html", "HTML", "text/html", "html")
+        new ReportViewerExportFormat("html", "HTML", "text/html", "html"),
+        new ReportViewerExportFormat("pdf", "PDF", "application/pdf", "pdf")
     ];
 
     private readonly IReportEngine _engine;
-    private readonly IVisualHtmlExporter _visualHtmlExporter;
+    private readonly IHtmlExporter _htmlExporter;
     private readonly IVisualDocumentBuilder _visualDocumentBuilder;
     private readonly VisualHitTestIndexBuilder _hitTestIndexBuilder;
     private readonly VisualTextSearchIndexBuilder _textSearchIndexBuilder;
     private readonly ITextLayout _textLayout;
+    private readonly VisualSkiaRenderer _visualSkiaRenderer;
     private readonly ILogger<LocalReportService> _logger;
     private IReadOnlyList<string> _latestTrace = [];
 
@@ -34,19 +37,21 @@ public sealed class LocalReportService : IReportService
     /// </summary>
     public LocalReportService(
         IReportEngine engine,
-        IVisualHtmlExporter visualHtmlExporter,
+        IHtmlExporter htmlExporter,
         IVisualDocumentBuilder visualDocumentBuilder,
         VisualHitTestIndexBuilder hitTestIndexBuilder,
         VisualTextSearchIndexBuilder textSearchIndexBuilder,
         ITextLayout textLayout,
+        VisualSkiaRenderer visualSkiaRenderer,
         ILogger<LocalReportService> logger)
     {
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
-        _visualHtmlExporter = visualHtmlExporter ?? throw new ArgumentNullException(nameof(visualHtmlExporter));
+        _htmlExporter = htmlExporter ?? throw new ArgumentNullException(nameof(htmlExporter));
         _visualDocumentBuilder = visualDocumentBuilder ?? throw new ArgumentNullException(nameof(visualDocumentBuilder));
         _hitTestIndexBuilder = hitTestIndexBuilder ?? throw new ArgumentNullException(nameof(hitTestIndexBuilder));
         _textSearchIndexBuilder = textSearchIndexBuilder ?? throw new ArgumentNullException(nameof(textSearchIndexBuilder));
         _textLayout = textLayout ?? throw new ArgumentNullException(nameof(textLayout));
+        _visualSkiaRenderer = visualSkiaRenderer ?? throw new ArgumentNullException(nameof(visualSkiaRenderer));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -104,14 +109,11 @@ public sealed class LocalReportService : IReportService
         if (string.IsNullOrWhiteSpace(formatId))
             throw new ArgumentException("Format id is required.", nameof(formatId));
 
-        if (!string.Equals(formatId, "html", StringComparison.OrdinalIgnoreCase))
-            throw new NotSupportedException($"Local viewer service supports only 'html' export. Requested '{formatId}'.");
-
         try
         {
-            _latestTrace = ["[Render] Executing with local viewer service", "[Export] Format: html"];
-            var html = await RenderHtmlCoreAsync(definition, parameters, ct).ConfigureAwait(false);
-            return new ReportViewerExportResult("html", "text/html", "html", System.Text.Encoding.UTF8.GetBytes(html));
+            var reportDocument = await ExecuteReportAsync(definition, parameters, ct).ConfigureAwait(false);
+            return await ExportReportDocumentAsync(reportDocument, formatId, "[Render] Executing with local viewer service", ct)
+                .ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -131,14 +133,10 @@ public sealed class LocalReportService : IReportService
         if (string.IsNullOrWhiteSpace(formatId))
             throw new ArgumentException("Format id is required.", nameof(formatId));
 
-        if (!string.Equals(formatId, "html", StringComparison.OrdinalIgnoreCase))
-            throw new NotSupportedException($"Local viewer service supports only 'html' export. Requested '{formatId}'.");
-
         try
         {
-            _latestTrace = ["[Render] Using prebuilt ReportDocument", "[Export] Format: html"];
-            var html = await RenderHtmlCoreAsync(reportDocument, ct).ConfigureAwait(false);
-            return new ReportViewerExportResult("html", "text/html", "html", System.Text.Encoding.UTF8.GetBytes(html));
+            return await ExportReportDocumentAsync(reportDocument, formatId, "[Render] Using prebuilt ReportDocument", ct)
+                .ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -285,12 +283,12 @@ public sealed class LocalReportService : IReportService
         IReadOnlyDictionary<string, object?> parameters,
         CancellationToken ct)
     {
-        _logger.LogInformation("Viewer local report pipeline mode selected: Visual");
+        _logger.LogInformation("Viewer local report pipeline mode selected: Semantic");
         _latestTrace =
         [
             .. _latestTrace,
-            "[Pipeline] Mode selected: Visual",
-            "[Pipeline] Visual mode uses VisualHtmlExporter execution path."
+            "[Pipeline] Mode selected: Semantic",
+            "[Pipeline] Semantic mode uses HtmlExporter execution path."
         ];
 
         var reportDocument = await ExecuteReportAsync(definition, parameters, ct).ConfigureAwait(false);
@@ -302,8 +300,7 @@ public sealed class LocalReportService : IReportService
         _latestTrace = [.. _latestTrace, $"[Render] Engine produced {reportDocument.PageCount} page(s)"];
 
         using var stream = new MemoryStream();
-        var visualDocument = _visualDocumentBuilder.Build(reportDocument);
-        await _visualHtmlExporter.ExportAsync(visualDocument, stream, ct).ConfigureAwait(false);
+        await _htmlExporter.ExportAsync(reportDocument, stream, ct).ConfigureAwait(false);
 
         stream.Position = 0;
 
@@ -319,6 +316,33 @@ public sealed class LocalReportService : IReportService
         var context = new LayoutSizingContext(_textLayout);
         var layoutOptions = ResolveLayoutOptions(definition);
         return _engine.RunAsync(definition, parameters, context, layoutOptions, ct);
+    }
+
+    private async Task<ReportViewerExportResult> ExportReportDocumentAsync(
+        ReportDocument reportDocument,
+        string formatId,
+        string tracePrefix,
+        CancellationToken ct)
+    {
+        if (string.Equals(formatId, "html", StringComparison.OrdinalIgnoreCase))
+        {
+            _latestTrace = [tracePrefix, "[Export] Format: html"];
+            var html = await RenderHtmlCoreAsync(reportDocument, ct).ConfigureAwait(false);
+            return new ReportViewerExportResult("html", "text/html", "html", System.Text.Encoding.UTF8.GetBytes(html));
+        }
+
+        if (string.Equals(formatId, "pdf", StringComparison.OrdinalIgnoreCase))
+        {
+            _latestTrace = [tracePrefix, "[Export] Format: pdf", $"[Render] Engine produced {reportDocument.PageCount} page(s)"];
+
+            using var stream = new MemoryStream();
+            var visualDocument = _visualDocumentBuilder.Build(reportDocument);
+            await _visualSkiaRenderer.RenderPdfAsync(visualDocument, stream, ct).ConfigureAwait(false);
+
+            return new ReportViewerExportResult("pdf", "application/pdf", "pdf", stream.ToArray());
+        }
+
+        throw new NotSupportedException($"Local viewer service supports only 'html' and 'pdf' export. Requested '{formatId}'.");
     }
 
     private static LayoutOptions ResolveLayoutOptions(ReportDefinition definition)

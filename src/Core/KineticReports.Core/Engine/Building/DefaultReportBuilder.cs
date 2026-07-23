@@ -1,6 +1,7 @@
 using KineticReports.Core.Definition;
 using KineticReports.Core.Engine.Data;
 using KineticReports.Core.Engine.Expressions;
+using KineticReports.Core.Geometry;
 using KineticReports.Core.Layout;
 using KineticReports.Core.Plugins;
 using KineticReports.Core.Styling;
@@ -511,13 +512,13 @@ public sealed class DefaultReportBuilder : IReportBuilder
         var resolvedRegionStyle = ResolveBlockStyle(regionStyle);
         var resolvedTableStyle = ResolveBlockStyle(tableStyle);
         var resolvedHeaderRowStyle = ResolveBlockStyle(headerRowStyle);
-        var resolvedHeaderCellStyle = ResolveBlockStyle(headerCellStyle);
+        var resolvedHeaderCellStyle = EnsureDefaultTableCellChrome(ResolveBlockStyle(headerCellStyle), isHeaderCell: true);
         var resolvedDataRowStyle = ResolveBlockStyle(dataRowStyle);
-        var resolvedDataCellStyle = ResolveBlockStyle(dataCellStyle);
+        var resolvedDataCellStyle = EnsureDefaultTableCellChrome(ResolveBlockStyle(dataCellStyle));
         var resolvedGroupHeaderRowStyle = ResolveBlockStyle(groupHeaderRowStyle);
-        var resolvedGroupHeaderCellStyle = ResolveBlockStyle(groupHeaderCellStyle);
+        var resolvedGroupHeaderCellStyle = EnsureDefaultTableCellChrome(ResolveBlockStyle(groupHeaderCellStyle));
         var resolvedFooterRowStyle = ResolveBlockStyle(footerRowStyle);
-        var resolvedFooterCellStyle = ResolveBlockStyle(footerCellStyle);
+        var resolvedFooterCellStyle = EnsureDefaultTableCellChrome(ResolveBlockStyle(footerCellStyle));
 
         var configuredAggregates = footerAggregates?.ToList() ?? [];
         ValidateAggregateDefinitions(configuredAggregates, columns.Count, nameof(footerAggregates));
@@ -1173,6 +1174,22 @@ public sealed class DefaultReportBuilder : IReportBuilder
             Opacity = source.Opacity,
             Overflow = source.Overflow
         };
+    }
+
+    private static AppliedStyle EnsureDefaultTableCellChrome(AppliedStyle source, bool isHeaderCell = false)
+    {
+        var style = source;
+
+        if (style.Padding == Thickness.Zero)
+            style = style with { Padding = new Thickness(horizontal: 8f, vertical: 6f) };
+
+        if (style.Border is null)
+            style = style with { Border = Border.Uniform(1f, Color.FromRgb(221, 221, 221)) };
+
+        if (isHeaderCell && style.FontWeight == FontWeight.Normal)
+            style = style with { FontWeight = FontWeight.SemiBold };
+
+        return style;
     }
 
     private AppliedStyle ResolveBlockStyle(AppliedStyle? style) => style ?? _defaultBlockStyle;
