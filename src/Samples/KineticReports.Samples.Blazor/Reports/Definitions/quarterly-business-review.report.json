@@ -32,35 +32,116 @@
       "properties": {}
     }
   ],
-  "styles": [],
+  "styles": [
+    {
+      "id": "text-body",
+      "name": "Body Text",
+      "typography": {
+        "family": "Segoe UI",
+        "size": 11,
+        "lineHeight": 1.35,
+        "color": { "a": 255, "r": 37, "g": 50, "b": 65 }
+      }
+    },
+    {
+      "id": "text-title",
+      "name": "Title Text",
+      "basedOn": "text-body",
+      "typography": {
+        "size": 22,
+        "weight": "Bold"
+      }
+    },
+    {
+      "id": "text-subtitle",
+      "name": "Subtitle Text",
+      "basedOn": "text-body",
+      "typography": {
+        "size": 12
+      }
+    },
+    {
+      "id": "text-section-title",
+      "name": "Section Title Text",
+      "basedOn": "text-body",
+      "typography": {
+        "size": 14,
+        "weight": "SemiBold"
+      }
+    },
+    {
+      "id": "table-region",
+      "name": "Table Region",
+      "padding": {
+        "left": 0,
+        "top": 4,
+        "right": 0,
+        "bottom": 10
+      }
+    },
+    {
+      "id": "table-header-cell",
+      "name": "Table Header Cell",
+      "basedOn": "text-body",
+      "typography": {
+        "weight": "SemiBold",
+        "color": { "a": 255, "r": 255, "g": 255, "b": 255 }
+      },
+      "background": { "a": 255, "r": 32, "g": 92, "b": 156 }
+    },
+    {
+      "id": "table-data-cell",
+      "name": "Table Data Cell",
+      "basedOn": "text-body",
+      "typography": {
+        "size": 10
+      }
+    },
+    {
+      "id": "text-footer",
+      "name": "Footer Text",
+      "basedOn": "text-body",
+      "typography": {
+        "size": 10
+      }
+    }
+  ],
   "layout": {
     "pageHeader": [
       {
         "id": "qbr-title",
         "kind": "Text",
-        "text": "Quarterly Business Review"
+        "text": "Quarterly Business Review",
+        "textStyleId": "text-title"
       },
       {
         "id": "qbr-subtitle",
         "kind": "Text",
-        "text": "FY2026 Q2 revenue performance, strategic accounts, and month-by-month trend."
+        "text": "FY2026 Q2 revenue performance, strategic accounts, and month-by-month trend.",
+        "textStyleId": "text-subtitle"
       }
     ],
     "body": [
       {
         "id": "qbr-intro",
         "kind": "Text",
-        "text": "Prepared for the executive leadership team on {CurrentDate}. This report shows regional attainment, the current top account portfolio, and the monthly commercial trend line."
+        "text": "Prepared for the executive leadership team on {CurrentDate}. This report shows regional attainment, the current top account portfolio, and the monthly commercial trend line.",
+        "textStyleId": "text-body"
       },
       {
         "id": "qbr-region-title",
         "kind": "Text",
-        "text": "Regional Performance"
+        "text": "Regional Performance",
+        "textStyleId": "text-section-title"
       },
       {
         "id": "qbr-region-table",
         "kind": "Table",
         "dataSourceId": "regional-performance",
+        "regionStyleId": "table-region",
+        "headerCellStyleId": "table-header-cell",
+        "dataCellStyleId": "table-data-cell",
+        "footerCellStyleId": "table-data-cell",
         "columns": [
           { "header": "Region", "valueExpression": "{Region}", "minWidth": 170, "grow": 2 },
           { "header": "Revenue", "valueExpression": "{Revenue}", "minWidth": 120, "grow": 1 },
@@ -80,12 +161,17 @@
       {
         "id": "qbr-top-accounts-title",
         "kind": "Text",
-        "text": "Top Accounts And Renewals"
+        "text": "Top Accounts And Renewals",
+        "textStyleId": "text-section-title"
       },
       {
         "id": "qbr-top-accounts-table",
         "kind": "Table",
         "dataSourceId": "top-accounts",
+        "regionStyleId": "table-region",
+        "headerCellStyleId": "table-header-cell",
+        "dataCellStyleId": "table-data-cell",
+        "footerCellStyleId": "table-data-cell",
         "columns": [
           { "header": "Customer", "valueExpression": "{Customer}", "minWidth": 180, "grow": 2 },
           { "header": "Segment", "valueExpression": "{Segment}", "minWidth": 110, "grow": 1 },
@@ -106,17 +192,23 @@
       {
         "id": "qbr-trend-title",
         "kind": "Text",
-        "text": "Monthly Commercial Trend"
+        "text": "Monthly Commercial Trend",
+        "textStyleId": "text-section-title"
       },
       {
         "id": "qbr-trend-copy",
         "kind": "Text",
-        "text": "The second page gives the operating cadence view that leaders expect in a board-ready review deck."
+        "text": "The second page gives the operating cadence view that leaders expect in a board-ready review deck.",
+        "textStyleId": "text-body"
       },
       {
         "id": "qbr-trend-table",
         "kind": "Table",
         "dataSourceId": "monthly-trend",
+        "regionStyleId": "table-region",
+        "headerCellStyleId": "table-header-cell",
+        "dataCellStyleId": "table-data-cell",
+        "footerCellStyleId": "table-data-cell",
         "columns": [
           { "header": "Month", "valueExpression": "{Month}", "minWidth": 130, "grow": 2 },
           { "header": "Billings", "valueExpression": "{Billings}", "minWidth": 130, "grow": 1 },
@@ -133,12 +225,17 @@
       {
         "id": "qbr-orders-title",
         "kind": "Text",
-        "text": "Selected Closed Orders"
+        "text": "Selected Closed Orders",
+        "textStyleId": "text-section-title"
       },
       {
         "id": "qbr-orders-table",
         "kind": "Table",
         "dataSourceId": "sales-orders-detail",
+        "regionStyleId": "table-region",
+        "headerCellStyleId": "table-header-cell",
+        "dataCellStyleId": "table-data-cell",
+        "footerCellStyleId": "table-data-cell",
         "columns": [
           { "header": "Order #", "valueExpression": "{OrderNumber}", "minWidth": 95, "grow": 1 },
           { "header": "Customer", "valueExpression": "{Customer}", "minWidth": 170, "grow": 2 },
@@ -158,12 +255,14 @@
       {
         "id": "qbr-footer-page",
         "kind": "Text",
-        "text": "Page {PageNumber}"
+        "text": "Page {PageNumber}",
+        "textStyleId": "text-footer"
       },
       {
         "id": "qbr-footer-generated",
         "kind": "Text",
-        "text": "Generated {CurrentDate}"
+        "text": "Generated {CurrentDate}",
+        "textStyleId": "text-footer"
       }
     ]
   }

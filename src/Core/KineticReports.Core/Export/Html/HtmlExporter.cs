@@ -400,10 +400,20 @@ public sealed class HtmlExporter : IHtmlExporter
         var bounds = element.Bounds;
         var relativeX = bounds.X - parentX;
         var relativeY = bounds.Y - parentY;
+        var tableRelatedContainer = element.LayoutBlockType is LayoutBlockType.ContentRegion
+            or LayoutBlockType.Section
+            or LayoutBlockType.Container
+            or LayoutBlockType.Table
+            or LayoutBlockType.Row
+            or LayoutBlockType.Cell;
+
+        var overflow = tableRelatedContainer
+            ? "overflow: visible;"
+            : (element.Style.Overflow == Overflow.Hidden ? "overflow: hidden;" : "overflow: visible;");
 
         var css = $"position: absolute; left: {relativeX:F1}px; top: {relativeY:F1}px; width: {bounds.Width:F1}px; height: {bounds.Height:F1}px; " +
                   CssBuilder.BuildStyle(element.Style) +
-                  (element.Style.Overflow == Overflow.Hidden ? "overflow: hidden;" : "overflow: visible;");
+                  overflow;
         return css;
     }
 

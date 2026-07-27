@@ -106,7 +106,9 @@ internal sealed class SampleReportCatalogService : ISampleReportCatalogService
                 CreateDataSource("support-escalations", "Open Escalations"),
                 CreateDataSource("renewal-pipeline", "Renewal Pipeline")
             ],
-            Styles = [],
+            Styles = [
+
+            ],
             Layout = new ReportLayoutDefinition
             {
                 PageHeader =

@@ -29,8 +29,50 @@ public sealed record ReportLayoutItemDefinition
     /// <summary>Gets or inits text content for text items.</summary>
     public string? Text { get; init; }
 
+    /// <summary>
+    /// Gets or inits the optional named style id applied to the containing block.
+    /// Used by text and page-break items, and as a generic fallback.
+    /// </summary>
+    public string? BlockStyleId { get; init; }
+
+    /// <summary>
+    /// Gets or inits the optional named style id applied to text content.
+    /// Used by text items.
+    /// </summary>
+    public string? TextStyleId { get; init; }
+
     /// <summary>Gets or inits the bound data source id for table items.</summary>
     public string? DataSourceId { get; init; }
+
+    /// <summary>Gets or inits the optional named style id for the table region block.</summary>
+    public string? RegionStyleId { get; init; }
+
+    /// <summary>Gets or inits the optional named style id for the table block itself.</summary>
+    public string? TableStyleId { get; init; }
+
+    /// <summary>Gets or inits the optional named style id for the table header row.</summary>
+    public string? HeaderRowStyleId { get; init; }
+
+    /// <summary>Gets or inits the optional named style id for table header cells.</summary>
+    public string? HeaderCellStyleId { get; init; }
+
+    /// <summary>Gets or inits the optional named style id for data rows.</summary>
+    public string? DataRowStyleId { get; init; }
+
+    /// <summary>Gets or inits the optional named style id for data cells.</summary>
+    public string? DataCellStyleId { get; init; }
+
+    /// <summary>Gets or inits the optional named style id for generated group header rows.</summary>
+    public string? GroupHeaderRowStyleId { get; init; }
+
+    /// <summary>Gets or inits the optional named style id for generated group header cells.</summary>
+    public string? GroupHeaderCellStyleId { get; init; }
+
+    /// <summary>Gets or inits the optional named style id for the generated footer row.</summary>
+    public string? FooterRowStyleId { get; init; }
+
+    /// <summary>Gets or inits the optional named style id for generated footer cells.</summary>
+    public string? FooterCellStyleId { get; init; }
 
     /// <summary>Gets or inits the table columns for table items.</summary>
     public IReadOnlyList<ReportLayoutTableColumnDefinition> Columns { get; init; } = [];

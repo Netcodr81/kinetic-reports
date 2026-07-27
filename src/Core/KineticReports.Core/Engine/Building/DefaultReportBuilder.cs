@@ -786,37 +786,60 @@ public sealed class DefaultReportBuilder : IReportBuilder
             return false;
 
         builder = _pluginManager is null ? new DefaultReportBuilder() : new DefaultReportBuilder(_pluginManager);
-        ConfigureFromLayoutDefinition(builder, definition.Layout);
+        ConfigureFromLayoutDefinition(builder, definition.Layout, definition.Styles);
         return true;
     }
 
     private static void ConfigureFromLayoutDefinition(
         DefaultReportBuilder builder,
-        ReportLayoutDefinition layout)
+        ReportLayoutDefinition layout,
+        IReadOnlyList<StyleDefinition> styles)
     {
+        var namedStyles = BuildNamedStyleLookup(styles);
+
         foreach (var item in layout.PageHeader)
-            AppendLayoutItem(builder, item, BlockType.PageHeader);
+            AppendLayoutItem(builder, item, BlockType.PageHeader, namedStyles);
 
         foreach (var item in layout.Body)
-            AppendLayoutItem(builder, item, BlockType.Detail);
+            AppendLayoutItem(builder, item, BlockType.Detail, namedStyles);
 
         foreach (var item in layout.PageFooter)
-            AppendLayoutItem(builder, item, BlockType.PageFooter);
+            AppendLayoutItem(builder, item, BlockType.PageFooter, namedStyles);
     }
 
     private static void AppendLayoutItem(
         DefaultReportBuilder builder,
         ReportLayoutItemDefinition item,
-        BlockType blockType)
+        BlockType blockType,
+        IReadOnlyDictionary<string, AppliedStyle> namedStyles)
     {
+        AppliedStyle? ResolveStyleId(string? styleId, string slotName)
+        {
+            if (string.IsNullOrWhiteSpace(styleId))
+                return null;
+
+            if (namedStyles.TryGetValue(styleId, out var style))
+                return style;
+
+            throw new InvalidOperationException(
+                $"Layout item '{item.Id}' references unknown style id '{styleId}' for '{slotName}'.");
+        }
+
         switch (item.Kind)
         {
             case ReportLayoutItemKind.Text:
-                builder.AddTextRegion(item.Id, item.Text ?? string.Empty, blockType);
+                builder.AddTextRegion(
+                    id: item.Id,
+                    text: item.Text ?? string.Empty,
+                    blockType: blockType,
+                    blockStyle: ResolveStyleId(item.BlockStyleId, nameof(item.BlockStyleId)),
+                    textStyle: ResolveStyleId(item.TextStyleId, nameof(item.TextStyleId)));
                 break;
 
             case ReportLayoutItemKind.PageBreak:
-                builder.AddPageBreak(item.Id);
+                builder.AddPageBreak(
+                    id: item.Id,
+                    style: ResolveStyleId(item.BlockStyleId, nameof(item.BlockStyleId)));
                 break;
 
             case ReportLayoutItemKind.Table:
@@ -838,9 +861,17 @@ public sealed class DefaultReportBuilder : IReportBuilder
                         }
                     }).ToList(),
                     blockType: blockType,
+                    regionStyle: ResolveStyleId(item.RegionStyleId ?? item.BlockStyleId, nameof(item.RegionStyleId)),
+                    tableStyle: ResolveStyleId(item.TableStyleId, nameof(item.TableStyleId)),
+                    headerRowStyle: ResolveStyleId(item.HeaderRowStyleId, nameof(item.HeaderRowStyleId)),
+                    headerCellStyle: ResolveStyleId(item.HeaderCellStyleId, nameof(item.HeaderCellStyleId)),
+                    dataRowStyle: ResolveStyleId(item.DataRowStyleId, nameof(item.DataRowStyleId)),
+                    dataCellStyle: ResolveStyleId(item.DataCellStyleId, nameof(item.DataCellStyleId)),
                     repeatHeaders: item.RepeatHeaders,
                     includeHeader: item.IncludeHeader,
                     groupByExpression: string.IsNullOrWhiteSpace(item.GroupByExpression) ? null : item.GroupByExpression,
+                    groupHeaderRowStyle: ResolveStyleId(item.GroupHeaderRowStyleId, nameof(item.GroupHeaderRowStyleId)),
+                    groupHeaderCellStyle: ResolveStyleId(item.GroupHeaderCellStyleId, nameof(item.GroupHeaderCellStyleId)),
                     footerAggregates: item.FooterAggregates.Select(aggregate => new TableAggregateDefinition
                     {
                         ColumnIndex = aggregate.ColumnIndex,
@@ -850,10 +881,82 @@ public sealed class DefaultReportBuilder : IReportBuilder
                             : TableAggregateKind.Sum,
                         FormatString = aggregate.FormatString
                     }).ToList(),
+                    footerRowStyle: ResolveStyleId(item.FooterRowStyleId, nameof(item.FooterRowStyleId)),
+                    footerCellStyle: ResolveStyleId(item.FooterCellStyleId, nameof(item.FooterCellStyleId)),
                     footerLabel: item.FooterLabel,
                     footerLabelColumnIndex: item.FooterLabelColumnIndex);
                 break;
         }
+    }
+
+    private static IReadOnlyDictionary<string, AppliedStyle> BuildNamedStyleLookup(IReadOnlyList<StyleDefinition> styles)
+    {
+        if (styles.Count == 0)
+            return new Dictionary<string, AppliedStyle>(StringComparer.Ordinal);
+
+        var definitionsById = new Dictionary<string, StyleDefinition>(StringComparer.Ordinal);
+        foreach (var style in styles)
+        {
+            if (string.IsNullOrWhiteSpace(style.Id))
+                throw new InvalidOperationException("Style definitions must include a non-empty id.");
+
+            if (!definitionsById.TryAdd(style.Id, style))
+                throw new InvalidOperationException($"Duplicate style id '{style.Id}' found in report definition.");
+        }
+
+        var resolved = new Dictionary<string, AppliedStyle>(StringComparer.Ordinal);
+        var visiting = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var styleId in definitionsById.Keys)
+            ResolveStyle(styleId);
+
+        return resolved;
+
+        AppliedStyle ResolveStyle(string styleId)
+        {
+            if (resolved.TryGetValue(styleId, out var style))
+                return style;
+
+            if (!definitionsById.TryGetValue(styleId, out var definition))
+                throw new InvalidOperationException($"Style id '{styleId}' is not defined.");
+
+            if (!visiting.Add(styleId))
+                throw new InvalidOperationException($"Cycle detected in style inheritance for style id '{styleId}'.");
+
+            var inherited = string.IsNullOrWhiteSpace(definition.BasedOn)
+                ? CreateDefaultBlockStyle()
+                : ResolveStyle(definition.BasedOn!);
+
+            var resolvedStyle = ApplyNamedStyle(inherited, definition);
+            resolved[styleId] = resolvedStyle;
+            visiting.Remove(styleId);
+            return resolvedStyle;
+        }
+    }
+
+    private static AppliedStyle ApplyNamedStyle(AppliedStyle parent, StyleDefinition style)
+    {
+        var typography = style.Typography;
+
+        return parent with
+        {
+            FontFamily = typography?.Family ?? parent.FontFamily,
+            FontSize = typography?.Size ?? parent.FontSize,
+            FontWeight = typography?.Weight ?? parent.FontWeight,
+            FontStyle = typography?.Style ?? parent.FontStyle,
+            LineHeight = typography?.LineHeight ?? parent.LineHeight,
+            LetterSpacing = typography?.LetterSpacing ?? parent.LetterSpacing,
+            TextColor = typography?.Color ?? parent.TextColor,
+            TextAlignment = typography?.Alignment ?? parent.TextAlignment,
+            VerticalAlignment = typography?.VerticalAlignment ?? parent.VerticalAlignment,
+            TextDecoration = typography?.Decoration ?? parent.TextDecoration,
+            Border = style.Border ?? parent.Border,
+            Background = style.Background ?? parent.Background,
+            Margin = style.Margin ?? parent.Margin,
+            Padding = style.Padding ?? parent.Padding,
+            Opacity = style.Opacity ?? parent.Opacity,
+            Overflow = style.Overflow ?? parent.Overflow
+        };
     }
 
     private IReadOnlyList<ReportBlock> ApplyPostProcessors(IReadOnlyList<ReportBlock> blocks)
@@ -1184,7 +1287,7 @@ public sealed class DefaultReportBuilder : IReportBuilder
             style = style with { Padding = new Thickness(horizontal: 8f, vertical: 6f) };
 
         if (style.Border is null)
-            style = style with { Border = Border.Uniform(1f, Color.FromRgb(221, 221, 221)) };
+            style = style with { Border = Border.Uniform(1f, Color.Black) };
 
         if (isHeaderCell && style.FontWeight == FontWeight.Normal)
             style = style with { FontWeight = FontWeight.SemiBold };

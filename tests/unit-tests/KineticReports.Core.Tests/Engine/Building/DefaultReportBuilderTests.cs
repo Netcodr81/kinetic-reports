@@ -3,6 +3,8 @@ namespace KineticReports.Core.Tests.Engine.Building;
 using KineticReports.Core.Engine.Building;
 using KineticReports.Core.Engine.Data;
 using KineticReports.Core.Engine.Expressions;
+using KineticReports.Core.Definition;
+using KineticReports.Core.Geometry;
 using KineticReports.Core.Layout;
 using KineticReports.Core.Plugins;
 using KineticReports.Core.Styling;
@@ -207,7 +209,7 @@ public class DefaultReportBuilderTests
         ]);
 
         var sut = new DefaultReportBuilder(pluginManager)
-            .AddTextRegion("detail-1", "Line", BlockType.Detail);
+            .AddTextRegion("detail-1", "Line");
 
         var result = sut.Build(CreateDataContext(), new LiteralEvaluator());
 
@@ -217,13 +219,202 @@ public class DefaultReportBuilderTests
         result[2].Id.ShouldBe("plugin-a-marker");
     }
 
+    [Fact]
+    public void Build_WithDefinitionBackedLayout_TextStyleIds_AppliesNamedStyles()
+    {
+        var definition = new ReportDefinition
+        {
+            SchemaVersion = "1.0",
+            Id = "styled-definition",
+            Name = "Styled Definition",
+            Styles =
+            [
+                new StyleDefinition
+                {
+                    Id = "region-base",
+                    Padding = new Thickness(12f),
+                    Background = Color.FromRgb(245, 245, 245)
+                },
+                new StyleDefinition
+                {
+                    Id = "text-base",
+                    Typography = new Typography
+                    {
+                        Family = "Segoe UI",
+                        Size = 11f,
+                        Color = Color.FromRgb(32, 32, 32)
+                    }
+                },
+                new StyleDefinition
+                {
+                    Id = "headline",
+                    BasedOn = "text-base",
+                    Typography = new Typography
+                    {
+                        Size = 18f,
+                        Weight = FontWeight.Bold
+                    }
+                }
+            ],
+            Layout = new ReportLayoutDefinition
+            {
+                Body =
+                [
+                    new ReportLayoutItemDefinition
+                    {
+                        Id = "title",
+                        Kind = ReportLayoutItemKind.Text,
+                        Text = "Quarterly Business Review",
+                        BlockStyleId = "region-base",
+                        TextStyleId = "headline"
+                    }
+                ]
+            }
+        };
+
+        var sut = new DefaultReportBuilder();
+
+        var result = sut.Build(CreateDataContext(definition: definition), new LiteralEvaluator());
+
+        var block = result.ShouldHaveSingleItem();
+        block.Style.Padding.ShouldBe(new Thickness(12f));
+        block.Style.Background.ShouldBe(Color.FromRgb(245, 245, 245));
+
+        var text = block.Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>();
+        text.Style.FontFamily.ShouldBe("Segoe UI");
+        text.Style.FontSize.ShouldBe(18f);
+        text.Style.FontWeight.ShouldBe(FontWeight.Bold);
+        text.Style.TextColor.ShouldBe(Color.FromRgb(32, 32, 32));
+    }
+
+    [Fact]
+    public void Build_WithDefinitionBackedLayout_TableStyleIds_AppliesNamedStyles()
+    {
+        var definition = new ReportDefinition
+        {
+            SchemaVersion = "1.0",
+            Id = "styled-table-definition",
+            Name = "Styled Table Definition",
+            Styles =
+            [
+                new StyleDefinition
+                {
+                    Id = "table-region",
+                    Padding = new Thickness(6f)
+                },
+                new StyleDefinition
+                {
+                    Id = "table-header-cell",
+                    Typography = new Typography
+                    {
+                        Family = "Segoe UI",
+                        Weight = FontWeight.SemiBold,
+                        Color = Color.White
+                    },
+                    Background = Color.FromRgb(22, 84, 140)
+                },
+                new StyleDefinition
+                {
+                    Id = "table-data-cell",
+                    Typography = new Typography
+                    {
+                        Family = "Segoe UI",
+                        Size = 10f,
+                        Color = Color.FromRgb(45, 45, 45)
+                    }
+                }
+            ],
+            Layout = new ReportLayoutDefinition
+            {
+                Body =
+                [
+                    new ReportLayoutItemDefinition
+                    {
+                        Id = "orders-table",
+                        Kind = ReportLayoutItemKind.Table,
+                        DataSourceId = "orders",
+                        RegionStyleId = "table-region",
+                        HeaderCellStyleId = "table-header-cell",
+                        DataCellStyleId = "table-data-cell",
+                        Columns =
+                        [
+                            new ReportLayoutTableColumnDefinition
+                            {
+                                Header = "Customer",
+                                ValueExpression = "{CustomerName}",
+                                MinWidth = 50f,
+                                Grow = 1f
+                            }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        var sut = new DefaultReportBuilder();
+
+        var result = sut.Build(
+            CreateDataContext(
+                rows:
+                [
+                    Row(("CustomerName", "Contoso"))
+                ],
+                definition: definition),
+            new LiteralEvaluator());
+
+        var tableRegion = result.ShouldHaveSingleItem();
+        tableRegion.Style.Padding.ShouldBe(new Thickness(6f));
+
+        var table = tableRegion.Children.ShouldHaveSingleItem().ShouldBeOfType<TableBlock>();
+        table.Rows.Count.ShouldBe(2);
+
+        var headerCell = table.Rows[0].Cells.ShouldHaveSingleItem();
+        headerCell.Style.Background.ShouldBe(Color.FromRgb(22, 84, 140));
+        headerCell.Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Style.FontWeight.ShouldBe(FontWeight.SemiBold);
+
+        var dataCell = table.Rows[1].Cells.ShouldHaveSingleItem();
+        dataCell.Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Style.FontSize.ShouldBe(10f);
+        dataCell.Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Style.TextColor.ShouldBe(Color.FromRgb(45, 45, 45));
+    }
+
+    [Fact]
+    public void Build_WithUnknownStyleReference_ThrowsInvalidOperationException()
+    {
+        var definition = new ReportDefinition
+        {
+            SchemaVersion = "1.0",
+            Id = "invalid-style-reference",
+            Name = "Invalid Style Reference",
+            Layout = new ReportLayoutDefinition
+            {
+                Body =
+                [
+                    new ReportLayoutItemDefinition
+                    {
+                        Id = "bad-text",
+                        Kind = ReportLayoutItemKind.Text,
+                        Text = "Hello",
+                        TextStyleId = "missing-style"
+                    }
+                ]
+            }
+        };
+
+        var sut = new DefaultReportBuilder();
+
+        var error = Should.Throw<InvalidOperationException>(() => sut.Build(CreateDataContext(definition: definition), new LiteralEvaluator()));
+        error.Message.ShouldContain("missing-style");
+    }
+
     private static DataContext CreateDataContext(
-        IReadOnlyList<IReadOnlyDictionary<string, object?>>? rows = null)
+        IReadOnlyList<IReadOnlyDictionary<string, object?>>? rows = null,
+        ReportDefinition? definition = null)
     {
         var dataRows = rows ?? [];
 
         return new DataContext
         {
+            Definition = definition,
             DataSources = new Dictionary<string, IReadOnlyList<IReadOnlyDictionary<string, object?>>>(StringComparer.Ordinal)
             {
                 ["orders"] = dataRows

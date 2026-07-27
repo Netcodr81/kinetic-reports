@@ -100,6 +100,63 @@ var definition = new ReportDefinition
 var definition = JsonSerializer.Deserialize<ReportDefinition>(json);
 ```
 
+### JSON Layout Style References
+
+When using `ReportDefinition.Layout`, layout items can now reference named styles from
+`ReportDefinition.Styles` by id. This mirrors the same style slots used by the
+code-first `DefaultReportBuilder` methods.
+
+Supported style-reference fields on `ReportLayoutItemDefinition`:
+
+1. `blockStyleId` (text/page-break container block)
+2. `textStyleId` (text content)
+3. `regionStyleId`, `tableStyleId`
+4. `headerRowStyleId`, `headerCellStyleId`
+5. `dataRowStyleId`, `dataCellStyleId`
+6. `groupHeaderRowStyleId`, `groupHeaderCellStyleId`
+7. `footerRowStyleId`, `footerCellStyleId`
+
+Example:
+
+```json
+{
+   "styles": [
+      {
+         "id": "text-body",
+         "typography": { "family": "Segoe UI", "size": 11 }
+      },
+      {
+         "id": "table-header-cell",
+         "basedOn": "text-body",
+         "typography": { "weight": "SemiBold" }
+      }
+   ],
+   "layout": {
+      "body": [
+         {
+            "id": "title",
+            "kind": "Text",
+            "text": "Quarterly Business Review",
+            "textStyleId": "text-body"
+         },
+         {
+            "id": "orders",
+            "kind": "Table",
+            "dataSourceId": "sales-orders",
+            "headerCellStyleId": "table-header-cell",
+            "dataCellStyleId": "text-body",
+            "columns": [
+               { "header": "Customer", "valueExpression": "{Customer}" }
+            ]
+         }
+      ]
+   }
+}
+```
+
+If a style id is unknown, duplicate, empty, or introduces a `basedOn` cycle,
+the definition-backed build fails fast with an `InvalidOperationException`.
+
 ### Preferred Authoring JSON Contract
 
 Use `ReportDesignerDocument` as the persisted authoring contract:
