@@ -1,20 +1,147 @@
-/*
-  Override-only stylesheet for KineticReports HTML export variables.
-  The canonical structural styles live in:
-  src/Export/KineticReports.Export.Html/Styles/kinetic-report.css
-*/
-
 :root {
-  --kr-font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --kr-font-family: Arial, sans-serif;
   --kr-font-size-base: 12px;
+  --kr-line-height-base: 1.2;
   --kr-body-bg: #f5f6f8;
-  --kr-text-color: #1f2430;
+  --kr-text-color: #222;
 
-  --kr-page-bg: #ffffff;
-  --kr-page-border: #d4dae3;
-  --kr-page-shadow: 0 4px 18px rgba(19, 31, 58, 0.14);
-  --kr-page-gap: 24px;
+  --kr-page-bg: #fff;
+  --kr-page-border: #dcdfe4;
+  --kr-page-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  --kr-page-gap: 20px;
 
-  --kr-table-border: #cfd6df;
-  --kr-table-cell-padding: 6px;
+  --kr-table-border: #ddd;
+  --kr-table-cell-padding-x: 8px;
+  --kr-table-cell-padding-y: 6px;
+  --kr-table-gap-x: 0px;
+  --kr-table-gap-y: 0px;
+
+  --kr-placeholder-bg: #f3f6fc;
+  --kr-placeholder-border: #c5d2ea;
+  --kr-placeholder-text: #2f3f63;
+  --kr-unsupported-bg: #fff4e8;
+  --kr-unsupported-border: #f0c68e;
+  --kr-unsupported-text: #744f22;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  font-family: var(--kr-font-family);
+  font-size: var(--kr-font-size-base);
+  color: var(--kr-text-color);
+  background: var(--kr-body-bg);
+}
+
+.kinetic-report {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--kr-page-gap);
+}
+
+.report-document {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--kr-page-gap);
+}
+
+.kinetic-page {
+  background: var(--kr-page-bg);
+  border: 1px solid var(--kr-page-border);
+  box-shadow: var(--kr-page-shadow);
+  page-break-after: always;
+  overflow: hidden;
+}
+
+.page-background {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.page-header-region,
+.page-body-region,
+.page-footer-region {
+  position: static;
+}
+
+.element {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+}
+
+.text-element {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.visual-table-placeholder,
+.visual-image-placeholder,
+.visual-unsupported {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6px;
+  font-family: var(--kr-font-family);
+  font-size: 11px;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.visual-table-placeholder,
+.visual-image-placeholder {
+  background: var(--kr-placeholder-bg);
+  border: 1px dashed var(--kr-placeholder-border);
+  color: var(--kr-placeholder-text);
+}
+
+.visual-unsupported {
+  background: var(--kr-unsupported-bg);
+  border: 1px dashed var(--kr-unsupported-border);
+  color: var(--kr-unsupported-text);
+}
+
+.kinetic-table,
+.table-element table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.kinetic-table td,
+.kinetic-table th,
+.table-element td,
+.table-element th {
+  vertical-align: top;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@media print {
+  .kinetic-page {
+    box-shadow: none;
+    margin: 0;
+    border-color: #bbb;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+  }
 }

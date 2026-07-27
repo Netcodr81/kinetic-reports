@@ -21,10 +21,10 @@ public sealed class PageBlock : LayoutBlock
     public int PageNumber { get; init; }
 
     /// <summary>Gets the optional header section for this page.</summary>
-    public SectionBlock? Header { get; init; }
+    public PageSectionBlock? Header { get; init; }
 
     /// <summary>Gets the optional footer section for this page.</summary>
-    public SectionBlock? Footer { get; init; }
+    public PageSectionBlock? Footer { get; init; }
 
     /// <summary>Gets the body elements rendered between the header and footer.</summary>
     public IReadOnlyList<LayoutBlock> Children { get; init; } = [];

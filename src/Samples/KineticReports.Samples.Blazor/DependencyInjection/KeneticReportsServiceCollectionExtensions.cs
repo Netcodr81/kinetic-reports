@@ -48,6 +48,7 @@ public static class KeneticReportsServiceCollectionExtensions
         services.AddScoped<IExpressionEvaluator, DefaultExpressionEvaluator>();
 
         services.AddScoped<ITextLayout, SkiaTextLayout>();
+        services.AddOptions<HtmlExportOptions>();
 
         services.AddScoped<IHtmlExporter, HtmlExporter>();
         services.AddScoped<IVisualHtmlExporter, VisualHtmlExporter>();
@@ -164,6 +165,16 @@ public sealed class KeneticReportsBuilder
             configure?.Invoke(viewerOptions);
         });
 
+        return this;
+    }
+
+    /// <summary>
+    /// Configures the HTML exporter stylesheet link for the sample host.
+    /// </summary>
+    public KeneticReportsBuilder ConfigureHtmlExporter(Action<HtmlExportOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+        Services.Configure(configure);
         return this;
     }
 

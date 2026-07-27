@@ -28,10 +28,12 @@
 
 | Type | Package | Purpose |
 |---|---|---|
-| `HtmlExporter` | `KineticReports.Core` | Built-in HTML exporter with inline CSS |
+| `HtmlExporter` | `KineticReports.Core` | Built-in HTML exporter that links a host-provided stylesheet |
 | `HtmlReportDocumentExporter` | `KineticReports.Core` | Registry-backed HTML document exporter |
 | `PdfReportDocumentExporter` | `KineticReports.Core` | Built-in PDF document exporter using Skia |
 | `ExcelExporter` (if present) | `KineticReports.Export.Excel` | XLSX example export implementation |
+
+HTML export now expects the host to provide the stylesheet location through `HtmlExportOptions.StylesheetHref` and will emit a `<link rel="stylesheet">` only when that option is configured.
 
 ## Plugin Contracts
 

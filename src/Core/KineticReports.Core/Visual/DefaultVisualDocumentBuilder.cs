@@ -107,7 +107,7 @@ public sealed class DefaultVisualDocumentBuilder : IVisualDocumentBuilder
             ShapeBlock shape => BuildShape(shape, normalizedBounds),
             TableBlock table => BuildTable(table, normalizedBounds),
             ContainerBlock container => BuildContainer(container, normalizedBounds, pageBounds, metrics),
-            SectionBlock section => BuildContainerLike(section, section.Children, normalizedBounds, pageBounds, metrics),
+            PageSectionBlock section => BuildContainerLike(section, section.Children, normalizedBounds, pageBounds, metrics),
             ReportBlock reportBlock => BuildContainerLike(reportBlock, reportBlock.Children, normalizedBounds, pageBounds, metrics),
             RowBlock row => BuildContainerLike(row, row.Cells.Cast<LayoutBlock>(), normalizedBounds, pageBounds, metrics),
             CellBlock cell => BuildContainerLike(cell, cell.Children, normalizedBounds, pageBounds, metrics),

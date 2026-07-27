@@ -25,6 +25,7 @@ public static class ServiceCollectionExtensions
         if (services == null) throw new ArgumentNullException(nameof(services));
 
         services.AddOptions<RenderingPipelineOptions>();
+        services.AddOptions<HtmlExportOptions>();
         if (configure != null)
             services.Configure(configure);
 

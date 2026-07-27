@@ -81,7 +81,7 @@ public sealed class ReportDocumentRenderer
                     RenderElement(child, context);
                 break;
 
-            case SectionBlock section:
+            case PageSectionBlock section:
                 foreach (var child in section.Children)
                     RenderElement(child, context);
                 break;

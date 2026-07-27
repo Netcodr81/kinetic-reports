@@ -1,17 +1,23 @@
 namespace KineticReports.Core.Export.Html;
 
-using KineticReports.Core.Export.Html.Styles;
-using KineticReports.Core.Styling;
 using KineticReports.Core.Visual;
+using Microsoft.Extensions.Options;
 using System.Text;
 using System.Text.Json;
 
 /// <summary>
-/// Exports a <see cref="VisualDocument"/> to semantic HTML with inline CSS.
+/// Exports a <see cref="VisualDocument"/> to semantic HTML.
 /// </summary>
 public sealed class VisualHtmlExporter : IVisualHtmlExporter
 {
+    private readonly HtmlExportOptions _options;
+
     /// <inheritdoc/>
+    public VisualHtmlExporter(IOptions<HtmlExportOptions>? options = null)
+    {
+        _options = options?.Value ?? new HtmlExportOptions();
+    }
+
     public async Task ExportAsync(VisualDocument visualDocument, Stream output, CancellationToken ct = default)
     {
         if (visualDocument == null) throw new ArgumentNullException(nameof(visualDocument));
@@ -25,17 +31,18 @@ public sealed class VisualHtmlExporter : IVisualHtmlExporter
         await output.WriteAsync(bytes, ct);
     }
 
-    private static void BuildHtmlDocument(HtmlBuilder html, VisualDocument visualDocument)
+    private void BuildHtmlDocument(HtmlBuilder html, VisualDocument visualDocument)
     {
         html
             .Raw("<!DOCTYPE html>\n")
             .OpenTag("html", classAttr: "kinetic-report")
             .OpenTag("head")
             .VoidTag("meta", attributes: new() { ["charset"] = "UTF-8" })
-            .OpenTag("title").Text("Report").CloseTag("title")
-            .OpenTag("style")
-            .Raw(HtmlExportStylesheet.Css)
-            .CloseTag("style")
+            .OpenTag("title").Text("Report").CloseTag("title");
+
+        RenderStylesheetLink(html);
+
+        html
             .CloseTag("head")
             .OpenTag("body");
 
@@ -43,15 +50,27 @@ public sealed class VisualHtmlExporter : IVisualHtmlExporter
             .OpenTag("script", id: "report-document-model", attributes: new Dictionary<string, string> { ["type"] = "application/json" })
             .Raw(BuildVisualDocumentModelJson(visualDocument))
             .CloseTag("script")
-            .OpenTag("div", id: "report-document", classAttr: "report-document");
+            .OpenTag("main", id: "report-document", classAttr: "report-document");
 
         foreach (var page in visualDocument.Pages)
             RenderPage(html, page);
 
         html
-            .CloseTag("div")
+            .CloseTag("main")
             .CloseTag("body")
             .CloseTag("html");
+    }
+
+    private void RenderStylesheetLink(HtmlBuilder html)
+    {
+        if (string.IsNullOrWhiteSpace(_options.StylesheetHref))
+            return;
+
+        html.VoidTag("link", attributes: new()
+        {
+            ["rel"] = "stylesheet",
+            ["href"] = _options.StylesheetHref!
+        });
     }
 
     private static void RenderPage(HtmlBuilder html, VisualPage page)
@@ -81,7 +100,8 @@ public sealed class VisualHtmlExporter : IVisualHtmlExporter
     private static void RenderElement(HtmlBuilder html, VisualElement element, float parentX, float parentY)
     {
         var style = BuildElementStyle(element, parentX, parentY);
-        html.OpenTag("div", style: style, id: element.Id, classAttr: $"element {GetElementClassName(element)}");
+        var tag = GetElementTagName(element);
+        html.OpenTag(tag, style: style, id: element.Id, classAttr: $"element {GetElementClassName(element)}");
 
         switch (element)
         {
@@ -120,7 +140,7 @@ public sealed class VisualHtmlExporter : IVisualHtmlExporter
                 break;
         }
 
-        html.CloseTag("div");
+        html.CloseTag(tag);
     }
 
     private static void RenderImage(HtmlBuilder html, VisualImage image)
@@ -264,8 +284,18 @@ public sealed class VisualHtmlExporter : IVisualHtmlExporter
         VisualShape => "shape-element",
         VisualTablePlaceholder => "table-element",
         VisualContainer => "container-element",
-        VisualUnsupportedElement => "unknown-element",
         _ => "unknown-element"
+    };
+
+    private static string GetElementTagName(VisualElement element) => element switch
+    {
+        VisualText => "p",
+        VisualImage => "figure",
+        VisualShape => "figure",
+        VisualTablePlaceholder => "section",
+        VisualContainer => "section",
+        VisualUnsupportedElement => "aside",
+        _ => "div"
     };
 
     private static string GetObjectFit(VisualImageStretch stretch) => stretch switch

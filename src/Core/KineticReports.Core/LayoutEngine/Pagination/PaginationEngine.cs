@@ -121,7 +121,7 @@ internal sealed class PaginationEngine
         float contentWidth = options.PageWidth - options.PageMargins.Horizontal;
 
         // --- Arrange page-header blocks ---
-        SectionBlock? header = null;
+        PageSectionBlock? header = null;
         if (pageHeaderBlocks.Count > 0)
         {
             float y = marginTop;
@@ -133,7 +133,7 @@ internal sealed class PaginationEngine
                 y += block.DesiredSize.Height;
             }
 
-            header = new SectionBlock
+            header = new PageSectionBlock
             {
                 Id = $"PageHeader-p{pageNumber}",
                 Style = engineStyle,
@@ -143,7 +143,7 @@ internal sealed class PaginationEngine
         }
 
         // --- Arrange page-footer blocks ---
-        SectionBlock? footer = null;
+        PageSectionBlock? footer = null;
         if (pageFooterBlocks.Count > 0)
         {
             float footerTop = options.PageHeight - options.PageMargins.Bottom - pageFooterHeight;
@@ -156,7 +156,7 @@ internal sealed class PaginationEngine
                 y += block.DesiredSize.Height;
             }
 
-            footer = new SectionBlock
+            footer = new PageSectionBlock
             {
                 Id = $"PageFooter-p{pageNumber}",
                 Style = engineStyle,

@@ -162,7 +162,7 @@ public class ReportDocumentRendererTests
         var headerText = MakeArrangedTextBlock("Header");
         var bodyText = MakeArrangedTextBlock("Body");
 
-        var header = new SectionBlock
+        var header = new PageSectionBlock
         {
             Id = "hdr",
             Style = DefaultStyle,
@@ -186,8 +186,8 @@ public class ReportDocumentRendererTests
 
     private PageBlock MakePage(
         LayoutBlock? child = null,
-        SectionBlock? header = null,
-        SectionBlock? footer = null)
+        PageSectionBlock? header = null,
+        PageSectionBlock? footer = null)
     {
         var children = child is null
             ? (IReadOnlyList<LayoutBlock>)[]

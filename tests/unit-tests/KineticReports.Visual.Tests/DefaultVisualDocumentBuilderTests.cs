@@ -167,9 +167,9 @@ public class DefaultVisualDocumentBuilderTests
         visualDocument.Metadata["diagnostic.unsupportedElements"].ShouldBe("0");
     }
 
-    private static SectionBlock CreateSection(string id, params LayoutBlock[] children)
+    private static PageSectionBlock CreateSection(string id, params LayoutBlock[] children)
     {
-        var section = new SectionBlock
+        var section = new PageSectionBlock
         {
             Id = id,
             Style = CreateStyle(),

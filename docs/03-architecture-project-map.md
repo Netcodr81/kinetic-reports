@@ -51,3 +51,5 @@ flowchart TB
 - `ReportDocument` is immutable after arrange/pagination.
 - All dimensions are DIPs.
 - Shared `ITextLayout` instance should be used across layout and rendering.
+
+See also: [ReportBlock vs PageSectionBlock (Semantic Distinction)](./04-api-core-and-definition.md#reportblock-vs-pagesectionblock-semantic-distinction).

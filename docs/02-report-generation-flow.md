@@ -43,6 +43,8 @@ For advanced scenarios, use the overload that accepts runtime parameters,
 - `IReportBuilder.Build(dataContext, evaluator)` transforms data into ordered report blocks.
 - This is where row iteration and expression-aware content shaping happen.
 
+See also: [ReportBlock vs PageSectionBlock (Semantic Distinction)](./04-api-core-and-definition.md#reportblock-vs-pagesectionblock-semantic-distinction).
+
 ## 3) Layout
 
 `ILayoutEngine` runs LayoutSizing → Arrange → Pagination.

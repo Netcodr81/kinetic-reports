@@ -2,18 +2,25 @@ namespace KineticReports.Core.Export.Html;
 
 using KineticReports.Core.Layout;
 using KineticReports.Core.Styling;
-using System.Text.Json;
+using Microsoft.Extensions.Options;
 using System.Text;
-using KineticReports.Core.Export.Html.Styles;
+using System.Text.Json;
 
 /// <summary>
-/// Exports an immutable ReportDocument to semantic HTML with inline CSS.
+/// Exports an immutable ReportDocument to semantic HTML.
 /// </summary>
 public sealed class HtmlExporter : IHtmlExporter
 {
+    private readonly HtmlExportOptions _options;
+
     /// <summary>
     /// Exports the report document to HTML.
     /// </summary>
+    public HtmlExporter(IOptions<HtmlExportOptions>? options = null)
+    {
+        _options = options?.Value ?? new HtmlExportOptions();
+    }
+
     public async Task ExportAsync(ReportDocument reportDocument, Stream output, CancellationToken ct = default)
     {
         if (reportDocument == null) throw new ArgumentNullException(nameof(reportDocument));
@@ -27,17 +34,18 @@ public sealed class HtmlExporter : IHtmlExporter
         await output.WriteAsync(bytes, ct);
     }
 
-    private static void BuildHtmlDocument(HtmlBuilder html, ReportDocument reportDocument)
+    private void BuildHtmlDocument(HtmlBuilder html, ReportDocument reportDocument)
     {
         html
             .Raw("<!DOCTYPE html>\n")
             .OpenTag("html", classAttr: "kinetic-report")
             .OpenTag("head")
             .VoidTag("meta", attributes: new() { ["charset"] = "UTF-8" })
-            .OpenTag("title").Text("Report").CloseTag("title")
-            .OpenTag("style")
-            .Raw(HtmlExportStylesheet.Css)
-            .CloseTag("style")
+            .OpenTag("title").Text("Report").CloseTag("title");
+
+        RenderStylesheetLink(html);
+
+        html
             .CloseTag("head")
             .OpenTag("body");
 
@@ -47,7 +55,7 @@ public sealed class HtmlExporter : IHtmlExporter
             .OpenTag("script", id: "report-document-model", attributes: new Dictionary<string, string> { ["type"] = "application/json" })
             .Raw(reportModel)
             .CloseTag("script")
-            .OpenTag("div", id: "report-document", classAttr: "report-document");
+            .OpenTag("main", id: "report-document", classAttr: "report-document");
 
         // Render all pages
         foreach (var page in reportDocument.Pages)
@@ -56,9 +64,21 @@ public sealed class HtmlExporter : IHtmlExporter
         }
 
         html
-            .CloseTag("div")
+            .CloseTag("main")
             .CloseTag("body")
             .CloseTag("html");
+    }
+
+    private void RenderStylesheetLink(HtmlBuilder html)
+    {
+        if (string.IsNullOrWhiteSpace(_options.StylesheetHref))
+            return;
+
+        html.VoidTag("link", attributes: new()
+        {
+            ["rel"] = "stylesheet",
+            ["href"] = _options.StylesheetHref!
+        });
     }
 
     private static void RenderPage(HtmlBuilder html, PageBlock page)
@@ -139,7 +159,7 @@ public sealed class HtmlExporter : IHtmlExporter
         return block switch
         {
             ContainerBlock container => container.Children,
-            SectionBlock section => section.Children,
+            PageSectionBlock section => section.Children,
             ReportBlock reportBlock => reportBlock.Children,
             RowBlock row => row.Cells.Cast<LayoutBlock>().ToList(),
             CellBlock cell => cell.Children,
@@ -150,8 +170,9 @@ public sealed class HtmlExporter : IHtmlExporter
     private static void RenderElement(HtmlBuilder html, LayoutBlock element, float parentX, float parentY, int pageNumber)
     {
         var style = BuildElementStyle(element, parentX, parentY);
+        var tag = GetElementTagName(element);
 
-        html.OpenTag("div", style: style, id: element.Id, classAttr: $"element {GetElementClassName(element)}");
+        html.OpenTag(tag, style: style, id: element.Id, classAttr: $"element {GetElementClassName(element)}");
 
         switch (element)
         {
@@ -176,7 +197,7 @@ public sealed class HtmlExporter : IHtmlExporter
                     RenderElement(html, child, element.Bounds.X, element.Bounds.Y, pageNumber);
                 break;
 
-            case SectionBlock section:
+            case PageSectionBlock section:
                 foreach (var child in section.Children)
                     RenderElement(html, child, element.Bounds.X, element.Bounds.Y, pageNumber);
                 break;
@@ -205,7 +226,7 @@ public sealed class HtmlExporter : IHtmlExporter
                 break;
         }
 
-        html.CloseTag("div");
+        html.CloseTag(tag);
     }
 
     private static void RenderTextBlock(HtmlBuilder html, TextBlock textBlock, int pageNumber)
@@ -402,6 +423,23 @@ public sealed class HtmlExporter : IHtmlExporter
             LayoutBlockType.Chart => "chart-element",
             LayoutBlockType.Barcode => "barcode-element",
             _ => "unknown-element"
+        };
+
+    private static string GetElementTagName(LayoutBlock element) =>
+        element.LayoutBlockType switch
+        {
+            LayoutBlockType.Text => "p",
+            LayoutBlockType.Image => "figure",
+            LayoutBlockType.Shape => "figure",
+            LayoutBlockType.Table => "section",
+            LayoutBlockType.Container => "section",
+            LayoutBlockType.Section => "section",
+            LayoutBlockType.ContentRegion => "article",
+            LayoutBlockType.Row => "div",
+            LayoutBlockType.Cell => "div",
+            LayoutBlockType.Chart => "figure",
+            LayoutBlockType.Barcode => "figure",
+            _ => "div"
         };
 
     private static string GetObjectFit(ImageStretch stretch) => stretch switch

@@ -2,8 +2,9 @@ namespace KineticReports.Export.Html.Tests;
 
 using System.Text;
 using KineticReports.Core.Geometry;
-using KineticReports.Export.Html;
-using KineticReports.Visual;
+using KineticReports.Core.Export.Html;
+using KineticReports.Core.Visual;
+using Microsoft.Extensions.Options;
 
 public class VisualHtmlExporterTests
 {
@@ -73,7 +74,7 @@ public class VisualHtmlExporterTests
             ]
         };
 
-        var exporter = new VisualHtmlExporter();
+        var exporter = CreateExporter();
 
         using var output = new MemoryStream();
         await exporter.ExportAsync(visualDocument, output);
@@ -82,6 +83,7 @@ public class VisualHtmlExporterTests
         html.ShouldContain("<!DOCTYPE html>");
         html.ShouldContain("id=\"report-document\"");
         html.ShouldContain("id=\"report-document-model\"");
+        html.ShouldContain("<link rel=\"stylesheet\" href=\"/kinetic-report.css\" />");
         html.ShouldContain("page-header-region");
         html.ShouldContain("page-body-region");
         html.ShouldContain("page-footer-region");
@@ -130,7 +132,7 @@ public class VisualHtmlExporterTests
             ]
         };
 
-        var exporter = new VisualHtmlExporter();
+        var exporter = CreateExporter();
 
         using var output = new MemoryStream();
         await exporter.ExportAsync(visualDocument, output);
@@ -178,7 +180,7 @@ public class VisualHtmlExporterTests
             ]
         };
 
-        var exporter = new VisualHtmlExporter();
+        var exporter = CreateExporter();
 
         using var output = new MemoryStream();
         await exporter.ExportAsync(visualDocument, output);
@@ -187,4 +189,10 @@ public class VisualHtmlExporterTests
         html.ShouldContain("id=\"clip-text-1\"");
         html.ShouldContain("overflow: hidden;");
     }
+
+    private static VisualHtmlExporter CreateExporter() =>
+        new(Options.Create(new HtmlExportOptions
+        {
+            StylesheetHref = "/kinetic-report.css"
+        }));
 }

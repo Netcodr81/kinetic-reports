@@ -14,6 +14,10 @@ Welcome. This documentation explains **how KineticReports works end-to-end** and
 5. [05 - Engine and Layout API Reference](./05-api-engine-layout.md)
 6. [06 - Rendering, Export, Plugins, and Viewer API Reference](./06-api-rendering-export-viewer.md)
 
+Key clarification:
+
+1. [ReportBlock vs PageSectionBlock (Semantic Distinction)](./04-api-core-and-definition.md#reportblock-vs-pagesectionblock-semantic-distinction)
+
 Fluent builder examples:
 
 1. [Header + Table + Footer code-first fluent example](./04-api-core-and-definition.md#fluent-builder-example)

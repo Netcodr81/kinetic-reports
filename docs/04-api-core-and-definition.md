@@ -31,7 +31,7 @@ This page documents key Core contracts and base abstractions.
 |---|---|
 | `PageBlock` | Represents one final page |
 | `ReportBlock` | Header/detail/footer grouping and repetition |
-| `SectionBlock` | Structural grouping (header/body/footer areas) |
+| `PageSectionBlock` | Structural grouping (header/body/footer areas) |
 | `ContainerBlock` | Generic children container |
 | `TextBlock` | Text content and text runs |
 | `TableBlock` | Table root |
@@ -41,6 +41,34 @@ This page documents key Core contracts and base abstractions.
 | `ShapeBlock` | Vector shapes |
 | `ChartBlock` | Charts |
 | `BarcodeBlock` | Barcodes |
+
+### ReportBlock vs PageSectionBlock (Semantic Distinction)
+
+These two container types are intentionally different even though both stack children vertically.
+
+| Type | Semantic Layer | Meaning | Typical Source |
+|---|---|---|---|
+| `ReportBlock` | Logical report content (pre-pagination) | What content repeats and when (detail, group header/footer, report header/footer, page header/footer) | `IReportBuilder.Build(...)` and report-block plugins |
+| `PageSectionBlock` | Physical page structure (post-pagination) | Where arranged content sits on a concrete page (page header/footer sections) | Pagination output (`PageBlock.Header`/`PageBlock.Footer`) |
+
+Practical rule:
+
+1. Use `ReportBlock` when modeling report intent and repetition behavior.
+2. Use `PageSectionBlock` when working with already paginated page structure.
+
+Lifecycle mapping:
+
+```text
+ReportDefinition
+	-> IReportBuilder.Build(...)
+	-> IReadOnlyList<ReportBlock>
+	-> Layout + Pagination
+	-> PageBlock
+		 - Header: PageSectionBlock?
+		 - Footer: PageSectionBlock?
+		 - Children: body layout blocks
+	-> ReportDocument
+```
 
 ## Code-First Authoring Helpers
 

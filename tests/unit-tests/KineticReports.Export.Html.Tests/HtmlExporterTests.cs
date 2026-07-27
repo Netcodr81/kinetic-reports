@@ -3,10 +3,11 @@ namespace KineticReports.Export.Html.Tests;
 using System.Text;
 using KineticReports.Core.Geometry;
 using KineticReports.Core.Layout;
+using KineticReports.Core.LayoutEngine;
 using KineticReports.Core.Styling;
-using KineticReports.Export.Html;
-using KineticReports.Layout;
+using KineticReports.Core.Export.Html;
 using KineticReports.Rendering.Tests.Fakes;
+using Microsoft.Extensions.Options;
 
 public class HtmlExporterTests
 {
@@ -16,7 +17,7 @@ public class HtmlExporterTests
     public async Task ExportAsync_WithSinglePage_ProducesValidHtml()
     {
         var tree = MakeSimpleLayoutTree();
-        var exporter = new HtmlExporter();
+        var exporter = CreateExporter();
 
         using var output = new MemoryStream();
         await exporter.ExportAsync(tree, output);
@@ -26,7 +27,7 @@ public class HtmlExporterTests
         html.ShouldContain("<html");
         html.ShouldContain("</html>");
         html.ShouldContain("kinetic-page");
-        html.ShouldContain("--kr-font-family");
+        html.ShouldContain("<link rel=\"stylesheet\" href=\"/kinetic-report.css\" />");
     }
 
     [Fact]
@@ -44,7 +45,7 @@ public class HtmlExporterTests
         var page = MakePage(1, [textBlock]);
         var tree = new ReportDocument { Pages = [page] };
 
-        var exporter = new HtmlExporter();
+        var exporter = CreateExporter();
         using var output = new MemoryStream();
         await exporter.ExportAsync(tree, output);
 
@@ -58,7 +59,7 @@ public class HtmlExporterTests
         var pages = Enumerable.Range(1, 3).Select(n => MakePage(n)).ToList();
         var tree = new ReportDocument { Pages = pages };
 
-        var exporter = new HtmlExporter();
+        var exporter = CreateExporter();
         using var output = new MemoryStream();
         await exporter.ExportAsync(tree, output);
 
@@ -85,7 +86,7 @@ public class HtmlExporterTests
         var page = MakePage(1, [shapeElem]);
         var tree = new ReportDocument { Pages = [page] };
 
-        var exporter = new HtmlExporter();
+        var exporter = CreateExporter();
         using var output = new MemoryStream();
         await exporter.ExportAsync(tree, output);
 
@@ -122,7 +123,7 @@ public class HtmlExporterTests
         var page = MakePage(1, [tableElem]);
         var tree = new ReportDocument { Pages = [page] };
 
-        var exporter = new HtmlExporter();
+        var exporter = CreateExporter();
         using var output = new MemoryStream();
         await exporter.ExportAsync(tree, output);
 
@@ -197,7 +198,7 @@ public class HtmlExporterTests
         tableElem.Arrange(new Rect(0, 0, 180, tableElem.DesiredSize.Height));
 
         var tree = new ReportDocument { Pages = [page] };
-        var exporter = new HtmlExporter();
+        var exporter = CreateExporter();
 
         using var output = new MemoryStream();
         await exporter.ExportAsync(tree, output);
@@ -213,7 +214,7 @@ public class HtmlExporterTests
     [Fact]
     public async Task ExportAsync_WithNull_ThrowsArgumentNullException()
     {
-        var exporter = new HtmlExporter();
+        var exporter = CreateExporter();
 
         using var output = new MemoryStream();
         await Should.ThrowAsync<ArgumentNullException>(() => exporter.ExportAsync(null!, output));
@@ -223,6 +224,12 @@ public class HtmlExporterTests
 
     private static ReportDocument MakeSimpleLayoutTree() =>
         new() { Pages = [MakePage(1)] };
+
+    private static HtmlExporter CreateExporter() =>
+        new(Options.Create(new HtmlExportOptions
+        {
+            StylesheetHref = "/kinetic-report.css"
+        }));
 
     private static PageBlock MakePage(int pageNum, List<LayoutBlock>? children = null)
     {

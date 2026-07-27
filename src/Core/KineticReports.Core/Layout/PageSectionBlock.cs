@@ -7,7 +7,7 @@ using KineticReports.Core.Geometry;
 /// (page header, page body, or page footer).
 /// Children are stacked vertically in document order.
 /// </summary>
-public sealed class SectionBlock : LayoutBlock
+public sealed class PageSectionBlock : LayoutBlock
 {
     /// <inheritdoc/>
     public override LayoutBlockType LayoutBlockType => LayoutBlockType.Section;

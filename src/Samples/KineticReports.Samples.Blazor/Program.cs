@@ -27,6 +27,7 @@ var sqlLiteConnectionString = builder.Configuration.GetConnectionString("SqlLite
 
 builder.Services
     .AddKeneticReports()
+    .ConfigureHtmlExporter(options => options.StylesheetHref = "/kinetic-report.css")
     .AddBlazorViewer()
     .AddSqlLiteDataProvider(sqlLiteConnectionString);
 

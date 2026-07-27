@@ -3,14 +3,18 @@ namespace KineticReports.Export.Html.Tests;
 using System.Text;
 using KineticReports.Core.Geometry;
 using KineticReports.Core.Visual;
-using KineticReports.Visual;
+using KineticReports.Core.Export.Html;
+using Microsoft.Extensions.Options;
 
 public class VisualHtmlRendererAdapterTests
 {
     [Fact]
     public async Task RenderAsync_WithVisualDocument_WritesHtmlArtifact()
     {
-        var exporter = new VisualHtmlExporter();
+        var exporter = new VisualHtmlExporter(Options.Create(new HtmlExportOptions
+        {
+            StylesheetHref = "/kinetic-report.css"
+        }));
         IVisualRenderer renderer = new VisualHtmlRendererAdapter(exporter);
 
         var document = new VisualDocument
@@ -48,6 +52,7 @@ public class VisualHtmlRendererAdapterTests
         var html = Encoding.UTF8.GetString(output.ToArray());
         html.ShouldContain("<!DOCTYPE html>");
         html.ShouldContain("id=\"text-1\"");
+        html.ShouldContain("<link rel=\"stylesheet\" href=\"/kinetic-report.css\" />");
         renderer.Format.FormatId.ShouldBe("html");
     }
 }

@@ -1,6 +1,6 @@
 namespace KineticReports.Export.Html.Tests;
 
-using KineticReports.Export.Html;
+using KineticReports.Core.Export.Html;
 
 public class HtmlBuilderTests
 {
