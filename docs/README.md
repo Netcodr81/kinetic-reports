@@ -47,14 +47,14 @@ Fluent builder examples:
 
 ```mermaid
 flowchart LR
-	A[ReportDefinition] --> B[Data Resolution]
-	B --> C[Expression Evaluation]
-	C --> D[Report Blocks Build]
-	D --> E[LayoutSizing]
-	E --> F[Arrange]
-	F --> G[Pagination]
-	G --> H[ReportDocument]
-	H --> I[Renderer or Exporter]
+	A[1. ReportDefinition] --> B[2. Data Resolution]
+	B --> C[3. Expression Evaluation]
+	C --> D[4. Report Blocks Build]
+	D --> E[5. LayoutSizing]
+	E --> F[6. Arrange]
+	F --> G[7. Pagination]
+	G --> H[8. ReportDocument]
+	H --> I[9. Renderer or Exporter]
 ```
 
 **Rule of thumb:**

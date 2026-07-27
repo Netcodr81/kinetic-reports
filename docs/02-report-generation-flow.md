@@ -14,17 +14,17 @@ sequenceDiagram
 	participant Layout as ILayoutEngine
 	participant Export as Exporter/Renderer
 
-	Caller->>Engine: RunAsync(definition)
-	loop each DataSourceDefinition
-		Engine->>Resolver: ResolveAsync(dataSource, parameters)
-		Resolver-->>Engine: rows
+	Caller->>Engine: 1. RunAsync(definition)
+	loop 2. each DataSourceDefinition
+		Engine->>Resolver: 2.1 ResolveAsync(dataSource, parameters)
+		Resolver-->>Engine: 2.2 rows
 	end
-	Engine->>Builder: Build(dataContext, evaluator)
-	Builder-->>Engine: blocks (ReportBlock list)
-	Engine->>Layout: Layout(blocks, layoutOptions, LayoutSizingContext)
-	Layout-->>Engine: ReportDocument
-	Engine-->>Caller: ReportDocument
-	Caller->>Export: ExportAsync(ReportDocument, stream)
+	Engine->>Builder: 3. Build(dataContext, evaluator)
+	Builder-->>Engine: 3.1 blocks (ReportBlock list)
+	Engine->>Layout: 4. Layout(blocks, layoutOptions, LayoutSizingContext)
+	Layout-->>Engine: 4.1 ReportDocument
+	Engine-->>Caller: 5. ReportDocument
+	Caller->>Export: 6. ExportAsync(ReportDocument, stream)
 ```
 
 For advanced scenarios, use the overload that accepts runtime parameters,
@@ -32,32 +32,58 @@ For advanced scenarios, use the overload that accepts runtime parameters,
 
 ## Detailed Stages
 
-## 1) Data Resolution
+## 1. Data Resolution
+
+### 1.1 Iterate configured data sources
 
 - `IReportEngine` loops through `ReportDefinition.DataSources`.
+
+### 1.2 Resolve each source
+
 - For each source, `IDataResolver.ResolveAsync(...)` is called.
+
+### 1.3 Build runtime data context
+
 - Returned rows are stored into `DataContext` keyed by data-source ID.
 
-## 2) Report Blocks Build
+## 2. Report Blocks Build
+
+### 2.1 Build ordered blocks
 
 - `IReportBuilder.Build(dataContext, evaluator)` transforms data into ordered report blocks.
+
+### 2.2 Shape expression-aware content
+
 - This is where row iteration and expression-aware content shaping happen.
 
 See also: [ReportBlock vs PageSectionBlock (Semantic Distinction)](./04-api-core-and-definition.md#reportblock-vs-pagesectionblock-semantic-distinction).
 
-## 3) Layout
+## 3. Layout
 
 `ILayoutEngine` runs LayoutSizing → Arrange → Pagination.
 
-- **LayoutSizing pass:** each element computes desired size
-- **Arrange:** each element gets final bounds
-- **Pagination:** content is split into `PageBlock`s
+### 3.1 LayoutSizing pass
+
+- Each element computes desired size.
+
+### 3.2 Arrange pass
+
+- Each element gets final bounds.
+
+### 3.3 Pagination pass
+
+- Content is split into `PageBlock`s.
 
 Result is an immutable `ReportDocument`.
 
-## 4) Render/Export
+## 4. Render/Export
+
+### 4.1 Consume immutable layout output
 
 - Renderers/exporters receive only `ReportDocument`.
+
+### 4.2 Preserve layout ownership
+
 - They must not perform layout decisions.
 
 ## Where Bugs Usually Happen
