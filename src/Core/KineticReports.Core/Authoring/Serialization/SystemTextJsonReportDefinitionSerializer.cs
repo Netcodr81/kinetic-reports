@@ -33,6 +33,8 @@ public sealed class SystemTextJsonReportDefinitionSerializer : IReportDefinition
         if (string.IsNullOrWhiteSpace(json))
             throw new ArgumentException("JSON content must be provided.", nameof(json));
 
+        JsonDuplicateKeyValidator.EnsureNoDuplicateKeys(json);
+
         return JsonSerializer.Deserialize<ReportDefinition>(json, Options)
             ?? throw new InvalidOperationException("Failed to deserialize ReportDefinition JSON.");
     }

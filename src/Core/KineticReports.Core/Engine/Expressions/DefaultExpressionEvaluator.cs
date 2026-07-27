@@ -19,6 +19,11 @@ public sealed class DefaultExpressionEvaluator : IExpressionEvaluator
         if (string.IsNullOrWhiteSpace(expression))
             return null;
 
+        var trimmedExpression = expression.Trim();
+
+        if (FunctionExpressionRuntime.LooksLikeFunctionExpression(trimmedExpression))
+            return FunctionExpressionRuntime.Evaluate(trimmedExpression, context);
+
         if (expression.Length > 2 && expression[0] == '{' && expression[^1] == '}')
         {
             var tokenName = expression[1..^1];

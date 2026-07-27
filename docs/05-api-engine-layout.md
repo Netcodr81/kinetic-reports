@@ -9,6 +9,7 @@ This page documents how orchestration and layout contracts work.
 | `IReportEngine`        | Main orchestration entry point                  | `RunAsync(definition)` and `RunAsync(...)` |
 | `IDataResolver`        | Resolves rows for each`DataSourceDefinition`  | `ResolveAsync(...)`             |
 | `IExpressionEvaluator` | Evaluates expression strings                    | `Evaluate(expression, context)` |
+| `IExpressionValidator` | Validates expression strings without execution  | `Validate(expression)` |
 | `IReportBuilder`       | Builds ordered report blocks from resolved data | `Build(dataContext, evaluator)` |
 
 ## Engine Runtime Types
@@ -18,7 +19,8 @@ This page documents how orchestration and layout contracts work.
 | `ReportEngine`      | Default`IReportEngine` implementation          |
 | `DataContext`       | Stores resolved rows keyed by data-source id     |
 | `ExpressionContext` | Evaluation context with current row + parameters |
-| `LiteralEvaluator`  | Default evaluator behavior                       |
+| `DefaultExpressionEvaluator`  | Default evaluator with token + function support |
+| `DefaultExpressionValidator`  | Parse-only validator for function syntax and arity |
 
 ## Dependency Injection
 
@@ -30,7 +32,26 @@ using KineticReports.Core.Engine.DependencyInjection;
 builder.Services.AddKineticReportsEngine();
 ```
 
-This registers `IExpressionEvaluator`, `IDataResolver`, `IReportBuilder`, `ILayoutEngine`, and `IReportEngine` with default implementations.
+This registers `IExpressionEvaluator`, `IExpressionValidator`, `IDataResolver`, `IReportBuilder`, `ILayoutEngine`, and `IReportEngine` with default implementations.
+
+## Expression Validation (No Execution)
+
+Use `IExpressionValidator` when authoring or importing reports and you need deterministic validation errors before runtime:
+
+```csharp
+var validator = new DefaultExpressionValidator();
+var result = validator.Validate("Any(Parameter('items'), 'Amount', '>', 100)");
+
+if (!result.IsValid)
+{
+	// Present result.Errors in authoring UI or import diagnostics.
+}
+```
+
+Validation checks include:
+- Parser syntax errors (for example missing `)` or malformed arrays)
+- Unknown function names
+- Function argument count/arity mismatches (for example `Any` requires either 1 or 4 arguments)
 
 To run singleton engine services (for example, in lightweight API hosts):
 

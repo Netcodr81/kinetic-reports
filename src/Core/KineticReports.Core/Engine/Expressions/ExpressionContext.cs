@@ -18,6 +18,11 @@ public sealed class ExpressionContext
     /// <summary>Gets the one-based current page number as determined during pagination.</summary>
     public int PageNumber { get; init; }
 
+    /// <summary>
+    /// Gets the total page count when known; otherwise <see langword="null"/>.
+    /// </summary>
+    public int? TotalPages { get; init; }
+
     /// <summary>Returns an <see cref="ExpressionContext"/> with no data row or parameters.</summary>
     public static ExpressionContext Empty { get; } = new ExpressionContext
     {

@@ -30,7 +30,12 @@ public static class EngineServiceCollectionExtensions
 
         services.TryAdd(new ServiceDescriptor(
             typeof(global::KineticReports.Core.Engine.Expressions.IExpressionEvaluator),
-            typeof(global::KineticReports.Core.Engine.Expressions.LiteralEvaluator),
+            typeof(global::KineticReports.Core.Engine.Expressions.DefaultExpressionEvaluator),
+            lifetime));
+
+        services.TryAdd(new ServiceDescriptor(
+            typeof(global::KineticReports.Core.Engine.Expressions.IExpressionValidator),
+            typeof(global::KineticReports.Core.Engine.Expressions.DefaultExpressionValidator),
             lifetime));
 
         services.AddPocoDataProvider();
