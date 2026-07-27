@@ -18,6 +18,9 @@
 
 ## Export Contracts
 
+Deep dive:
+- [16 - Exporter Execution Flow](./16-exporter-execution-flow.md)
+
 | Type | Kind | Purpose | Methods |
 |---|---|---|---|
 | `IHtmlExporter` | interface | Export `ReportDocument` as HTML | `ExportAsync(ReportDocument, Stream, CancellationToken)` |

@@ -37,6 +37,12 @@ Fluent builder examples:
 12. [12 - Glossary](./12-glossary.md)
 13. [13 - Report Authoring, Data Binding, and JSON Workflow](./13-report-authoring-and-json-workflow.md)
 
+## Flow Deep Dives
+
+14. [14 - RunAsync Execution Call Graph](./14-runasync-execution-call-graph.md)
+15. [15 - Expression Runtime Flow](./15-expression-runtime-flow.md)
+16. [16 - Exporter Execution Flow](./16-exporter-execution-flow.md)
+
 ## Architecture Handbook
 
 1. [Visual Document Architecture Handbook](./architecture/visual-document/README.md)

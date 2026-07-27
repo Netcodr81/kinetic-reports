@@ -2,6 +2,11 @@
 
 This document explains exactly how one report is generated.
 
+Deep-dive companion docs:
+- [14 - RunAsync Execution Call Graph](./14-runasync-execution-call-graph.md)
+- [15 - Expression Runtime Flow](./15-expression-runtime-flow.md)
+- [16 - Exporter Execution Flow](./16-exporter-execution-flow.md)
+
 ## High-Level Flow
 
 ```mermaid
