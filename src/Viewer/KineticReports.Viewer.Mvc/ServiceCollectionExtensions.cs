@@ -18,7 +18,7 @@ public static class ServiceCollectionExtensions
     {
         if (services == null) throw new ArgumentNullException(nameof(services));
 
-        services.TryAddScoped<IReportMvcService, LocalReportMvcService>();
+        services.TryAddScoped<IReportMvcService, DefaultReportMvcService>();
         return services;
     }
 }

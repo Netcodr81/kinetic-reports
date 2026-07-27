@@ -50,9 +50,12 @@ HTML export now expects the host to provide the stylesheet location through `Htm
 
 | Type | Project | Purpose |
 |---|---|---|
-| `IReportService` | Viewer.Blazor | Viewer-level report operations |
+| `IReportService` | `KineticReports.Core` | Viewer-level report operations (host-neutral contract) |
+| `DefaultReportService` | `KineticReports.Core` | Default local implementation of `IReportService` |
 | `IReportExecutor` | Viewer.Web | Server-side report execution abstraction |
 | `IReportStore` | Viewer.Web | Report definition retrieval abstraction |
+| `IReportMvcService` | Viewer.Mvc | MVC rendering contract for server-side HTML rendering |
+| `DefaultReportMvcService` | Viewer.Mvc | Default local implementation of `IReportMvcService` |
 
 ## Packaging Notes
 
@@ -62,6 +65,8 @@ HTML export now expects the host to provide the stylesheet location through `Htm
 
 ### Viewer.Blazor Service Surface (Current)
 
+- `ReportViewer` consumes `KineticReports.Core.Viewer.Services.IReportService` through DI.
+- `KineticReports.Viewer.Blazor` registers `DefaultReportService` as the default scoped implementation.
 - `RenderHtmlAsync(...)` renders a report preview payload.
 - `ExportAsync(...)` exports using the currently registered local viewer formats.
 - `HitTestAsync(...)` resolves page-local coordinates to a visual element.

@@ -1,4 +1,4 @@
-namespace KineticReports.Viewer.Blazor.Services;
+namespace KineticReports.Core.Viewer.Services;
 
 using KineticReports.Core.Definition;
 using KineticReports.Core.Engine;
@@ -13,9 +13,9 @@ using KineticReports.Core.Visual;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// Blazor implementation of report service that executes and exports reports locally.
+/// Default implementation of <see cref="IReportService"/> that executes and exports reports locally.
 /// </summary>
-public sealed class LocalReportService : IReportService
+public sealed class DefaultReportService : IReportService
 {
     private static readonly IReadOnlyList<ReportViewerExportFormat> DefaultFormats =
     [
@@ -30,20 +30,20 @@ public sealed class LocalReportService : IReportService
     private readonly VisualTextSearchIndexBuilder _textSearchIndexBuilder;
     private readonly ITextLayout _textLayout;
     private readonly SkiaRenderer _pdfRenderer = new(new RenderOptions { Format = RenderFormat.Pdf });
-    private readonly ILogger<LocalReportService> _logger;
+    private readonly ILogger<DefaultReportService> _logger;
     private IReadOnlyList<string> _latestTrace = [];
 
     /// <summary>
     /// Initializes the service with required dependencies.
     /// </summary>
-    public LocalReportService(
+    public DefaultReportService(
         IReportEngine engine,
         IHtmlExporter htmlExporter,
         IVisualDocumentBuilder visualDocumentBuilder,
         VisualHitTestIndexBuilder hitTestIndexBuilder,
         VisualTextSearchIndexBuilder textSearchIndexBuilder,
         ITextLayout textLayout,
-        ILogger<LocalReportService> logger)
+        ILogger<DefaultReportService> logger)
     {
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
         _htmlExporter = htmlExporter ?? throw new ArgumentNullException(nameof(htmlExporter));
@@ -68,7 +68,7 @@ public sealed class LocalReportService : IReportService
 
         try
         {
-            _latestTrace = ["[Render] Executing with local viewer service", "[Export] Format: html"];
+            _latestTrace = ["[Render] Executing with default report service", "[Export] Format: html"];
             return await RenderHtmlCoreAsync(definition, parameters, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -111,7 +111,7 @@ public sealed class LocalReportService : IReportService
         try
         {
             var reportDocument = await ExecuteReportAsync(definition, parameters, ct).ConfigureAwait(false);
-            return await ExportReportDocumentAsync(reportDocument, formatId, "[Render] Executing with local viewer service", ct)
+            return await ExportReportDocumentAsync(reportDocument, formatId, "[Render] Executing with default report service", ct)
                 .ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -282,7 +282,7 @@ public sealed class LocalReportService : IReportService
         IReadOnlyDictionary<string, object?> parameters,
         CancellationToken ct)
     {
-        _logger.LogInformation("Viewer local report pipeline mode selected: Semantic");
+        _logger.LogInformation("Default report pipeline mode selected: Semantic");
         _latestTrace =
         [
             .. _latestTrace,
@@ -340,7 +340,7 @@ public sealed class LocalReportService : IReportService
             return new ReportViewerExportResult("pdf", "application/pdf", "pdf", stream.ToArray());
         }
 
-        throw new NotSupportedException($"Local viewer service supports only 'html' and 'pdf' export. Requested '{formatId}'.");
+        throw new NotSupportedException($"Default report service supports only 'html' and 'pdf' export. Requested '{formatId}'.");
     }
 
     private static LayoutOptions ResolveLayoutOptions(ReportDefinition definition)

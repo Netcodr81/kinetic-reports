@@ -82,7 +82,8 @@ Ordering rules for both seams:
 
 Sample host note:
 
-- The Blazor sample now integrates the viewer through `AddKineticReportsViewerBlazor(...)` and `IReportService`.
+- The Blazor sample integrates the viewer through `AddKineticReportsViewerBlazor(...)` and the Core viewer service contract `KineticReports.Core.Viewer.Services.IReportService`.
+- The default implementation is `KineticReports.Core.Viewer.Services.DefaultReportService`.
 - Exporter-registry wiring remains available in adapter hosts such as `KineticReports.Viewer.Web`.
 
 Packaging note:

@@ -12,22 +12,22 @@ using Microsoft.Extensions.Logging;
 /// <summary>
 /// Default in-process MVC report service backed by local engine and HTML exporter.
 /// </summary>
-public sealed class LocalReportMvcService : IReportMvcService
+public sealed class DefaultReportMvcService : IReportMvcService
 {
     private readonly IReportEngine _engine;
     private readonly IHtmlExporter _exporter;
     private readonly ITextLayout _textLayout;
-    private readonly ILogger<LocalReportMvcService> _logger;
+    private readonly ILogger<DefaultReportMvcService> _logger;
     private IReadOnlyList<string> _latestTrace = [];
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="LocalReportMvcService"/> class.
+    /// Initializes a new instance of the <see cref="DefaultReportMvcService"/> class.
     /// </summary>
-    public LocalReportMvcService(
+    public DefaultReportMvcService(
         IReportEngine engine,
         IHtmlExporter exporter,
         ITextLayout textLayout,
-        ILogger<LocalReportMvcService> logger)
+        ILogger<DefaultReportMvcService> logger)
     {
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
         _exporter = exporter ?? throw new ArgumentNullException(nameof(exporter));
@@ -44,7 +44,7 @@ public sealed class LocalReportMvcService : IReportMvcService
         if (definition == null) throw new ArgumentNullException(nameof(definition));
         if (parameters == null) throw new ArgumentNullException(nameof(parameters));
 
-        _latestTrace = ["[Render] Executing with local MVC viewer service", "[Export] Format: html"];
+        _latestTrace = ["[Render] Executing with default MVC viewer service", "[Export] Format: html"];
 
         var context = new LayoutSizingContext(_textLayout);
         var layoutOptions = ResolveLayoutOptions(definition);

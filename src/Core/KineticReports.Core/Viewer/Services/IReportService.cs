@@ -1,10 +1,10 @@
-namespace KineticReports.Viewer.Blazor.Services;
+namespace KineticReports.Core.Viewer.Services;
 
 using KineticReports.Core.Definition;
 using KineticReports.Core.Layout;
 
 /// <summary>
-/// Contract for report execution and export operations in Blazor components.
+/// Contract for report execution and export operations in viewer hosts.
 /// </summary>
 public interface IReportService
 {

@@ -1,5 +1,12 @@
 # Release Notes
 
+## Unreleased
+
+- Moved `IReportService` from `KineticReports.Viewer.Blazor.Services` to `KineticReports.Core.Viewer.Services`.
+- Renamed `LocalReportService` to `DefaultReportService` and moved it to `KineticReports.Core.Viewer.Services`.
+- Updated `KineticReports.Viewer.Blazor` DI registration to resolve `IReportService` to `DefaultReportService`.
+- Renamed MVC `LocalReportMvcService` to `DefaultReportMvcService` for naming consistency with default host services.
+
 ## 1.0.0
 
 - Consolidated the default runtime into `KineticReports.Core`.

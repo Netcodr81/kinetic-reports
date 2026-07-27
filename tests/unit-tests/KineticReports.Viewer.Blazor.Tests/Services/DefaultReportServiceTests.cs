@@ -6,14 +6,14 @@ using KineticReports.Core.Styling;
 using KineticReports.Core.Typography;
 using KineticReports.Core.Export.Html;
 using KineticReports.Core.Visual;
-using KineticReports.Viewer.Blazor.Services;
+using KineticReports.Core.Viewer.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 using KineticReports.Core.Engine;
 using KineticReports.Core.LayoutEngine;
 
 namespace KineticReports.Viewer.Blazor.Tests.Services;
 
-public class LocalReportServiceTests
+public class DefaultReportServiceTests
 {
     private sealed class MockTextLayout : ITextLayout
     {
@@ -79,16 +79,16 @@ public class LocalReportServiceTests
         }
     }
 
-    private static LocalReportService CreateService()
+    private static DefaultReportService CreateService()
     {
-        return new LocalReportService(
+        return new DefaultReportService(
             new MockReportEngine(),
             new HtmlExporter(),
             new DefaultVisualDocumentBuilder(),
             new VisualHitTestIndexBuilder(),
             new VisualTextSearchIndexBuilder(),
             new MockTextLayout(),
-            NullLogger<LocalReportService>.Instance);
+            NullLogger<DefaultReportService>.Instance);
     }
 
     [Fact]
