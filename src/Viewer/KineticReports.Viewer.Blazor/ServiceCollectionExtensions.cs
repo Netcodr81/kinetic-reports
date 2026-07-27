@@ -1,10 +1,10 @@
 namespace KineticReports.Viewer.Blazor;
 
 using KineticReports.Core.Export.Html;
+using KineticReports.Core.Export.Document;
 using KineticReports.Core.Rendering.Skia;
 using KineticReports.Core.Visual;
 using KineticReports.Core.Viewer.Services;
-using KineticReports.Viewer.Blazor.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 

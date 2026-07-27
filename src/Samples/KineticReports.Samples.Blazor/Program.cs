@@ -11,7 +11,8 @@ using Microsoft.Data.Sqlite;
 // 1. Loading report definitions from JSON and code
 // 2. Running the same reports with InMemory or SQLite providers
 // 3. Rendering with the Blazor viewer using the standard engine pipeline
-// 4. Realistic multi-page output with headers, footers, and multiple tables
+// 4. Default plugin loading using KineticReports.Core plugin manager
+// 5. Realistic multi-page output with headers, footers, and multiple tables
 //
 // To run: dotnet run
 // To build: dotnet build

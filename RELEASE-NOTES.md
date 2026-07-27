@@ -6,6 +6,7 @@
 - Renamed `LocalReportService` to `DefaultReportService` and moved it to `KineticReports.Core.Viewer.Services`.
 - Updated `KineticReports.Viewer.Blazor` DI registration to resolve `IReportService` to `DefaultReportService`.
 - Renamed MVC `LocalReportMvcService` to `DefaultReportMvcService` for naming consistency with default host services.
+- Updated the Blazor sample to use Core's default plugin manager registration (`AddPluginManager(...)`) instead of sample-specific plugin manager adapters.
 
 ## 1.0.0
 

@@ -7,16 +7,16 @@ using KineticReports.Core.Engine.Building;
 using KineticReports.Core.Engine.Data;
 using KineticReports.Core.Engine.DependencyInjection;
 using KineticReports.Core.Engine.Expressions;
+using KineticReports.Core.Export.Document;
 using KineticReports.Core.Export.Html;
 using KineticReports.Core.Plugins;
 using KineticReports.Core.Rendering.Skia;
 using KineticReports.Core.Typography;
 using KineticReports.Core.Visual;
-using KineticReports.Samples.Blazor.Services;
 using KineticReports.Viewer.Blazor;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using ViewerRenderingPipelineOptions = KineticReports.Viewer.Blazor.Services.RenderingPipelineOptions;
+using ViewerRenderingPipelineOptions = KineticReports.Core.Export.Document.RenderingPipelineOptions;
 
 /// <summary>
 /// Registers the default KineticReports sample stack with a single entrypoint.
@@ -39,9 +39,7 @@ public static class KeneticReportsServiceCollectionExtensions
         configure?.Invoke(options);
 
         services.AddKineticReportsAuthoring();
-
-        services.AddScoped<IPluginService, PluginService>();
-        services.AddScoped<IPluginManager, PluginServicePluginManagerAdapter>();
+        services.AddPluginManager(AppContext.BaseDirectory);
 
         services.AddKineticReportsEngine(configureBuilder: options.ConfigureDefaultReportBuilder);
         services.RemoveAll<IExpressionEvaluator>();
