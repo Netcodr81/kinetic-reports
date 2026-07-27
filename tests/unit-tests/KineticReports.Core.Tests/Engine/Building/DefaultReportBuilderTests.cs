@@ -378,6 +378,39 @@ public class DefaultReportBuilderTests
     }
 
     [Fact]
+    public void Build_WithDefinitionBackedLayout_ImageItem_CreatesImageRegion()
+    {
+        var definition = new ReportDefinition
+        {
+            SchemaVersion = "1.0",
+            Id = "image-definition",
+            Name = "Image Definition",
+            Layout = new ReportLayoutDefinition
+            {
+                Body =
+                [
+                    new ReportLayoutItemDefinition
+                    {
+                        Id = "hero-image",
+                        Kind = ReportLayoutItemKind.Image,
+                        SourceKey = "https://example.com/hero.png",
+                        Stretch = ImageStretch.Fill
+                    }
+                ]
+            }
+        };
+
+        var sut = new DefaultReportBuilder();
+
+        var result = sut.Build(CreateDataContext(definition: definition), new LiteralEvaluator());
+
+        var region = result.ShouldHaveSingleItem();
+        var image = region.Children.ShouldHaveSingleItem().ShouldBeOfType<ImageBlock>();
+        image.SourceKey.ShouldBe("https://example.com/hero.png");
+        image.Stretch.ShouldBe(ImageStretch.Fill);
+    }
+
+    [Fact]
     public void Build_WithUnknownStyleReference_ThrowsInvalidOperationException()
     {
         var definition = new ReportDefinition

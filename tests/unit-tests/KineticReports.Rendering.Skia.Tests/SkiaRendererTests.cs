@@ -3,8 +3,8 @@ namespace KineticReports.Rendering.Skia.Tests;
 using System.IO;
 using KineticReports.Core.Layout;
 using KineticReports.Core.Rendering;
+using KineticReports.Core.Rendering.Skia;
 using KineticReports.Core.Styling;
-using KineticReports.Rendering.Skia;
 
 public class SkiaRendererTests
 {

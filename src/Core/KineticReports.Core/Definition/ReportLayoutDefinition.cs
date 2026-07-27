@@ -1,5 +1,7 @@
 namespace KineticReports.Core.Definition;
 
+using KineticReports.Core.Layout;
+
 /// <summary>
 /// Canonical layout definition stored on a <see cref="ReportDefinition"/>.
 /// </summary>
@@ -29,6 +31,12 @@ public sealed record ReportLayoutItemDefinition
     /// <summary>Gets or inits text content for text items.</summary>
     public string? Text { get; init; }
 
+    /// <summary>Gets or inits the image source key or URI for image items.</summary>
+    public string? SourceKey { get; init; }
+
+    /// <summary>Gets or inits the image stretch mode for image items.</summary>
+    public ImageStretch Stretch { get; init; } = ImageStretch.Uniform;
+
     /// <summary>
     /// Gets or inits the optional named style id applied to the containing block.
     /// Used by text and page-break items, and as a generic fallback.
@@ -40,6 +48,12 @@ public sealed record ReportLayoutItemDefinition
     /// Used by text items.
     /// </summary>
     public string? TextStyleId { get; init; }
+
+    /// <summary>
+    /// Gets or inits the optional named style id applied to image content.
+    /// Used by image items.
+    /// </summary>
+    public string? ImageStyleId { get; init; }
 
     /// <summary>Gets or inits the bound data source id for table items.</summary>
     public string? DataSourceId { get; init; }
@@ -103,6 +117,9 @@ public enum ReportLayoutItemKind
 {
     /// <summary>Plain text region.</summary>
     Text,
+
+    /// <summary>Single image region.</summary>
+    Image,
 
     /// <summary>Data-backed table.</summary>
     Table,

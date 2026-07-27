@@ -169,11 +169,11 @@ public sealed class VisualSkiaRenderer
     private static void DrawImage(SKCanvas canvas, VisualImage image)
     {
         var bounds = ToSkRect(image.Bounds);
-        if (TryDecodeDataUri(image.SourceKey, out var bitmap) && bitmap != null)
+        if (TryResolveBitmap(image.SourceKey, out var bitmap) && bitmap != null)
         {
             using (bitmap)
             {
-                canvas.DrawBitmap(bitmap, bounds, SKSamplingOptions.Default, null);
+                canvas.DrawBitmap(bitmap, bounds, SKSamplingOptions.Default);
             }
 
             return;
@@ -188,6 +188,18 @@ public sealed class VisualSkiaRenderer
         };
 
         canvas.DrawRect(bounds, border);
+    }
+
+    private static bool TryResolveBitmap(string source, out SKBitmap? bitmap)
+    {
+        if (TryDecodeDataUri(source, out bitmap) && bitmap != null)
+            return true;
+
+        if (TryDecodeFileSource(source, out bitmap) && bitmap != null)
+            return true;
+
+        bitmap = null;
+        return false;
     }
 
     private static void DrawTablePlaceholder(SKCanvas canvas, VisualTablePlaceholder table)
@@ -287,6 +299,38 @@ public sealed class VisualSkiaRenderer
             var payload = source[(commaIndex + 1)..];
             var bytes = Convert.FromBase64String(payload);
             bitmap = SKBitmap.Decode(bytes);
+            return bitmap != null;
+        }
+        catch
+        {
+            bitmap = null;
+            return false;
+        }
+    }
+
+    private static bool TryDecodeFileSource(string source, out SKBitmap? bitmap)
+    {
+        bitmap = null;
+
+        if (string.IsNullOrWhiteSpace(source))
+            return false;
+
+        string? localPath = null;
+        if (Uri.TryCreate(source, UriKind.Absolute, out var uri) && uri.IsFile)
+        {
+            localPath = uri.LocalPath;
+        }
+        else if (Path.IsPathRooted(source) || File.Exists(source))
+        {
+            localPath = source;
+        }
+
+        if (string.IsNullOrWhiteSpace(localPath) || !File.Exists(localPath))
+            return false;
+
+        try
+        {
+            bitmap = SKBitmap.Decode(localPath);
             return bitmap != null;
         }
         catch

@@ -250,10 +250,31 @@ public sealed class HtmlExporter : IHtmlExporter
 
     private static void RenderImageElement(HtmlBuilder html, ImageBlock imgElem)
     {
-        if (imgElem.ImageReference != null)
+        if (TryGetImageSource(imgElem, out var source))
         {
-            var base64 = Convert.ToBase64String(imgElem.ImageReference.PixelData);
-            var mimeType = imgElem.ImageReference.PixelFormat switch
+            html.VoidTag("img", attributes: new()
+            {
+                ["src"] = source,
+                ["alt"] = imgElem.Id,
+                ["style"] = $"width: {imgElem.Bounds.Width:F1}px; height: {imgElem.Bounds.Height:F1}px; object-fit: {GetObjectFit(imgElem.Stretch)};"
+            });
+            return;
+        }
+
+        html
+            .OpenTag("div", classAttr: "visual-image-placeholder")
+            .Text($"[Image: {imgElem.SourceKey}]")
+            .CloseTag("div");
+    }
+
+    private static bool TryGetImageSource(ImageBlock image, out string source)
+    {
+        source = string.Empty;
+
+        if (image.ImageReference != null)
+        {
+            var base64 = Convert.ToBase64String(image.ImageReference.PixelData);
+            var mimeType = image.ImageReference.PixelFormat switch
             {
                 "RGBA8888" => "image/png",
                 "PNG" => "image/png",
@@ -261,15 +282,32 @@ public sealed class HtmlExporter : IHtmlExporter
                 "WebP" => "image/webp",
                 _ => "image/png"
             };
-            var dataUrl = $"data:{mimeType};base64,{base64}";
 
-            html.VoidTag("img", attributes: new()
-            {
-                ["src"] = dataUrl,
-                ["alt"] = imgElem.Id,
-                ["style"] = $"width: {imgElem.Bounds.Width:F1}px; height: {imgElem.Bounds.Height:F1}px; object-fit: {GetObjectFit(imgElem.Stretch)};"
-            });
+            source = $"data:{mimeType};base64,{base64}";
+            return true;
         }
+
+        var key = image.SourceKey.Trim();
+        if (string.IsNullOrWhiteSpace(key))
+            return false;
+
+        if (key.StartsWith("data:", StringComparison.OrdinalIgnoreCase)
+            || key.StartsWith("/", StringComparison.Ordinal)
+            || key.StartsWith("./", StringComparison.Ordinal)
+            || key.StartsWith("../", StringComparison.Ordinal)
+            || Uri.TryCreate(key, UriKind.Absolute, out _))
+        {
+            source = key;
+            return true;
+        }
+
+        if (Path.IsPathRooted(key))
+        {
+            source = new Uri(key, UriKind.Absolute).AbsoluteUri;
+            return true;
+        }
+
+        return false;
     }
 
     private static void RenderShapeElement(HtmlBuilder html, ShapeBlock shapeElem)

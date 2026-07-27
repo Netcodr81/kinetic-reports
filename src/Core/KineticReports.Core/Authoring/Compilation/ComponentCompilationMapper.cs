@@ -2,6 +2,7 @@ namespace KineticReports.Core.Authoring.Compilation;
 
 using KineticReports.Core.Authoring.Components;
 using KineticReports.Core.Definition;
+using KineticReports.Core.Layout;
 
 /// <summary>
 /// Maps authoring component types to canonical runtime-oriented component hints.
@@ -168,6 +169,32 @@ internal static class ComponentCompilationMapper
             });
 
             return;
+        }
+
+        if (string.Equals(component.CanonicalType, "Image", StringComparison.OrdinalIgnoreCase))
+        {
+            var sourceKey = TryGetBinding(component, "SourceKey")
+                ?? TryGetProperty(component, "SourceKey")
+                ?? TryGetBinding(component, "Source")
+                ?? TryGetProperty(component, "Source");
+
+            if (!string.IsNullOrWhiteSpace(sourceKey))
+            {
+                var stretchRaw = TryGetProperty(component, "Stretch");
+                var stretch = Enum.TryParse<ImageStretch>(stretchRaw, true, out var parsedStretch)
+                    ? parsedStretch
+                    : ImageStretch.Uniform;
+
+                target.Add(new ReportLayoutItemDefinition
+                {
+                    Id = component.Id,
+                    Kind = ReportLayoutItemKind.Image,
+                    SourceKey = sourceKey,
+                    Stretch = stretch
+                });
+
+                return;
+            }
         }
 
         if (string.Equals(component.CanonicalType, "Table", StringComparison.OrdinalIgnoreCase)

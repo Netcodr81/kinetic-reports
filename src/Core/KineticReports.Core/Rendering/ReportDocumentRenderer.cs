@@ -29,22 +29,22 @@ public sealed class ReportDocumentRenderer
 
         // Header
         if (page.Header is not null)
-            RenderElement(page.Header, context);
+            RenderElement(page.Header, context, page.PageNumber);
 
         // Body children
         foreach (var child in page.Children)
-            RenderElement(child, context);
+            RenderElement(child, context, page.PageNumber);
 
         // Footer
         if (page.Footer is not null)
-            RenderElement(page.Footer, context);
+            RenderElement(page.Footer, context, page.PageNumber);
     }
 
     // -------------------------------------------------------------------------
     // Core traversal
     // -------------------------------------------------------------------------
 
-    private void RenderElement(LayoutBlock element, IGraphicsContext context)
+    private void RenderElement(LayoutBlock element, IGraphicsContext context, int pageNumber)
     {
         bool pushOpacity = element.Style.Opacity < 1f;
         bool pushClip = element.Style.Overflow == Overflow.Hidden;
@@ -65,7 +65,7 @@ public sealed class ReportDocumentRenderer
         {
             case TextBlock text:
                 foreach (var run in text.TextRuns)
-                    context.DrawText(run);
+                    context.DrawText(ResolveSystemTextTokens(run, pageNumber));
                 break;
 
             case ImageBlock image when image.ImageReference is not null:
@@ -78,32 +78,32 @@ public sealed class ReportDocumentRenderer
 
             case ContainerBlock container:
                 foreach (var child in container.Children)
-                    RenderElement(child, context);
+                    RenderElement(child, context, pageNumber);
                 break;
 
             case PageSectionBlock section:
                 foreach (var child in section.Children)
-                    RenderElement(child, context);
+                    RenderElement(child, context, pageNumber);
                 break;
 
             case ReportBlock block:
                 foreach (var child in block.Children)
-                    RenderElement(child, context);
+                    RenderElement(child, context, pageNumber);
                 break;
 
             case TableBlock table:
                 foreach (var row in table.Rows)
-                    RenderElement(row, context);
+                    RenderElement(row, context, pageNumber);
                 break;
 
             case RowBlock row:
                 foreach (var cell in row.Cells)
-                    RenderElement(cell, context);
+                    RenderElement(cell, context, pageNumber);
                 break;
 
             case CellBlock cell:
                 foreach (var child in cell.Children)
-                    RenderElement(child, context);
+                    RenderElement(child, context, pageNumber);
                 break;
         }
 
@@ -162,5 +162,25 @@ public sealed class ReportDocumentRenderer
     {
         if (side is null || side.Style == BorderLineStyle.None || side.Width <= 0f) return;
         context.DrawLine(from, to, side.Color, side.Width);
+    }
+
+    private static TextRun ResolveSystemTextTokens(TextRun run, int pageNumber)
+    {
+        var resolvedText = ResolveSystemTextTokens(run.Text, pageNumber);
+        if (string.Equals(resolvedText, run.Text, StringComparison.Ordinal))
+            return run;
+
+        return run with { Text = resolvedText };
+    }
+
+    private static string ResolveSystemTextTokens(string text, int pageNumber)
+    {
+        if (string.IsNullOrEmpty(text))
+            return string.Empty;
+
+        return text
+            .Replace("{PageNumber}", pageNumber.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase)
+            .Replace("{CurrentDate}", DateTime.UtcNow.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase)
+            .Replace("{CurrentTime}", DateTime.UtcNow.ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase);
     }
 }

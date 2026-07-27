@@ -836,6 +836,19 @@ public sealed class DefaultReportBuilder : IReportBuilder
                     textStyle: ResolveStyleId(item.TextStyleId, nameof(item.TextStyleId)));
                 break;
 
+            case ReportLayoutItemKind.Image:
+                if (string.IsNullOrWhiteSpace(item.SourceKey))
+                    break;
+
+                builder.AddImageRegion(
+                    id: item.Id,
+                    sourceKey: item.SourceKey,
+                    stretch: item.Stretch,
+                    blockType: blockType,
+                    blockStyle: ResolveStyleId(item.BlockStyleId, nameof(item.BlockStyleId)),
+                    imageStyle: ResolveStyleId(item.ImageStyleId, nameof(item.ImageStyleId)));
+                break;
+
             case ReportLayoutItemKind.PageBreak:
                 builder.AddPageBreak(
                     id: item.Id,

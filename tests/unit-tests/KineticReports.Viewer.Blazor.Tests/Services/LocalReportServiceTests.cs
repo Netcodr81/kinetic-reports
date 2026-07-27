@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using KineticReports.Core.Engine;
 using KineticReports.Core.LayoutEngine;
 
-namespace KineticReports.Viewer.Blazor.Tests;
+namespace KineticReports.Viewer.Blazor.Tests.Services;
 
 public class LocalReportServiceTests
 {
@@ -46,6 +46,18 @@ public class LocalReportServiceTests
     {
         public Task<ReportDocument> RunAsync(
             ReportDefinition definition,
+            CancellationToken cancellationToken = default)
+        {
+            return RunAsync(
+                definition,
+                new Dictionary<string, object?>(),
+                new LayoutSizingContext(new MockTextLayout()),
+                null,
+                cancellationToken);
+        }
+
+        public Task<ReportDocument> RunAsync(
+            ReportDefinition definition,
             IReadOnlyDictionary<string, object?> parameters,
             ILayoutSizingContext layoutSizingContext,
             LayoutOptions? layoutOptions = null,
@@ -71,7 +83,7 @@ public class LocalReportServiceTests
     {
         return new LocalReportService(
             new MockReportEngine(),
-            new VisualHtmlExporter(),
+            new HtmlExporter(),
             new DefaultVisualDocumentBuilder(),
             new VisualHitTestIndexBuilder(),
             new VisualTextSearchIndexBuilder(),
@@ -91,7 +103,7 @@ public class LocalReportServiceTests
             Id = "test-1",
             Name = "TestReport"
         };
-        var parameters = new Dictionary<string, object?>();
+        IReadOnlyDictionary<string, object?> parameters = new Dictionary<string, object?>();
 
         // Act
         var html = await service.RenderHtmlAsync(definition, parameters);
@@ -146,7 +158,7 @@ public class LocalReportServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<NotSupportedException>(async () =>
-            await service.ExportAsync(definition, "pdf", new Dictionary<string, object?>()));
+            await service.ExportAsync(definition, "xlsx", new Dictionary<string, object?>()));
     }
 
     [Fact]

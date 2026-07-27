@@ -1,8 +1,8 @@
 namespace KineticReports.Rendering.Skia.Tests;
 
 using KineticReports.Core.Geometry;
+using KineticReports.Core.Rendering.Skia;
 using KineticReports.Core.Visual;
-using KineticReports.Visual;
 
 public class VisualSkiaRendererTests
 {
@@ -38,6 +38,60 @@ public class VisualSkiaRendererTests
         await renderer.RenderPdfAsync(threePageDocument, multiOutput);
 
         multiOutput.Length.ShouldBeGreaterThan(singleOutput.Length);
+    }
+
+    [Fact]
+    public async Task RenderPdfAsync_WithVisualImageUsingFilePathSource_RendersWithoutError()
+    {
+        var pngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO8B2eQAAAAASUVORK5CYII=";
+        var pngBytes = Convert.FromBase64String(pngBase64);
+        var tempFile = Path.Combine(Path.GetTempPath(), $"kr-image-{Guid.NewGuid():N}.png");
+        await File.WriteAllBytesAsync(tempFile, pngBytes);
+
+        try
+        {
+            var document = new VisualDocument
+            {
+                Pages =
+                [
+                    new VisualPage
+                    {
+                        PageNumber = 1,
+                        Width = 300f,
+                        Height = 200f,
+                        Layers =
+                        [
+                            new VisualLayer
+                            {
+                                Name = "body",
+                                Elements =
+                                [
+                                    new VisualImage
+                                    {
+                                        Id = "img-1",
+                                        Bounds = new Rect(20f, 20f, 80f, 80f),
+                                        SourceKey = tempFile,
+                                        Stretch = VisualImageStretch.Uniform
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            };
+
+            var renderer = new VisualSkiaRenderer();
+
+            using var output = new MemoryStream();
+            await renderer.RenderPdfAsync(document, output);
+
+            output.Length.ShouldBeGreaterThan(100);
+        }
+        finally
+        {
+            if (File.Exists(tempFile))
+                File.Delete(tempFile);
+        }
     }
 
     private static VisualDocument CreateVisualDocument(int pageCount)

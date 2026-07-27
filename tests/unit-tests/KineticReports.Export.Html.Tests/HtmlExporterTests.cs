@@ -135,6 +135,31 @@ public class HtmlExporterTests
     }
 
     [Fact]
+    public async Task ExportAsync_WithImageSourceKeyAndNoImageReference_RendersImageTag()
+    {
+        var imageElem = new ImageBlock
+        {
+            Id = "image-1",
+            Style = DefaultStyle,
+            SourceKey = "https://example.com/logo.png",
+            Stretch = ImageStretch.Uniform
+        };
+        imageElem.Arrange(new Rect(20, 30, 120, 60));
+
+        var page = MakePage(1, [imageElem]);
+        var tree = new ReportDocument { Pages = [page] };
+
+        var exporter = CreateExporter();
+        using var output = new MemoryStream();
+        await exporter.ExportAsync(tree, output);
+
+        var html = Encoding.UTF8.GetString(output.ToArray());
+        html.ShouldContain("<img");
+        html.ShouldContain("src=\"https://example.com/logo.png\"");
+        html.ShouldContain("object-fit: contain;");
+    }
+
+    [Fact]
     public async Task ExportAsync_WithHeaderRow_RendersTheadAndTh()
     {
         var headerCell = new CellBlock

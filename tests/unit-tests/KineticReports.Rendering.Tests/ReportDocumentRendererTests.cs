@@ -57,6 +57,17 @@ public class ReportDocumentRendererTests
         ctx.Calls.ShouldContain("DrawText(Hello)");
     }
 
+    [Fact]
+    public void RenderPage_TextBlock_WithSystemTokens_ReplacesTokensUsingPageContext()
+    {
+        var ctx = new RecordingGraphicsContext();
+        var text = MakeArrangedTextBlock("Page {PageNumber} - {CurrentDate}");
+
+        _sut.RenderPage(MakePage(text), ctx, _options);
+
+        ctx.Calls.ShouldContain(c => c == "DrawText(Page 1 - " + DateTime.UtcNow.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) + ")");
+    }
+
     // -------------------------------------------------------------------------
     // Shape rendering
     // -------------------------------------------------------------------------
