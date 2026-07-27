@@ -1,8 +1,10 @@
 namespace KineticReports.Samples.Plugins;
 
-using KineticReports.Core.Layout;
 using KineticReports.Core.Plugins;
-using KineticReports.Core.Styling;
+using Microsoft.Extensions.Configuration;
+using System.Globalization;
+using System.Net;
+using System.Text;
 
 /// <summary>
 /// Sample plugin demonstrating custom watermark rendering.
@@ -11,7 +13,6 @@ using KineticReports.Core.Styling;
 public sealed class WatermarkPlugin :
     PluginBase,
     IHtmlReportPostProcessorPlugin,
-    IReportBlocksPostProcessorPlugin,
     IExportFormatRegistryPlugin,
     IExportNegotiationPlugin,
     IExportArtifactPostProcessorPlugin
@@ -27,20 +28,12 @@ public sealed class WatermarkPlugin :
     /// </summary>
     public int Order => 100;
 
-    /// <inheritdoc/>
-    public IReadOnlyList<ReportBlock> ProcessBlocks(IReadOnlyList<ReportBlock> blocks)
-    {
-        if (blocks == null) throw new ArgumentNullException(nameof(blocks));
-
-        var result = blocks.ToList();
-        result.Add(CreateFooterBand());
-        return result;
-    }
+    private WatermarkSettings _configuredSettings = WatermarkSettings.Default;
 
     protected override Task OnInitializeAsync(CancellationToken cancellationToken)
     {
-        // Example: Register custom services in the DI container
-        // ServiceProvider?.GetRequiredService<IServiceCollection>().AddScoped<IWatermarkRenderer, CustomWatermarkRenderer>();
+        var configuration = ServiceProvider?.GetService(typeof(IConfiguration)) as IConfiguration;
+        _configuredSettings = WatermarkSettings.FromConfiguration(configuration);
 
         System.Diagnostics.Debug.WriteLine($"Initialized: {Name} v{Version}");
         return Task.CompletedTask;
@@ -55,14 +48,17 @@ public sealed class WatermarkPlugin :
     /// <inheritdoc/>
     public ValueTask<string> ProcessHtmlAsync(string html, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(html))
-            return ValueTask.FromResult(html);
+        var settings = WatermarkSettingsStore.Resolve(_configuredSettings);
 
-        const string watermarkStyle = "<style id=\"kr-watermark-style\">.kr-watermark{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-30deg);font-size:72px;font-weight:700;letter-spacing:2px;color:rgba(0,0,0,0.08);pointer-events:none;z-index:2147483647;user-select:none;}</style>";
-        const string watermarkDiv = "<div class=\"kr-watermark\" aria-hidden=\"true\">KineticReports</div>";
+        if (!settings.Enabled || string.IsNullOrWhiteSpace(html))
+            return ValueTask.FromResult(html);
 
         if (html.Contains("id=\"kr-watermark-style\"", StringComparison.Ordinal))
             return ValueTask.FromResult(html);
+
+        var watermarkStyle = BuildWatermarkStyle(settings);
+        var watermarkContent = BuildWatermarkContent(settings);
+        var watermarkDiv = $"<div class=\"kr-watermark\" aria-hidden=\"true\">{watermarkContent}</div>";
 
         var withStyle = html.Contains("</head>", StringComparison.OrdinalIgnoreCase)
             ? html.Replace("</head>", watermarkStyle + "</head>", StringComparison.OrdinalIgnoreCase)
@@ -113,48 +109,62 @@ public sealed class WatermarkPlugin :
                 return Task.FromResult(artifact);
             }
 
-            var markdown = System.Text.Encoding.UTF8.GetString(artifact);
+            var markdown = Encoding.UTF8.GetString(artifact);
             if (markdown.Contains("processed-by:kinetic.sample.watermark", StringComparison.Ordinal))
             {
                 return Task.FromResult(artifact);
             }
 
             markdown += "\n\n<!-- processed-by:kinetic.sample.watermark -->";
-            return Task.FromResult(System.Text.Encoding.UTF8.GetBytes(markdown));
+            return Task.FromResult(Encoding.UTF8.GetBytes(markdown));
         }
 
-        var html = System.Text.Encoding.UTF8.GetString(artifact);
+        var html = Encoding.UTF8.GetString(artifact);
         if (html.Contains("<!-- processed-by:kinetic.sample.watermark -->", StringComparison.Ordinal))
         {
             return Task.FromResult(artifact);
         }
 
         html += "\n<!-- processed-by:kinetic.sample.watermark -->";
-        return Task.FromResult(System.Text.Encoding.UTF8.GetBytes(html));
+        return Task.FromResult(Encoding.UTF8.GetBytes(html));
     }
 
-    private static PageFooterBlock CreateFooterBand()
+    private static string BuildWatermarkStyle(WatermarkSettings options)
     {
-        var bandStyle = new AppliedStyle
-        {
-            FontFamily = "Arial",
-            FontSize = 10f,
-            TextColor = Color.FromRgb(110, 110, 110)
-        };
+        var styleBuilder = new StringBuilder();
+        styleBuilder.Append("<style id=\"kr-watermark-style\">");
+        styleBuilder.Append(".kr-watermark{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) rotate(");
+        styleBuilder.Append(options.RotationDegrees.ToString("0.##", CultureInfo.InvariantCulture));
+        styleBuilder.Append("deg);opacity:");
+        styleBuilder.Append(options.Opacity.ToString("0.###", CultureInfo.InvariantCulture));
+        styleBuilder.Append(";pointer-events:none;z-index:2147483647;user-select:none;display:flex;align-items:center;justify-content:center;}");
+        styleBuilder.Append(".kr-watermark-text{font-size:");
+        styleBuilder.Append(options.FontSizePx.ToString("0.##", CultureInfo.InvariantCulture));
+        styleBuilder.Append("px;font-weight:700;letter-spacing:2px;color:");
+        styleBuilder.Append(options.TextColorHex);
+        styleBuilder.Append(";font-family:");
+        styleBuilder.Append(options.FontFamily);
+        styleBuilder.Append(";white-space:nowrap;}");
+        styleBuilder.Append(".kr-watermark-image{max-width:");
+        styleBuilder.Append(options.ImageMaxWidthPx.ToString("0.##", CultureInfo.InvariantCulture));
+        styleBuilder.Append("px;max-height:");
+        styleBuilder.Append(options.ImageMaxHeightPx.ToString("0.##", CultureInfo.InvariantCulture));
+        styleBuilder.Append("px;object-fit:contain;}");
+        styleBuilder.Append("</style>");
 
-        return new PageFooterBlock
-        {
-            Id = "plugin-watermark-footer",
-            Style = bandStyle,
-            Children =
-            [
-                new TextBlock
-                {
-                    Id = "plugin-watermark-footer-text",
-                    Style = bandStyle,
-                    Text = "Watermark plugin seam active"
-                }
-            ]
-        };
+        return styleBuilder.ToString();
     }
+
+    private static string BuildWatermarkContent(WatermarkSettings options)
+    {
+        if (!string.IsNullOrWhiteSpace(options.ImageUrl))
+        {
+            var encodedUrl = WebUtility.HtmlEncode(options.ImageUrl);
+            return $"<img class=\"kr-watermark-image\" src=\"{encodedUrl}\" alt=\"\" />";
+        }
+
+        var encodedText = WebUtility.HtmlEncode(options.Message);
+        return $"<span class=\"kr-watermark-text\">{encodedText}</span>";
+    }
+
 }

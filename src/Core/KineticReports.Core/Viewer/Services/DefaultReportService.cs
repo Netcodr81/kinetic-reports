@@ -6,6 +6,7 @@ using KineticReports.Core.Export.Html;
 using KineticReports.Core.Geometry;
 using KineticReports.Core.Layout;
 using KineticReports.Core.LayoutEngine;
+using KineticReports.Core.Plugins;
 using KineticReports.Core.Rendering;
 using KineticReports.Core.Rendering.Skia;
 using KineticReports.Core.Typography;
@@ -29,6 +30,7 @@ public sealed class DefaultReportService : IReportService
     private readonly VisualHitTestIndexBuilder _hitTestIndexBuilder;
     private readonly VisualTextSearchIndexBuilder _textSearchIndexBuilder;
     private readonly ITextLayout _textLayout;
+    private readonly IPluginManager? _pluginManager;
     private readonly SkiaRenderer _pdfRenderer = new(new RenderOptions { Format = RenderFormat.Pdf });
     private readonly ILogger<DefaultReportService> _logger;
     private IReadOnlyList<string> _latestTrace = [];
@@ -43,7 +45,8 @@ public sealed class DefaultReportService : IReportService
         VisualHitTestIndexBuilder hitTestIndexBuilder,
         VisualTextSearchIndexBuilder textSearchIndexBuilder,
         ITextLayout textLayout,
-        ILogger<DefaultReportService> logger)
+        ILogger<DefaultReportService> logger,
+        IPluginManager? pluginManager = null)
     {
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
         _htmlExporter = htmlExporter ?? throw new ArgumentNullException(nameof(htmlExporter));
@@ -52,6 +55,7 @@ public sealed class DefaultReportService : IReportService
         _textSearchIndexBuilder = textSearchIndexBuilder ?? throw new ArgumentNullException(nameof(textSearchIndexBuilder));
         _textLayout = textLayout ?? throw new ArgumentNullException(nameof(textLayout));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _pluginManager = pluginManager;
     }
 
     /// <inheritdoc/>
@@ -304,7 +308,29 @@ public sealed class DefaultReportService : IReportService
         stream.Position = 0;
 
         using var reader = new StreamReader(stream);
-        return await reader.ReadToEndAsync().ConfigureAwait(false);
+        var html = await reader.ReadToEndAsync().ConfigureAwait(false);
+        return await ApplyHtmlPostProcessorsAsync(html, ct).ConfigureAwait(false);
+    }
+
+    private async Task<string> ApplyHtmlPostProcessorsAsync(string html, CancellationToken ct)
+    {
+        if (_pluginManager is null || string.IsNullOrWhiteSpace(html))
+            return html;
+
+        var postProcessors = _pluginManager.LoadedPlugins
+            .OfType<IHtmlReportPostProcessorPlugin>()
+            .OrderBy(plugin => plugin.Order)
+            .ThenBy(plugin => plugin.Id, StringComparer.Ordinal)
+            .ToList();
+
+        if (postProcessors.Count == 0)
+            return html;
+
+        var current = html;
+        foreach (var postProcessor in postProcessors)
+            current = await postProcessor.ProcessHtmlAsync(current, ct).ConfigureAwait(false);
+
+        return current;
     }
 
     private Task<ReportDocument> ExecuteReportAsync(
