@@ -1,700 +1,129 @@
 @namespace KineticReports.Viewer.Blazor
-@using KineticReports.Core.Definition
 @using KineticReports.Core.Layout
 @using KineticReports.Core.Viewer.Services
-@using Microsoft.JSInterop
-@implements IAsyncDisposable
+@implements IDisposable
 @inject IReportService ReportService
-@inject IJSRuntime Js
 @using System.Text
 @using System.Text.RegularExpressions
 
 <div class="kinetic-report-viewer">
-    <div class="report-header">
-        <button class="btn btn-primary" @onclick="ExecuteReportAsync" disabled="@IsLoading">
-            @if (IsLoading)
-            {
-                <span>Executing...</span>
-            }
-            else
-            {
-                <span>Run / Refresh</span>
-            }
-        </button>
-
-        <div class="export-controls">
-            <label for="viewer-format-select" class="small text-muted">Export</label>
-            <select id="viewer-format-select" class="form-select form-select-sm" @bind="_selectedFormatId"
-                    disabled="@IsLoading">
-                @foreach (var format in _availableFormats)
-                {
-                    <option value="@format.FormatId">@format.DisplayName (@format.FormatId)</option>
-                }
-            </select>
-            <button class="btn btn-outline-secondary" @onclick="ExportAsync"
-                    disabled="@(IsLoading || !HasReportInput || string.IsNullOrWhiteSpace(_selectedFormatId))">
-                Export
-            </button>
-        </div>
-
-        @if (IsLoading)
-        {
-            <div class="spinner-border ms-2" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        }
-    </div>
-
     @if (!string.IsNullOrEmpty(ErrorMessage))
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             @ErrorMessage
-            <button type="button" class="btn-close" @onclick="ClearError"></button>
+            <button type="button" class="btn-close" @onclick="(() => ErrorMessage = string.Empty)"></button>
         </div>
     }
-
-    @if (Definition?.Parameters.Count > 0)
-    {
-        <div class="parameter-panel">
-            <h6>Parameters</h6>
-            <div class="parameter-grid">
-                @foreach (var parameter in Definition.Parameters)
-                {
-                    <div class="parameter-item">
-                        <label class="form-label small">@parameter.Name</label>
-                        @if (parameter.Type == ParameterType.Boolean)
-                        {
-                            <input type="checkbox" class="form-check-input" checked="@GetBooleanValue(parameter)"
-                                   @onchange="eventArgs => OnBooleanParameterChanged(parameter.Id, eventArgs)" />
-                        }
-                        else
-                        {
-                            <input type="text" class="form-control form-control-sm" value="@GetParameterValue(parameter.Id)"
-                                   @onchange="eventArgs => OnParameterChanged(parameter.Id, eventArgs)" />
-                        }
-                        @if (!string.IsNullOrWhiteSpace(parameter.Description))
-                        {
-                            <div class="small text-muted">@parameter.Description</div>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
-    }
-
-    <div class="search-panel mt-3 mb-3">
-        <div class="d-flex align-items-end gap-2 flex-wrap">
-            <div>
-                <label for="viewer-search-query" class="small text-muted">Search text</label>
-                <input id="viewer-search-query" class="form-control form-control-sm" type="text" @bind="_searchQuery"
-                       @bind:event="oninput" placeholder="Enter text to find" disabled="@(IsLoading || !HasReportInput)" />
-            </div>
-            <button class="btn btn-outline-primary btn-sm" @onclick="SearchAsync"
-                    disabled="@(IsLoading || string.IsNullOrWhiteSpace(_searchQuery) || !HasReportInput)">
-                Search
-            </button>
-            <button class="btn btn-outline-secondary btn-sm" @onclick="SelectPreviousSearchMatch"
-                    disabled="@(!CanNavigateSearchMatches)">
-                Previous
-            </button>
-            <button class="btn btn-outline-secondary btn-sm" @onclick="SelectNextSearchMatch"
-                    disabled="@(!CanNavigateSearchMatches)">
-                Next
-            </button>
-        </div>
-
-        @if (!string.IsNullOrWhiteSpace(_searchStatus))
-        {
-            <div class="small text-muted mt-2">@_searchStatus</div>
-        }
-
-        @if (ActiveSearchMatch is not null)
-        {
-            <div class="alert alert-secondary py-2 mt-2 mb-0">
-                <div class="small"><strong>Match:</strong> @_activeSearchIndex + 1 / @_searchMatches.Count</div>
-                <div class="small"><strong>Page:</strong> @ActiveSearchMatch.PageNumber</div>
-                <div class="small"><strong>Layer:</strong> @ActiveSearchMatch.LayerName</div>
-                <div class="small"><strong>Element:</strong> @ActiveSearchMatch.ElementId</div>
-                <div class="small"><strong>Text:</strong> @ActiveSearchMatch.Text</div>
-            </div>
-        }
-    </div>
-
-    <div class="hit-test-panel mt-3 mb-3">
-        <div class="d-flex align-items-end gap-2 flex-wrap">
-            <div>
-                <label for="viewer-hit-page" class="small text-muted">Page</label>
-                <input id="viewer-hit-page" class="form-control form-control-sm" type="number" min="1"
-                       @bind="_hitTestPageNumber" disabled="@(IsLoading || !HasReportInput)" />
-            </div>
-            <div>
-                <label for="viewer-hit-x" class="small text-muted">X (DIP)</label>
-                <input id="viewer-hit-x" class="form-control form-control-sm" type="text" @bind="_hitTestX"
-                       placeholder="e.g. 120.5" disabled="@(IsLoading || !HasReportInput)" />
-            </div>
-            <div>
-                <label for="viewer-hit-y" class="small text-muted">Y (DIP)</label>
-                <input id="viewer-hit-y" class="form-control form-control-sm" type="text" @bind="_hitTestY"
-                       placeholder="e.g. 240" disabled="@(IsLoading || !HasReportInput)" />
-            </div>
-            <button class="btn btn-outline-primary btn-sm" @onclick="RunHitTestAsync"
-                    disabled="@(IsLoading || !HasReportInput)">
-                Hit Test
-            </button>
-        </div>
-
-        @if (!string.IsNullOrWhiteSpace(_hitTestStatus))
-        {
-            <div class="small text-muted mt-2">@_hitTestStatus</div>
-        }
-
-        @if (_latestHitTestResult is not null)
-        {
-            <div class="alert alert-secondary py-2 mt-2 mb-0">
-                <div class="small"><strong>Hit:</strong> @_latestHitTestResult.Hit</div>
-                <div class="small"><strong>Page:</strong> @_latestHitTestResult.PageNumber</div>
-                <div class="small"><strong>Point:</strong> (@_latestHitTestResult.X, @_latestHitTestResult.Y)</div>
-                <div class="small"><strong>Layer:</strong> @_latestHitTestResult.LayerName</div>
-                <div class="small"><strong>Element:</strong> @_latestHitTestResult.ElementId</div>
-
-                @if (_latestHitTestResult.Metadata.Count > 0)
-                {
-                    <div class="small mt-1"><strong>Metadata</strong></div>
-                    <ul class="small mb-0">
-                        @foreach (var pair in _latestHitTestResult.Metadata.OrderBy(entry => entry.Key, StringComparer.Ordinal))
-                        {
-                            <li>@pair.Key = @pair.Value</li>
-                        }
-                    </ul>
-                }
-            </div>
-        }
-    </div>
 
     @if (!string.IsNullOrEmpty(HtmlContent))
     {
         <div class="report-output">
             <div id="@_previewContainerId" class="preview-content">@((MarkupString)GetInlinePreviewMarkup())</div>
         </div>
-
-        @if (_latestTrace.Count > 0)
-        {
-            <div class="trace-output">
-                <h6 class="mb-2">Execution Trace</h6>
-                <ol class="small mb-0">
-                    @foreach (var entry in _latestTrace)
-                    {
-                        <li>@entry</li>
-                    }
-                </ol>
-            </div>
-        }
     }
     else if (!IsLoading)
     {
         <div class="alert alert-info">
-            No report has been executed. Click 'Run / Refresh' to start.
+            Provide a report document to render preview output.
         </div>
     }
 </div>
 
 @code {
     /// <summary>
-    /// The report definition to execute.
-    /// </summary>
-    [Parameter]
-    public ReportDefinition? Definition { get; set; }
-
-    /// <summary>
-    /// Optional prebuilt report document to render instead of executing a definition.
+    /// The prebuilt report document to render as HTML.
     /// </summary>
     [Parameter]
     public ReportDocument? ReportDocument { get; set; }
 
     /// <summary>
-    /// Parameters to pass to the report.
+    /// Whether to render automatically when the report document changes.
     /// </summary>
     [Parameter]
-    public IReadOnlyDictionary<string, object?> Parameters { get; set; } = new Dictionary<string, object?>();
+    public bool AutoRender { get; set; } = true;
 
     /// <summary>
-    /// Whether to execute automatically when the definition changes.
-    /// </summary>
-    [Parameter]
-    public bool AutoExecute { get; set; } = true;
-
-    /// <summary>
-    /// Callback invoked when report execution completes.
+    /// Callback invoked when rendering completes.
     /// </summary>
     [Parameter]
     public EventCallback<ReportExecutionResult> OnExecutionComplete { get; set; }
 
-    /// <summary>
-    /// Callback invoked when text search completes.
-    /// </summary>
-    [Parameter]
-    public EventCallback<ReportViewerTextSearchResult> OnSearchComplete { get; set; }
-
-    /// <summary>
-    /// Callback invoked when hit-test completes.
-    /// </summary>
-    [Parameter]
-    public EventCallback<ReportViewerHitTestResult> OnHitTestComplete { get; set; }
-
     private string HtmlContent { get; set; } = string.Empty;
     private string ErrorMessage { get; set; } = string.Empty;
-    private bool IsLoading { get; set; } = false;
+    private bool IsLoading { get; set; }
     private readonly string _previewContainerId = $"kr-viewer-preview-{Guid.NewGuid():N}";
-    private CancellationTokenSource? _cancellationTokenSource;
-    private string? _lastExecutedDefinitionId;
-    private ReportDefinition? _lastExecutedDefinition;
-    private IReadOnlyList<ReportViewerExportFormat> _availableFormats = [];
-    private string _selectedFormatId = "html";
-    private Dictionary<string, object?> _parameterValues = new(StringComparer.Ordinal);
-    private IReadOnlyList<string> _latestTrace = [];
-    private string _searchQuery = string.Empty;
-    private string _searchStatus = string.Empty;
-    private IReadOnlyList<ReportViewerTextSearchMatch> _searchMatches = [];
-    private int _activeSearchIndex = -1;
-    private int _hitTestPageNumber = 1;
-    private string _hitTestX = string.Empty;
-    private string _hitTestY = string.Empty;
-    private string _hitTestStatus = string.Empty;
-    private ReportViewerHitTestResult? _latestHitTestResult;
-    private IJSObjectReference? _viewerModule;
-    private DotNetObjectReference<ReportViewer>? _dotNetReference;
-    private bool _viewerInteropInitialized;
-    private ReportDocument? _lastExecutedReportDocument;
+    private CancellationTokenSource? _renderCts;
+    private ReportDocument? _lastRenderedReportDocument;
 
-    private bool CanNavigateSearchMatches => _searchMatches.Count > 0 && _activeSearchIndex >= 0;
-    private bool HasReportInput => ReportDocument is not null || Definition is not null;
-
-    private ReportViewerTextSearchMatch? ActiveSearchMatch =>
-        CanNavigateSearchMatches && _activeSearchIndex < _searchMatches.Count
-            ? _searchMatches[_activeSearchIndex]
-            : null;
-
+    /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
-        _availableFormats = ReportService.GetAvailableExportFormats();
-
-        if (_availableFormats.Count > 0
-            && !_availableFormats.Any(format => string.Equals(format.FormatId, _selectedFormatId,
-StringComparison.OrdinalIgnoreCase)))
-        {
-            _selectedFormatId = _availableFormats[0].FormatId;
-        }
-
-        InitializeParameterValues();
-
-        if (AutoExecute
+        if (AutoRender
             && ReportDocument is not null
-            && !ReferenceEquals(_lastExecutedReportDocument, ReportDocument))
+            && !ReferenceEquals(_lastRenderedReportDocument, ReportDocument))
         {
-            await ExecuteReportAsync().ConfigureAwait(false);
-            _lastExecutedReportDocument = ReportDocument;
-            _lastExecutedDefinitionId = Definition?.Id;
-            _lastExecutedDefinition = Definition;
-        }
-        else if (AutoExecute
-            && Definition is not null
-            && (!string.Equals(_lastExecutedDefinitionId, Definition.Id, StringComparison.Ordinal)
-                || !ReferenceEquals(_lastExecutedDefinition, Definition)))
-        {
-            await ExecuteReportAsync().ConfigureAwait(false);
-            _lastExecutedDefinitionId = Definition.Id;
-            _lastExecutedDefinition = Definition;
-            _lastExecutedReportDocument = ReportDocument;
-        }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        try
-        {
-            if (!_viewerInteropInitialized)
-            {
-                _dotNetReference ??= DotNetObjectReference.Create(this);
-
-                _viewerModule ??= await Js
-                    .InvokeAsync<IJSObjectReference>("import", "./_content/KineticReports.Viewer.Blazor/reportViewer.js")
-                    .ConfigureAwait(false);
-
-                await _viewerModule
-                    .InvokeVoidAsync("registerHost", _dotNetReference, _previewContainerId)
-                    .ConfigureAwait(false);
-
-                _viewerInteropInitialized = true;
-            }
-        }
-        catch (InvalidOperationException ex) when (
-            ex.Message.Contains("statically rendered", StringComparison.OrdinalIgnoreCase)
-            || ex.Message.Contains("prerender", StringComparison.OrdinalIgnoreCase))
-        {
-            // JS interop is unavailable during prerender; retry on a later interactive render.
+            await RenderReportDocumentAsync().ConfigureAwait(false);
+            _lastRenderedReportDocument = ReportDocument;
         }
     }
 
     /// <summary>
-    /// Executes the report and displays the output.
+    /// Renders the current report document and displays the HTML output.
     /// </summary>
-    private async Task ExecuteReportAsync()
+    private async Task RenderReportDocumentAsync()
     {
-        if (!HasReportInput)
+        if (ReportDocument is null)
         {
-            ErrorMessage = "A report definition or report document is required";
+            ErrorMessage = "A report document is required.";
             return;
         }
 
         IsLoading = true;
         ErrorMessage = string.Empty;
         HtmlContent = string.Empty;
-        _latestTrace = [];
-        _searchStatus = string.Empty;
-        _searchMatches = [];
-        _activeSearchIndex = -1;
-        _hitTestStatus = string.Empty;
-        _latestHitTestResult = null;
-        _cancellationTokenSource = new CancellationTokenSource();
+
+        _renderCts?.Cancel();
+        _renderCts?.Dispose();
+        _renderCts = new CancellationTokenSource();
 
         try
         {
-            if (ReportDocument is not null)
-            {
-                HtmlContent = await ReportService.RenderHtmlAsync(
-                    ReportDocument,
-                    Definition,
-                    _cancellationTokenSource.Token);
-            }
-            else
-            {
-                var typedParameters = BuildTypedParameters();
-
-                HtmlContent = await ReportService.RenderHtmlAsync(
-                    Definition!,
-                    typedParameters,
-                    _cancellationTokenSource.Token);
-            }
+            HtmlContent = await ReportService.RenderHtmlAsync(
+                ReportDocument,
+                definition: null,
+                _renderCts.Token).ConfigureAwait(false);
 
             if (string.IsNullOrEmpty(HtmlContent))
             {
-                ErrorMessage = "Report export failed: HTML content is empty";
+                ErrorMessage = "Report render failed: HTML content is empty.";
                 return;
             }
-
-            _latestTrace = ReportService.GetLatestTrace();
 
             await OnExecutionComplete.InvokeAsync(new ReportExecutionResult
             {
                 Success = true,
                 ExecutedAt = DateTime.UtcNow,
-                HtmlContent = HtmlContent,
-                Trace = _latestTrace
-            });
+                HtmlContent = HtmlContent
+            }).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
-            ErrorMessage = "Report execution was cancelled";
+            ErrorMessage = "Report rendering was cancelled.";
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Report execution failed: {ex.Message}";
+            ErrorMessage = $"Report rendering failed: {ex.Message}";
             await OnExecutionComplete.InvokeAsync(new ReportExecutionResult
             {
                 Success = false,
                 ErrorMessage = ex.Message,
                 ExecutedAt = DateTime.UtcNow
-            });
+            }).ConfigureAwait(false);
         }
         finally
         {
             IsLoading = false;
         }
-    }
-
-    private async Task SearchAsync()
-    {
-        if (!HasReportInput || string.IsNullOrWhiteSpace(_searchQuery))
-            return;
-
-        try
-        {
-            ReportViewerTextSearchResult result;
-            if (ReportDocument is not null)
-            {
-                result = await ReportService.SearchTextAsync(
-                    ReportDocument,
-                    _searchQuery,
-                    pageNumber: null,
-                    ct: CancellationToken.None).ConfigureAwait(false);
-            }
-            else
-            {
-                var typedParameters = BuildTypedParameters();
-                result = await ReportService.SearchTextAsync(
-                    Definition!,
-                    typedParameters,
-                    _searchQuery,
-                    pageNumber: null,
-                    ct: CancellationToken.None).ConfigureAwait(false);
-            }
-
-            _searchMatches = result.Matches;
-            await OnSearchComplete.InvokeAsync(result);
-
-            if (_searchMatches.Count == 0)
-            {
-                _activeSearchIndex = -1;
-                _searchStatus = $"No matches found for '{_searchQuery}'.";
-                return;
-            }
-
-            _activeSearchIndex = 0;
-            _searchStatus = $"{_searchMatches.Count} match(es) found for '{_searchQuery}'.";
-        }
-        catch (Exception ex)
-        {
-            _searchMatches = [];
-            _activeSearchIndex = -1;
-            _searchStatus = string.Empty;
-            ErrorMessage = $"Search failed: {ex.Message}";
-        }
-    }
-
-    private void SelectNextSearchMatch()
-    {
-        if (!CanNavigateSearchMatches)
-            return;
-
-        _activeSearchIndex = (_activeSearchIndex + 1) % _searchMatches.Count;
-    }
-
-    private void SelectPreviousSearchMatch()
-    {
-        if (!CanNavigateSearchMatches)
-            return;
-
-        _activeSearchIndex = (_activeSearchIndex - 1 + _searchMatches.Count) % _searchMatches.Count;
-    }
-
-    private async Task RunHitTestAsync()
-    {
-        if (!HasReportInput)
-            return;
-
-        if (_hitTestPageNumber <= 0)
-        {
-            _hitTestStatus = "Page number must be greater than zero.";
-            _latestHitTestResult = null;
-            return;
-        }
-
-        if (!float.TryParse(
-                _hitTestX,
-                System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.InvariantCulture,
-                out var x))
-        {
-            _hitTestStatus = "X must be a valid number (invariant format, e.g. 120.5).";
-            _latestHitTestResult = null;
-            return;
-        }
-
-        if (!float.TryParse(
-                _hitTestY,
-                System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.InvariantCulture,
-                out var y))
-        {
-            _hitTestStatus = "Y must be a valid number (invariant format, e.g. 240).";
-            _latestHitTestResult = null;
-            return;
-        }
-
-        try
-        {
-            if (ReportDocument is not null)
-            {
-                _latestHitTestResult = await ReportService.HitTestAsync(
-                    ReportDocument,
-                    _hitTestPageNumber,
-                    x,
-                    y,
-                    CancellationToken.None).ConfigureAwait(false);
-            }
-            else
-            {
-                var typedParameters = BuildTypedParameters();
-                _latestHitTestResult = await ReportService.HitTestAsync(
-                    Definition!,
-                    typedParameters,
-                    _hitTestPageNumber,
-                    x,
-                    y,
-                    CancellationToken.None).ConfigureAwait(false);
-            }
-
-            await OnHitTestComplete.InvokeAsync(_latestHitTestResult);
-
-            _hitTestStatus = _latestHitTestResult.Hit
-                ? "Hit-test completed."
-                : "No element found at the provided point.";
-        }
-        catch (Exception ex)
-        {
-            _latestHitTestResult = null;
-            _hitTestStatus = string.Empty;
-            ErrorMessage = $"Hit-test failed: {ex.Message}";
-        }
-    }
-
-    [JSInvokable]
-    public async Task OnPreviewClicked(double x, double y, int pageNumber)
-    {
-        _hitTestPageNumber = pageNumber <= 0 ? 1 : pageNumber;
-        _hitTestX = x.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        _hitTestY = y.ToString(System.Globalization.CultureInfo.InvariantCulture);
-
-        await RunHitTestAsync().ConfigureAwait(false);
-        await InvokeAsync(StateHasChanged).ConfigureAwait(false);
-    }
-
-    private async Task ExportAsync()
-    {
-        if (!HasReportInput || string.IsNullOrWhiteSpace(_selectedFormatId))
-            return;
-
-        IsLoading = true;
-        ErrorMessage = string.Empty;
-
-        try
-        {
-            ReportViewerExportResult exportResult;
-            if (ReportDocument is not null)
-            {
-                exportResult = await ReportService.ExportAsync(
-                    ReportDocument,
-                    Definition,
-                    _selectedFormatId,
-                    CancellationToken.None).ConfigureAwait(false);
-            }
-            else
-            {
-                var typedParameters = BuildTypedParameters();
-                exportResult = await ReportService.ExportAsync(
-                    Definition!,
-                    _selectedFormatId,
-                    typedParameters,
-                    CancellationToken.None).ConfigureAwait(false);
-            }
-
-            var baseName = string.IsNullOrWhiteSpace(Definition?.Name)
-                ? "report"
-                : string.Concat(Definition.Name.Select(ch => Path.GetInvalidFileNameChars().Contains(ch) ? '-' : ch));
-            var fileName = $"{baseName}.{exportResult.FileExtension}";
-
-            await Js.InvokeVoidAsync(
-                "kineticReports.downloadFromBase64",
-                fileName,
-                exportResult.MimeType,
-                Convert.ToBase64String(exportResult.Content));
-
-            _latestTrace = ReportService.GetLatestTrace();
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Export failed: {ex.Message}";
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
-    private void InitializeParameterValues()
-    {
-        if (Definition is null)
-            return;
-
-        foreach (var parameter in Definition.Parameters)
-        {
-            if (_parameterValues.ContainsKey(parameter.Id))
-                continue;
-
-            if (Parameters.TryGetValue(parameter.Id, out var incomingValue))
-            {
-                _parameterValues[parameter.Id] = incomingValue;
-                continue;
-            }
-
-            _parameterValues[parameter.Id] = parameter.Type == ParameterType.Boolean
-                ? bool.TryParse(parameter.DefaultValue, out var parsed) && parsed
-                : parameter.DefaultValue;
-        }
-    }
-
-    private IReadOnlyDictionary<string, object?> BuildTypedParameters()
-    {
-        if (Definition is null)
-            return new Dictionary<string, object?>();
-
-        var typed = new Dictionary<string, object?>(StringComparer.Ordinal);
-
-        foreach (var parameter in Definition.Parameters)
-        {
-            _parameterValues.TryGetValue(parameter.Id, out var value);
-
-            typed[parameter.Id] = parameter.Type switch
-            {
-                ParameterType.Integer => TryParse<long>(value, long.TryParse),
-                ParameterType.Decimal => TryParse<decimal>(value, decimal.TryParse),
-                ParameterType.Boolean => value is bool flag ? flag : bool.TryParse(Convert.ToString(value), out var boolValue) &&
-boolValue,
-                ParameterType.DateTime => TryParse<DateTime>(value, DateTime.TryParse),
-                ParameterType.Guid => TryParse<Guid>(value, Guid.TryParse),
-                _ => Convert.ToString(value)
-            };
-        }
-
-        return typed;
-    }
-
-    private static T? TryParse<T>(object? value, TryParseDelegate<T> parser)
-        where T : struct
-    {
-        var text = Convert.ToString(value);
-        return parser(text, out var parsed)
-            ? parsed
-            : null;
-    }
-
-    private delegate bool TryParseDelegate<T>(string? text, out T value);
-
-    private string? GetParameterValue(string parameterId)
-        => _parameterValues.TryGetValue(parameterId, out var value) ? Convert.ToString(value) : null;
-
-    private bool GetBooleanValue(ParameterDefinition parameter)
-    {
-        if (_parameterValues.TryGetValue(parameter.Id, out var value))
-        {
-            return value is bool flag
-                ? flag
-                : bool.TryParse(Convert.ToString(value), out var parsed) && parsed;
-        }
-
-        return false;
-    }
-
-    private void OnParameterChanged(string parameterId, ChangeEventArgs args)
-    {
-        _parameterValues[parameterId] = Convert.ToString(args.Value);
-    }
-
-    private void OnBooleanParameterChanged(string parameterId, ChangeEventArgs args)
-    {
-        _parameterValues[parameterId] = args.Value is bool typed
-            ? typed
-            : bool.TryParse(Convert.ToString(args.Value), out var parsed) && parsed;
     }
 
     private string GetInlinePreviewMarkup()
@@ -726,27 +155,12 @@ RegexOptions.CultureInvariant);
         return styleBuilder + bodyMarkup;
     }
 
-    private void ClearError()
+    /// <summary>
+    /// Cancels any in-flight render operation and releases component resources.
+    /// </summary>
+    public void Dispose()
     {
-        ErrorMessage = string.Empty;
-    }
-
-    async ValueTask IAsyncDisposable.DisposeAsync()
-    {
-        if (_viewerModule is not null)
-        {
-            try
-            {
-                await _viewerModule.InvokeVoidAsync("dispose").ConfigureAwait(false);
-                await _viewerModule.DisposeAsync().ConfigureAwait(false);
-            }
-            catch (JSDisconnectedException)
-            {
-                // Ignore disconnects during teardown.
-            }
-        }
-
-        _dotNetReference?.Dispose();
-        _cancellationTokenSource?.Dispose();
+        _renderCts?.Cancel();
+        _renderCts?.Dispose();
     }
 }

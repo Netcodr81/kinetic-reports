@@ -5,8 +5,6 @@
 @using KineticReports.Samples.Blazor.Services
 @using KineticReports.Samples.Plugins
 @using KineticReports.Viewer.Blazor
-
-@using Microsoft.AspNetCore.Components.Web
 @inject IConfiguration Configuration
 @inject ISampleReportCatalogService ReportCatalogService
 @inject IReportEngine ReportEngine
@@ -88,9 +86,9 @@
                     </button>
                 </div>
 
-                @if (!string.IsNullOrWhiteSpace(_selectedTemplateDescription))
+                @if (!string.IsNullOrWhiteSpace(SelectedTemplateDescription))
                 {
-                    <p class="small text-muted mb-0">@_selectedTemplateDescription</p>
+                    <p class="small text-muted mb-0">@SelectedTemplateDescription</p>
                 }
             </div>
         </div>
@@ -184,8 +182,27 @@
                         }
 
                         <div class="row">
-                            <div class="col-lg-5 mb-3">
-                                <div class="card h-100">
+                            <div class="col-12 mb-3">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Viewer</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        @if (_activeDefinition is null)
+                                        {
+                                            <p class="text-muted mb-0">Load a report to preview the rendered output.</p>
+                                        }
+                                        else
+                                        {
+                                            <ReportViewer ReportDocument="@_activeReportDocument" AutoRender="true"
+                                                          OnExecutionComplete="OnViewerExecutionComplete" />
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <div class="card">
                                     <div class="card-header d-flex justify-content-between align-items-center">
                                         <h6 class="mb-0">Effective ReportDefinition JSON</h6>
                                         @if (!string.IsNullOrWhiteSpace(_activeReportName))
@@ -201,27 +218,6 @@
                                         else
                                         {
                                             <pre class="json-preview mb-0">@_definitionJson</pre>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-lg-7 mb-3">
-                                <div class="card h-100">
-                                    <div class="card-header">
-                                        <h6 class="mb-0">Viewer</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        @if (_activeDefinition is null)
-                                        {
-                                            <p class="text-muted mb-0">Load a report to preview the rendered output.</p>
-                                        }
-                                        else
-                                        {
-                                            <ReportViewer Definition="@_activeDefinition" ReportDocument="@_activeReportDocument" Parameters="@_viewerParameters"
-                                                          AutoExecute="true" OnExecutionComplete="OnViewerExecutionComplete"
-                                                          OnSearchComplete="OnViewerSearchComplete"
-                                                          OnHitTestComplete="OnViewerHitTestComplete" />
                                         }
                                     </div>
                                 </div>
@@ -249,7 +245,6 @@
     private string? _status;
     private ReportDefinition? _activeDefinition;
     private ReportDocument? _activeReportDocument;
-    private IReadOnlyDictionary<string, object?> _viewerParameters = new Dictionary<string, object?>();
     private IReadOnlyList<SampleReportTemplateDescriptor> _templates = [];
     private IReadOnlyList<ProviderOption> _providers =
     [
@@ -271,7 +266,7 @@
     private float _watermarkFontSizePx = 72f;
     private string _watermarkTextColorHex = "#000000";
 
-    private string? _selectedTemplateDescription => _templates
+    private string? SelectedTemplateDescription => _templates
         .FirstOrDefault(template => string.Equals(template.Id, _selectedTemplateId, StringComparison.Ordinal))
         ?.Description;
 
@@ -306,7 +301,6 @@
             _activeDefinition = ApplyPluginToggles(definitionWithLayoutOptions);
             _definitionJson = BuildDisplayDefinitionJson(_activeDefinition);
             _activeReportName = _activeDefinition.Name;
-            _viewerParameters = BuildDefaultParameters(_activeDefinition);
             _activeReportDocument = await ReportEngine.RunAsync(_activeDefinition);
             _status = $"Loaded '{_activeDefinition.Name}' using provider '{_selectedProviderType}' and built {_activeReportDocument.PageCount} page(s).";
         }
@@ -364,21 +358,6 @@
         }
 
         _status = $"Viewer refreshed at {result.ExecutedAt:HH:mm:ss} UTC.";
-    }
-
-    private void OnViewerSearchComplete(ReportViewerTextSearchResult result)
-    {
-        _status =
-            result.Matches.Count == 0
-                ? $"Search '{result.Query}': no matches."
-                : $"Search '{result.Query}': {result.Matches.Count} match(es).";
-    }
-
-    private void OnViewerHitTestComplete(ReportViewerHitTestResult result)
-    {
-        _status = result.Hit
-            ? $"Hit-test: page {result.PageNumber}, element {result.ElementId ?? "(unknown)"}."
-            : $"Hit-test: no element at ({result.X}, {result.Y}) on page {result.PageNumber}.";
     }
 
     private async Task DownloadJsonAsync()
@@ -446,20 +425,6 @@
         }
     }
 
-    private static IReadOnlyDictionary<string, object?> BuildDefaultParameters(ReportDefinition definition)
-    {
-        var values = new Dictionary<string, object?>(StringComparer.Ordinal);
-
-        foreach (var parameter in definition.Parameters)
-        {
-            values[parameter.Id] = parameter.Type == ParameterType.Boolean
-                ? bool.TryParse(parameter.DefaultValue, out var parsed) && parsed
-                : parameter.DefaultValue;
-        }
-
-        return values;
-    }
-
     private ReportDefinition ApplyLayoutDisplayOptions(ReportDefinition definition)
     {
         if (definition.Layout is null)
@@ -520,11 +485,13 @@
         var metadata = new Dictionary<string, object>(definition.Metadata, StringComparer.Ordinal)
         {
             ["plugins.kinetic.watermark.enabled"] = _watermarkEnabled,
-            ["plugins.kinetic.watermark.message"] = string.IsNullOrWhiteSpace(_watermarkMessage) ? "KineticReports" : _watermarkMessage.Trim(),
+            ["plugins.kinetic.watermark.message"] = string.IsNullOrWhiteSpace(_watermarkMessage) ? "KineticReports" :
+_watermarkMessage.Trim(),
             ["plugins.kinetic.watermark.opacity"] = Clamp(_watermarkOpacity, 0.01f, 1f),
             ["plugins.kinetic.watermark.rotationDegrees"] = Clamp(_watermarkRotationDegrees, -360f, 360f),
             ["plugins.kinetic.watermark.fontSizePx"] = Clamp(_watermarkFontSizePx, 10f, 300f),
-            ["plugins.kinetic.watermark.textColorHex"] = string.IsNullOrWhiteSpace(_watermarkTextColorHex) ? "#000000" : _watermarkTextColorHex.Trim()
+            ["plugins.kinetic.watermark.textColorHex"] = string.IsNullOrWhiteSpace(_watermarkTextColorHex) ? "#000000" :
+_watermarkTextColorHex.Trim()
         };
 
         plugins.Add(new ReportPluginToggleDefinition

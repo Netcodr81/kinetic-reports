@@ -63,7 +63,7 @@ public sealed class WatermarkPlugin :
             var imageMaxHeight = Clamp(settings.ImageMaxHeightPx, 20f, 2400f).ToString("0.###", CultureInfo.InvariantCulture);
 
             overlayCss = string.Create(CultureInfo.InvariantCulture,
-                $"content:\"\";transform:rotate({rotation}deg);opacity:{opacity};background-image:url(\"{imageUrl}\");background-repeat:no-repeat;background-position:center;background-size:contain;max-width:{imageMaxWidth}px;max-height:{imageMaxHeight}px;");
+                $"content:\"\";left:50%;top:50%;width:{imageMaxWidth}px;height:{imageMaxHeight}px;transform:translate(-50%,-50%) rotate({rotation}deg);opacity:{opacity};background-image:url(\"{imageUrl}\");background-repeat:no-repeat;background-position:center;background-size:contain;");
         }
         else
         {
@@ -71,11 +71,11 @@ public sealed class WatermarkPlugin :
             var fontFamily = EscapeCssString(string.IsNullOrWhiteSpace(settings.FontFamily) ? "Arial, sans-serif" : settings.FontFamily.Trim());
 
             overlayCss = string.Create(CultureInfo.InvariantCulture,
-                $"content:\"{message}\";transform:rotate({rotation}deg);font-size:{fontSize}px;font-weight:700;letter-spacing:2px;color:{textColorHex};opacity:{opacity};font-family:{fontFamily};");
+                $"content:\"{message}\";left:50%;top:50%;width:80%;max-width:1200px;padding:0 16px;box-sizing:border-box;transform:translate(-50%,-50%) rotate({rotation}deg);font-size:{fontSize}px;font-weight:700;letter-spacing:2px;line-height:1.15;color:{textColorHex};opacity:{opacity};font-family:{fontFamily};white-space:normal;overflow-wrap:anywhere;word-break:break-word;text-align:center;display:block;");
         }
 
         var watermarkStyle = string.Create(CultureInfo.InvariantCulture,
-            $"<style id=\"kr-watermark-style\">.kinetic-page.page-block{{position:relative;overflow:hidden;}}.kinetic-page.page-block::after{{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;user-select:none;z-index:5;{overlayCss}}}</style>");
+            $"<style id=\"kr-watermark-style\">.kinetic-page.page-block{{position:relative;overflow:hidden;}}.kinetic-page.page-block::after{{position:absolute;pointer-events:none;user-select:none;z-index:5;{overlayCss}}}</style>");
 
         if (html.Contains("id=\"kr-watermark-style\"", StringComparison.Ordinal))
             return ValueTask.FromResult(html);

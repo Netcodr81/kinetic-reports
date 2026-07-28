@@ -105,14 +105,120 @@ public sealed class SkiaRenderer : IRenderer
             Size = Math.Max(8f, watermark.FontSize)
         };
 
-        var bounds = new SKRect();
-        font.MeasureText(watermark.Text, out bounds, paint);
+        var maxTextWidth = Math.Max(120f, pageWidth * 0.8f);
+        var lines = WrapWatermarkText(watermark.Text, maxTextWidth, font, paint);
+        if (lines.Count == 0)
+            return;
+
+        var lineHeight = Math.Max(font.Size * 1.15f, 10f);
 
         canvas.Save();
         canvas.Translate(pageWidth / 2f, pageHeight / 2f);
         canvas.RotateDegrees(watermark.RotationDegrees);
-        canvas.DrawText(watermark.Text, 0f, -bounds.MidY, SKTextAlign.Center, font, paint);
+
+        for (var index = 0; index < lines.Count; index++)
+        {
+            var line = lines[index];
+            var bounds = new SKRect();
+            font.MeasureText(line, out bounds, paint);
+            var yOffset = (index - (lines.Count - 1) / 2f) * lineHeight;
+            canvas.DrawText(line, 0f, yOffset - bounds.MidY, SKTextAlign.Center, font, paint);
+        }
+
         canvas.Restore();
+    }
+
+    private static List<string> WrapWatermarkText(string text, float maxWidth, SKFont font, SKPaint paint)
+    {
+        var lines = new List<string>();
+        var paragraphs = text
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace('\r', '\n')
+            .Split('\n');
+
+        foreach (var paragraph in paragraphs)
+        {
+            if (string.IsNullOrWhiteSpace(paragraph))
+            {
+                if (lines.Count > 0)
+                    lines.Add(string.Empty);
+
+                continue;
+            }
+
+            var words = paragraph.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (words.Length == 0)
+                continue;
+
+            var currentLine = string.Empty;
+            foreach (var word in words)
+            {
+                if (MeasureTextWidth(word, font, paint) > maxWidth)
+                {
+                    if (!string.IsNullOrEmpty(currentLine))
+                    {
+                        lines.Add(currentLine);
+                        currentLine = string.Empty;
+                    }
+
+                    lines.AddRange(BreakLongWord(word, maxWidth, font, paint));
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(currentLine))
+                {
+                    currentLine = word;
+                    continue;
+                }
+
+                var candidate = $"{currentLine} {word}";
+                if (MeasureTextWidth(candidate, font, paint) <= maxWidth)
+                {
+                    currentLine = candidate;
+                }
+                else
+                {
+                    lines.Add(currentLine);
+                    currentLine = word;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(currentLine))
+                lines.Add(currentLine);
+        }
+
+        return lines;
+    }
+
+    private static IEnumerable<string> BreakLongWord(string word, float maxWidth, SKFont font, SKPaint paint)
+    {
+        var segments = new List<string>();
+        var current = string.Empty;
+
+        foreach (var ch in word)
+        {
+            var candidate = current + ch;
+            if (string.IsNullOrEmpty(current) || MeasureTextWidth(candidate, font, paint) <= maxWidth)
+            {
+                current = candidate;
+                continue;
+            }
+
+            segments.Add(current);
+            current = ch.ToString();
+        }
+
+        if (!string.IsNullOrEmpty(current))
+            segments.Add(current);
+
+        return segments;
+    }
+
+    private static float MeasureTextWidth(string text, SKFont font, SKPaint paint)
+    {
+        var bounds = new SKRect();
+        font.MeasureText(text, out bounds, paint);
+        return bounds.Width;
     }
 
     // -------------------------------------------------------------------------
