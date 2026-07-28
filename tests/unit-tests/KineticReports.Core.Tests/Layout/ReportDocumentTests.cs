@@ -35,4 +35,16 @@ public class ReportDocumentTests
         var tree = new ReportDocument { Pages = new[] { page } };
         tree.Pages.ShouldBeAssignableTo<IReadOnlyList<PageBlock>>();
     }
+
+    [Fact]
+    public void LayoutTree_DefaultMetadata_IsNotNull()
+    {
+        var style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f };
+        var page = new PageBlock { Id = "Page1", Style = style, PageWidth = 612f, PageHeight = 792f };
+
+        var tree = new ReportDocument { Pages = new[] { page } };
+
+        tree.Metadata.ShouldNotBeNull();
+        tree.Metadata.Properties.ShouldNotBeNull();
+    }
 }

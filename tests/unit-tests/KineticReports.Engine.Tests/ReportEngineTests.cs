@@ -46,6 +46,31 @@ public class ReportEngineTests
         tree.Pages[0].PageWidth.ShouldBe(new LayoutOptions().PageWidth);
     }
 
+    [Fact]
+    public async Task RunAsync_PopulatesReportDocumentMetadata_FromDefinition()
+    {
+        var definition = new ReportDefinition
+        {
+            SchemaVersion = "1.0",
+            Id = "quarterly-report",
+            Name = "Quarterly Business Review",
+            Metadata = new Dictionary<string, object>
+            {
+                ["department"] = "Sales",
+                ["year"] = 2026
+            }
+        };
+
+        var sut = BuildEngine();
+        var tree = await sut.RunAsync(definition, new Dictionary<string, object?>(), _measureContext, _options);
+
+        tree.Metadata.ReportId.ShouldBe("quarterly-report");
+        tree.Metadata.ReportName.ShouldBe("Quarterly Business Review");
+        tree.Metadata.FileName.ShouldBe("Quarterly Business Review");
+        tree.Metadata.Properties["department"].ShouldBe("Sales");
+        tree.Metadata.Properties["year"].ShouldBe(2026);
+    }
+
     // -------------------------------------------------------------------------
     // Data source resolution
     // -------------------------------------------------------------------------

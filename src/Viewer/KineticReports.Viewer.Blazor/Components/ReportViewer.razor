@@ -271,8 +271,12 @@
         {
             ErrorMessage = string.Empty;
             var exportResult = await ReportService.ExportAsync(ReportDocument, formatId);
-            var fileName = $"report-{DateTime.UtcNow:yyyyMMdd-HHmmss}.{exportResult.FileExtension}";
             var base64Content = Convert.ToBase64String(exportResult.Content);
+
+            var fileNameStem = SanitizeFileNameStem(ReportDocument.Metadata.FileName)
+                ?? SanitizeFileNameStem(ReportDocument.Metadata.ReportName)
+                ?? $"report-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
+            var fileName = $"{fileNameStem}.{exportResult.FileExtension}";
 
             var jsModule = await EnsureJsModuleAsync();
             await jsModule.InvokeVoidAsync("downloadFromBase64", fileName, exportResult.MimeType, base64Content);
@@ -281,6 +285,20 @@
         {
             ErrorMessage = $"Report export failed: {ex.Message}";
         }
+    }
+
+    private static string? SanitizeFileNameStem(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        var trimmed = value.Trim();
+        foreach (var invalidChar in System.IO.Path.GetInvalidFileNameChars())
+        {
+            trimmed = trimmed.Replace(invalidChar, '-');
+        }
+
+        return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
     }
 
     private async Task<IJSObjectReference> EnsureJsModuleAsync()

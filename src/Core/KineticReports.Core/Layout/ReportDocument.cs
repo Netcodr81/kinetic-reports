@@ -9,6 +9,9 @@ public sealed class ReportDocument
     /// <summary>Gets the pages in document order.</summary>
     public required IReadOnlyList<PageBlock> Pages { get; init; }
 
+    /// <summary>Gets metadata associated with this rendered report document.</summary>
+    public ReportDocumentMetadata Metadata { get; init; } = new();
+
     /// <summary>Gets the total number of pages in the document.</summary>
     public int PageCount => Pages.Count;
 }

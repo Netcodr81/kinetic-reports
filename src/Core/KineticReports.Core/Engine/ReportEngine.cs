@@ -112,6 +112,19 @@ public sealed class ReportEngine : IReportEngine
         // 3. Run the layout pipeline: LayoutSizing → Arrange → Pagination.
         var reportDocument = _layoutEngine.Layout(blocks, options, layoutSizingContext);
 
-        return reportDocument;
+        return new ReportDocument
+        {
+            Pages = reportDocument.Pages,
+            Metadata = new ReportDocumentMetadata
+            {
+                ReportId = definition.Id,
+                ReportName = definition.Name,
+                FileName = definition.Name,
+                Properties = definition.Metadata.ToDictionary(
+                    pair => pair.Key,
+                    pair => (object?)pair.Value,
+                    StringComparer.Ordinal)
+            }
+        };
     }
 }
