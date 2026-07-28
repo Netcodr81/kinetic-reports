@@ -3,9 +3,11 @@
 @using KineticReports.Core.Layout
 @using KineticReports.Core.Viewer.Services
 @using KineticReports.Samples.Blazor.Services
+@using KineticReports.Samples.Plugins
 @using KineticReports.Viewer.Blazor
 
 @using Microsoft.AspNetCore.Components.Web
+@inject IConfiguration Configuration
 @inject ISampleReportCatalogService ReportCatalogService
 @inject IReportEngine ReportEngine
 @inject IReportService ViewerReportService
@@ -93,6 +95,57 @@
                 {
                     <p class="small text-muted mb-0">@_selectedTemplateDescription</p>
                 }
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Watermark</h5>
+            </div>
+            <div class="card-body">
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="watermark-enabled"
+                           @bind="_watermarkEnabled" />
+                    <label class="form-check-label small" for="watermark-enabled">Enable watermark</label>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Watermark text</label>
+                    <input class="form-control form-control-sm" @bind="_watermarkMessage" maxlength="120" />
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Watermark image URL (optional)</label>
+                    <input class="form-control form-control-sm" @bind="_watermarkImageUrl" placeholder="https://example.com/watermark.png" />
+                    <div class="form-text">If set, image is used instead of text.</div>
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">Opacity</label>
+                        <input class="form-control form-control-sm" type="number" min="0.01" max="1" step="0.01" @bind="_watermarkOpacity" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Rotation</label>
+                        <input class="form-control form-control-sm" type="number" min="-360" max="360" step="1" @bind="_watermarkRotationDegrees" />
+                    </div>
+                </div>
+
+                <div class="row g-2 mt-1">
+                    <div class="col-6">
+                        <label class="form-label">Font size</label>
+                        <input class="form-control form-control-sm" type="number" min="10" max="300" step="1" @bind="_watermarkFontSizePx" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Text color</label>
+                        <input class="form-control form-control-sm" @bind="_watermarkTextColorHex" placeholder="#000000" />
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-3">
+                    <button class="btn btn-primary btn-sm" @onclick="ApplyWatermarkAsync" disabled="@_isBusy">Apply Watermark</button>
+                    <button class="btn btn-outline-secondary btn-sm" @onclick="ResetWatermarkAsync" disabled="@_isBusy">Reset Watermark</button>
+                </div>
             </div>
         </div>
 
@@ -197,6 +250,13 @@
     private bool _includePageHeader = true;
     private bool _includePageFooter = true;
     private bool _includePageNumbers = true;
+    private bool _watermarkEnabled = true;
+    private string _watermarkMessage = "KineticReports";
+    private string _watermarkImageUrl = string.Empty;
+    private float _watermarkOpacity = 0.12f;
+    private float _watermarkRotationDegrees = -30f;
+    private float _watermarkFontSizePx = 72f;
+    private string _watermarkTextColorHex = "#000000";
 
     private string? _selectedTemplateDescription => _templates
         .FirstOrDefault(template => string.Equals(template.Id, _selectedTemplateId, StringComparison.Ordinal))
@@ -204,6 +264,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var configuredWatermark = WatermarkSettings.FromConfiguration(Configuration);
+        ApplyWatermarkSettingsToEditor(configuredWatermark);
+        WatermarkSettingsStore.SetOverride(configuredWatermark);
+
         _templates = ReportCatalogService.GetTemplates();
         _selectedTemplateId = _templates.FirstOrDefault()?.Id ?? string.Empty;
         _selectedProviderType = _providers.FirstOrDefault()?.ProviderType ?? string.Empty;
@@ -437,6 +501,78 @@
     {
         _status = null;
         _error = null;
+    }
+
+    private async Task ApplyWatermarkAsync()
+    {
+        _isBusy = true;
+        _error = null;
+
+        try
+        {
+            var settings = BuildWatermarkSettingsFromEditor();
+            WatermarkSettingsStore.SetOverride(settings);
+
+            if (_activeDefinition is not null)
+                await LoadSelectedReportAsync();
+
+            _status = "Watermark settings applied.";
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private async Task ResetWatermarkAsync()
+    {
+        var configuredWatermark = WatermarkSettings.FromConfiguration(Configuration);
+        ApplyWatermarkSettingsToEditor(configuredWatermark);
+        WatermarkSettingsStore.SetOverride(configuredWatermark);
+
+        if (_activeDefinition is not null)
+            await LoadSelectedReportAsync();
+
+        _status = "Watermark reset to configured defaults.";
+    }
+
+    private WatermarkSettings BuildWatermarkSettingsFromEditor()
+    {
+        return new WatermarkSettings
+        {
+            Enabled = _watermarkEnabled,
+            Message = string.IsNullOrWhiteSpace(_watermarkMessage) ? "KineticReports" : _watermarkMessage.Trim(),
+            ImageUrl = string.IsNullOrWhiteSpace(_watermarkImageUrl) ? null : _watermarkImageUrl.Trim(),
+            Opacity = Clamp(_watermarkOpacity, 0.01f, 1f),
+            RotationDegrees = Clamp(_watermarkRotationDegrees, -360f, 360f),
+            FontSizePx = Clamp(_watermarkFontSizePx, 10f, 300f),
+            TextColorHex = string.IsNullOrWhiteSpace(_watermarkTextColorHex) ? "#000000" : _watermarkTextColorHex.Trim(),
+            FontFamily = "Arial, sans-serif",
+            ImageMaxWidthPx = 420f,
+            ImageMaxHeightPx = 420f
+        };
+    }
+
+    private void ApplyWatermarkSettingsToEditor(WatermarkSettings settings)
+    {
+        _watermarkEnabled = settings.Enabled;
+        _watermarkMessage = settings.Message;
+        _watermarkImageUrl = settings.ImageUrl ?? string.Empty;
+        _watermarkOpacity = settings.Opacity;
+        _watermarkRotationDegrees = settings.RotationDegrees;
+        _watermarkFontSizePx = settings.FontSizePx;
+        _watermarkTextColorHex = settings.TextColorHex;
+    }
+
+    private static float Clamp(float value, float min, float max)
+    {
+        if (value < min) return min;
+        if (value > max) return max;
+        return value;
     }
 
     private static string BuildDisplayDefinitionJson(ReportDefinition definition)
