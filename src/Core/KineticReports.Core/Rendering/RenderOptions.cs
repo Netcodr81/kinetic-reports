@@ -42,4 +42,41 @@ public sealed record RenderOptions
     /// Default is <see cref="RenderFormat.Pdf"/>.
     /// </summary>
     public RenderFormat Format { get; init; } = RenderFormat.Pdf;
+
+    /// <summary>
+    /// Gets optional PDF watermark overlay options.
+    /// When specified, PDF pages are rendered with a centered watermark.
+    /// </summary>
+    public PdfWatermarkOptions? PdfWatermark { get; init; }
+}
+
+/// <summary>
+/// Options for rendering a text watermark overlay on PDF pages.
+/// </summary>
+public sealed record PdfWatermarkOptions
+{
+    /// <summary>
+    /// Gets the watermark text to draw.
+    /// </summary>
+    public string Text { get; init; } = "KineticReports";
+
+    /// <summary>
+    /// Gets watermark opacity in the range [0.0, 1.0].
+    /// </summary>
+    public float Opacity { get; init; } = 0.08f;
+
+    /// <summary>
+    /// Gets clockwise rotation in degrees.
+    /// </summary>
+    public float RotationDegrees { get; init; } = -30f;
+
+    /// <summary>
+    /// Gets text size in DIPs.
+    /// </summary>
+    public float FontSize { get; init; } = 72f;
+
+    /// <summary>
+    /// Gets watermark text color.
+    /// </summary>
+    public Styling.Color Color { get; init; } = Core.Styling.Color.Black;
 }

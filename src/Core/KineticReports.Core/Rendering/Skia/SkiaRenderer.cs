@@ -73,10 +73,46 @@ public sealed class SkiaRenderer : IRenderer
             using var canvas = document.BeginPage(page.PageWidth, page.PageHeight);
             var gfx = new SkiaGraphicsContext(canvas, 1f, imageCache);
             _treeRenderer.RenderPage(page, gfx, _options);
+            DrawPdfWatermark(canvas, page.PageWidth, page.PageHeight);
             document.EndPage();
         }
 
         document.Close();
+    }
+
+    private void DrawPdfWatermark(SKCanvas canvas, float pageWidth, float pageHeight)
+    {
+        var watermark = _options.PdfWatermark;
+        if (watermark == null || string.IsNullOrWhiteSpace(watermark.Text))
+            return;
+
+        var clampedOpacity = Math.Clamp(watermark.Opacity, 0f, 1f);
+        if (clampedOpacity <= 0f)
+            return;
+
+        var color = watermark.Color;
+        var alpha = (byte)Math.Clamp((int)Math.Round(color.A * clampedOpacity), 0, 255);
+        var skColor = new SKColor(color.R, color.G, color.B, alpha);
+
+        using var paint = new SKPaint
+        {
+            Color = skColor,
+            IsAntialias = true
+        };
+
+        using var font = new SKFont
+        {
+            Size = Math.Max(8f, watermark.FontSize)
+        };
+
+        var bounds = new SKRect();
+        font.MeasureText(watermark.Text, out bounds, paint);
+
+        canvas.Save();
+        canvas.Translate(pageWidth / 2f, pageHeight / 2f);
+        canvas.RotateDegrees(watermark.RotationDegrees);
+        canvas.DrawText(watermark.Text, 0f, -bounds.MidY, SKTextAlign.Center, font, paint);
+        canvas.Restore();
     }
 
     // -------------------------------------------------------------------------

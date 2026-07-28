@@ -6,6 +6,12 @@ This document explains how export execution works in host-agnostic terms.
 var result = await reportService.ExportAsync(reportDocument, formatId, cancellationToken);
 ```
 
+Definition-aware ReportDocument overload (for per-report plugin toggles):
+
+```csharp
+var result = await reportService.ExportAsync(reportDocument, definition, formatId, cancellationToken);
+```
+
 ## Export Runtime Chain
 
 ### Service Entry and Report Execution Path
@@ -36,6 +42,18 @@ sequenceDiagram
     Service-->>Host: 3 ReportViewerExportResult
 ```
 
+### Service Direct ReportDocument Export Path With Definition Context
+
+```mermaid
+sequenceDiagram
+    participant Host as Host
+    participant Service as DefaultReportService IReportService
+
+    Host->>Service: 1 ExportAsync(reportDocument ReportDocument, definition ReportDefinition?, formatId string, ct CancellationToken)
+    Service->>Service: 2 ExportReportDocumentAsync(reportDocument ReportDocument, formatId string, tracePrefix string, definition ReportDefinition?, ct CancellationToken)
+    Service-->>Host: 3 ReportViewerExportResult
+```
+
 ### Built In Format Branching in DefaultReportService
 
 ```mermaid
@@ -45,12 +63,13 @@ sequenceDiagram
     participant Pdf as SkiaRenderer
 
     alt 1 formatId html
-        Service->>Service: 2 RenderHtmlCoreAsync(reportDocument ReportDocument, ct CancellationToken)
+        Service->>Service: 2 RenderHtmlCoreAsync(reportDocument ReportDocument, definition ReportDefinition?, ct CancellationToken)
         Service->>Html: 3 ExportAsync(reportDocument ReportDocument, output Stream, ct CancellationToken)
         Html-->>Service: 4 HTML bytes written to stream
         Service-->>Service: 5 Build ReportViewerExportResult html
     else 1 formatId pdf
-        Service->>Pdf: 2 RenderAsync(reportDocument ReportDocument, output Stream, ct CancellationToken)
+        Service->>Service: 2 Resolve PDF watermark options from definition metadata and plugin toggles
+        Service->>Pdf: 3 RenderAsync(reportDocument ReportDocument, output Stream, ct CancellationToken)
         Pdf-->>Service: 3 PDF bytes written to stream
         Service-->>Service: 4 Build ReportViewerExportResult pdf
     else 1 unsupported format
@@ -112,21 +131,22 @@ sequenceDiagram
 ## Step by Step Description
 
 1. Host calls IReportService.ExportAsync with either ReportDefinition or ReportDocument.
-2. For ReportDefinition input, DefaultReportService executes the report first using IReportEngine.
-3. DefaultReportService routes export by formatId in ExportReportDocumentAsync.
-4. HTML format uses IHtmlExporter.ExportAsync and returns UTF8 bytes.
-5. PDF format uses SkiaRenderer.RenderAsync and returns PDF bytes.
-6. Unsupported format IDs raise NotSupportedException in DefaultReportService.
-7. For plugin-style export, the host resolves an exporter from IReportDocumentExporterRegistry.
-8. Resolved IReportDocumentExporter performs format-specific export and returns artifact bytes.
-9. HtmlReportDocumentExporter converts ReportDocument to VisualDocument and then writes HTML via IVisualHtmlExporter.
-10. PdfReportDocumentExporter renders ReportDocument to PDF using SkiaRenderer.
+2. Host may pass ReportDefinition alongside ReportDocument for definition-scoped plugin behavior.
+3. For ReportDefinition input, DefaultReportService executes the report first using IReportEngine.
+4. DefaultReportService routes export by formatId in ExportReportDocumentAsync.
+5. HTML format uses IHtmlExporter.ExportAsync and applies HTML post-processors in deterministic order.
+6. PDF format uses SkiaRenderer.RenderAsync and can apply a watermark overlay via RenderOptions.PdfWatermark.
+7. Unsupported format IDs raise NotSupportedException in DefaultReportService.
+8. For plugin-style export, the host resolves an exporter from IReportDocumentExporterRegistry.
+9. Resolved IReportDocumentExporter performs format-specific export and returns artifact bytes.
+10. HtmlReportDocumentExporter converts ReportDocument to VisualDocument and then writes HTML via IVisualHtmlExporter.
+11. PdfReportDocumentExporter renders ReportDocument to PDF using SkiaRenderer.
 
 ## Interface to Implementation Map
 
 | Interface | Runtime implementation | Primary methods called |
 | --- | --- | --- |
-| IReportService | DefaultReportService | ExportAsync(definition ReportDefinition, formatId string, parameters ParameterMap, ct CancellationToken), ExportAsync(reportDocument ReportDocument, formatId string, ct CancellationToken) |
+| IReportService | DefaultReportService | ExportAsync(definition ReportDefinition, formatId string, parameters ParameterMap, ct CancellationToken), ExportAsync(reportDocument ReportDocument, formatId string, ct CancellationToken), ExportAsync(reportDocument ReportDocument, definition ReportDefinition?, formatId string, ct CancellationToken) |
 | IReportEngine | ReportEngine | RunAsync(definition ReportDefinition, parameters ParameterMap, context ILayoutSizingContext, options LayoutOptions, ct CancellationToken) |
 | IHtmlExporter | HtmlExporter | ExportAsync(reportDocument ReportDocument, output Stream, ct CancellationToken) |
 | IReportDocumentExporterRegistry | ReportDocumentExporterRegistry | GetAvailableFormats(), TryGetExporter(formatId string, out exporter IReportDocumentExporter) |
@@ -134,6 +154,13 @@ sequenceDiagram
 | IVisualDocumentBuilder | host-registered implementation | Build(reportDocument ReportDocument) |
 | IVisualHtmlExporter | VisualHtmlExporter | ExportAsync(visualDocument VisualDocument, output Stream, ct CancellationToken) |
 | IRenderer | SkiaRenderer | RenderAsync(reportDocument ReportDocument, output Stream, ct CancellationToken) |
+
+Watermark-specific behavior in current sample host:
+
+1. `ReportDefinition.Plugins` controls whether `kinetic.watermark` is enabled.
+2. HTML watermark is applied through `IHtmlReportPostProcessorPlugin`.
+3. PDF watermark is applied in Skia rendering using report metadata keys under
+    `plugins.kinetic.watermark.*`.
 
 Type aliases used in this document:
 - ParameterMap: string key to object value map

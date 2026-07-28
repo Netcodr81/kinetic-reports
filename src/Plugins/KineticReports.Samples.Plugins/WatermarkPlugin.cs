@@ -1,5 +1,6 @@
 namespace KineticReports.Samples.Plugins;
 
+using System.Globalization;
 using KineticReports.Core.Plugins;
 
 /// <summary>
@@ -45,7 +46,36 @@ public sealed class WatermarkPlugin :
         if (string.IsNullOrWhiteSpace(html))
             return ValueTask.FromResult(html);
 
-        const string watermarkStyle = "<style id=\"kr-watermark-style\">.kinetic-page.page-block{position:relative;overflow:hidden;}.kinetic-page.page-block::after{content:\"KineticReports\";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transform:rotate(-30deg);font-size:72px;font-weight:700;letter-spacing:2px;color:rgba(0,0,0,0.08);pointer-events:none;user-select:none;z-index:5;}</style>";
+        var settings = WatermarkSettingsStore.Resolve(WatermarkSettings.Default);
+        if (!settings.Enabled)
+            return ValueTask.FromResult(html);
+
+        var opacity = Clamp(settings.Opacity, 0.01f, 1f).ToString("0.###", CultureInfo.InvariantCulture);
+        var rotation = Clamp(settings.RotationDegrees, -360f, 360f).ToString("0.###", CultureInfo.InvariantCulture);
+        var fontSize = Clamp(settings.FontSizePx, 10f, 300f).ToString("0.###", CultureInfo.InvariantCulture);
+        var textColorHex = string.IsNullOrWhiteSpace(settings.TextColorHex) ? "#000000" : settings.TextColorHex.Trim();
+
+        string overlayCss;
+        if (!string.IsNullOrWhiteSpace(settings.ImageUrl))
+        {
+            var imageUrl = EscapeCssString(settings.ImageUrl.Trim());
+            var imageMaxWidth = Clamp(settings.ImageMaxWidthPx, 20f, 2400f).ToString("0.###", CultureInfo.InvariantCulture);
+            var imageMaxHeight = Clamp(settings.ImageMaxHeightPx, 20f, 2400f).ToString("0.###", CultureInfo.InvariantCulture);
+
+            overlayCss = string.Create(CultureInfo.InvariantCulture,
+                $"content:\"\";transform:rotate({rotation}deg);opacity:{opacity};background-image:url(\"{imageUrl}\");background-repeat:no-repeat;background-position:center;background-size:contain;max-width:{imageMaxWidth}px;max-height:{imageMaxHeight}px;");
+        }
+        else
+        {
+            var message = EscapeCssString(string.IsNullOrWhiteSpace(settings.Message) ? "KineticReports" : settings.Message.Trim());
+            var fontFamily = EscapeCssString(string.IsNullOrWhiteSpace(settings.FontFamily) ? "Arial, sans-serif" : settings.FontFamily.Trim());
+
+            overlayCss = string.Create(CultureInfo.InvariantCulture,
+                $"content:\"{message}\";transform:rotate({rotation}deg);font-size:{fontSize}px;font-weight:700;letter-spacing:2px;color:{textColorHex};opacity:{opacity};font-family:{fontFamily};");
+        }
+
+        var watermarkStyle = string.Create(CultureInfo.InvariantCulture,
+            $"<style id=\"kr-watermark-style\">.kinetic-page.page-block{{position:relative;overflow:hidden;}}.kinetic-page.page-block::after{{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;user-select:none;z-index:5;{overlayCss}}}</style>");
 
         if (html.Contains("id=\"kr-watermark-style\"", StringComparison.Ordinal))
             return ValueTask.FromResult(html);
@@ -56,6 +86,16 @@ public sealed class WatermarkPlugin :
 
         return ValueTask.FromResult(withStyle);
     }
+
+    private static float Clamp(float value, float min, float max)
+        => Math.Min(max, Math.Max(min, value));
+
+    private static string EscapeCssString(string value)
+        => value
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("\"", "\\\"", StringComparison.Ordinal)
+            .Replace("\r", string.Empty, StringComparison.Ordinal)
+            .Replace("\n", " ", StringComparison.Ordinal);
 
     /// <inheritdoc/>
     public IReadOnlyList<ExportFormatDescriptor> GetFormats()

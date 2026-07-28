@@ -100,6 +100,69 @@ var definition = new ReportDefinition
 var definition = JsonSerializer.Deserialize<ReportDefinition>(json);
 ```
 
+### Per-Report Plugin Toggles
+
+You can now control plugin execution per report using the top-level
+`ReportDefinition.plugins` array.
+
+Each entry has:
+
+1. `pluginId`: plugin identifier (for example `kinetic.watermark`)
+2. `enabled`: `true` to allow execution, `false` to skip execution
+
+Example: disable the watermark plugin for one report only.
+
+```json
+{
+   "schemaVersion": "1.0",
+   "id": "sales-report",
+   "name": "Sales Report",
+   "plugins": [
+      {
+         "pluginId": "kinetic.watermark",
+         "enabled": false
+      }
+   ],
+   "parameters": [],
+   "dataSources": [],
+   "styles": []
+}
+```
+
+Behavior:
+
+1. If a plugin ID appears with `enabled: false`, it is skipped for that report.
+2. If a plugin ID is not listed, it is enabled by default.
+3. Matching is case-insensitive on `pluginId`.
+
+Optional sample watermark metadata keys:
+
+```json
+{
+   "metadata": {
+      "plugins.kinetic.watermark.enabled": true,
+      "plugins.kinetic.watermark.message": "KineticReports",
+      "plugins.kinetic.watermark.opacity": 0.12,
+      "plugins.kinetic.watermark.rotationDegrees": -30,
+      "plugins.kinetic.watermark.fontSizePx": 72,
+      "plugins.kinetic.watermark.textColorHex": "#000000"
+   }
+}
+```
+
+Current execution coverage:
+
+1. `IReportBlocksPostProcessorPlugin` in the report-builder stage
+2. `IHtmlReportPostProcessorPlugin` in the default viewer HTML export stage
+3. Definition-aware `ReportDocument` viewer service overloads can apply toggle checks by
+   passing `ReportDefinition` context with the prebuilt document
+4. Sample PDF watermark behavior reads report metadata keys under
+   `plugins.kinetic.watermark.*` and renders watermark text in the Skia PDF path
+
+Note: definition-level plugin toggles require the execution path to include
+`ReportDefinition`. If you export from a prebuilt `ReportDocument`, use
+definition-aware overloads to provide report context.
+
 ### JSON Layout Style References
 
 When using `ReportDefinition.Layout`, layout items can now reference named styles from

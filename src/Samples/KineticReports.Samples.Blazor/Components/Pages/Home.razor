@@ -50,20 +50,17 @@
                     <label class="form-label">Display Options</label>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="include-header"
-                               checked="@_includePageHeader"
-                               @onchange="OnIncludeHeaderChanged" />
+                               checked="@_includePageHeader" @onchange="OnIncludeHeaderChanged" />
                         <label class="form-check-label small" for="include-header">Include page header</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="include-footer"
-                               checked="@_includePageFooter"
-                               @onchange="OnIncludeFooterChanged" />
+                               checked="@_includePageFooter" @onchange="OnIncludeFooterChanged" />
                         <label class="form-check-label small" for="include-footer">Include page footer</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="include-page-numbers"
-                               checked="@_includePageNumbers"
-                               @onchange="OnIncludePageNumbersChanged"
+                               checked="@_includePageNumbers" @onchange="OnIncludePageNumbersChanged"
                                disabled="@(!_includePageFooter)" />
                         <label class="form-check-label small" for="include-page-numbers">Include page numbers</label>
                     </div>
@@ -104,123 +101,136 @@
             </div>
             <div class="card-body">
                 <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="watermark-enabled"
-                           @bind="_watermarkEnabled" />
+                    <input class="form-check-input" type="checkbox" id="watermark-enabled" @bind="_watermarkEnabled" />
                     <label class="form-check-label small" for="watermark-enabled">Enable watermark</label>
                 </div>
 
-                <div class="mb-2">
-                    <label class="form-label">Watermark text</label>
-                    <input class="form-control form-control-sm" @bind="_watermarkMessage" maxlength="120" />
-                </div>
-
-                <div class="mb-2">
-                    <label class="form-label">Watermark image URL (optional)</label>
-                    <input class="form-control form-control-sm" @bind="_watermarkImageUrl" placeholder="https://example.com/watermark.png" />
-                    <div class="form-text">If set, image is used instead of text.</div>
-                </div>
-
-                <div class="row g-2">
-                    <div class="col-6">
-                        <label class="form-label">Opacity</label>
-                        <input class="form-control form-control-sm" type="number" min="0.01" max="1" step="0.01" @bind="_watermarkOpacity" />
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="watermark-plugin-enabled"
+                           @bind="_watermarkPluginEnabled" />
+                    <label class="form-check-label small" for="watermark-plugin-enabled">Run plugin kinetic.watermark
+                        for this report</label>
                     </div>
-                    <div class="col-6">
-                        <label class="form-label">Rotation</label>
-                        <input class="form-control form-control-sm" type="number" min="-360" max="360" step="1" @bind="_watermarkRotationDegrees" />
+
+                    <div class="mb-2">
+                        <label class="form-label">Watermark text</label>
+                        <input class="form-control form-control-sm" @bind="_watermarkMessage" maxlength="120" />
                     </div>
-                </div>
 
-                <div class="row g-2 mt-1">
-                    <div class="col-6">
-                        <label class="form-label">Font size</label>
-                        <input class="form-control form-control-sm" type="number" min="10" max="300" step="1" @bind="_watermarkFontSizePx" />
+                    <div class="mb-2">
+                        <label class="form-label">Watermark image URL (optional)</label>
+                        <input class="form-control form-control-sm" @bind="_watermarkImageUrl"
+                               placeholder="https://example.com/watermark.png" />
+                        <div class="form-text">If set, image is used instead of text.</div>
                     </div>
-                    <div class="col-6">
-                        <label class="form-label">Text color</label>
-                        <input class="form-control form-control-sm" @bind="_watermarkTextColorHex" placeholder="#000000" />
-                    </div>
-                </div>
 
-                <div class="d-grid gap-2 mt-3">
-                    <button class="btn btn-primary btn-sm" @onclick="ApplyWatermarkAsync" disabled="@_isBusy">Apply Watermark</button>
-                    <button class="btn btn-outline-secondary btn-sm" @onclick="ResetWatermarkAsync" disabled="@_isBusy">Reset Watermark</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="alert alert-secondary small mt-3 mb-0">
-            <div><strong>SQLite provider setup:</strong></div>
-            <div>Connection string key: ConnectionStrings:SqlLite</div>
-            <div>The sample auto-seeds a local database at startup using Data/sample-reports-sqlite.seed.sql.</div>
-            <div>It creates the reporting tables used by both sample reports.</div>
-        </div>
-    </div>
-
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Report Preview</h5>
-            </div>
-            <div class="card-body">
-                @if (!string.IsNullOrWhiteSpace(_status))
-                {
-                    <div class="alert alert-info py-2 mb-3">@_status</div>
-                }
-
-                @if (!string.IsNullOrWhiteSpace(_error))
-                {
-                    <div class="alert alert-danger py-2 mb-3">@_error</div>
-                }
-
-                <div class="row">
-                    <div class="col-lg-5 mb-3">
-                        <div class="card h-100">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0">Effective ReportDefinition JSON</h6>
-                                @if (!string.IsNullOrWhiteSpace(_activeReportName))
-                                {
-                                    <span class="small text-muted">@_activeReportName</span>
-                                }
-                            </div>
-                            <div class="card-body">
-                                @if (string.IsNullOrWhiteSpace(_definitionJson))
-                                {
-                                    <p class="text-muted mb-0">Select a template/provider, then click Load Report.</p>
-                                }
-                                else
-                                {
-                                    <pre class="json-preview mb-0">@_definitionJson</pre>
-                                }
-                            </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label">Opacity</label>
+                            <input class="form-control form-control-sm" type="number" min="0.01" max="1" step="0.01"
+                                   @bind="_watermarkOpacity" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Rotation</label>
+                            <input class="form-control form-control-sm" type="number" min="-360" max="360" step="1"
+                                   @bind="_watermarkRotationDegrees" />
                         </div>
                     </div>
 
-                    <div class="col-lg-7 mb-3">
-                        <div class="card h-100">
-                            <div class="card-header">
-                                <h6 class="mb-0">Viewer</h6>
+                    <div class="row g-2 mt-1">
+                        <div class="col-6">
+                            <label class="form-label">Font size</label>
+                            <input class="form-control form-control-sm" type="number" min="10" max="300" step="1"
+                                   @bind="_watermarkFontSizePx" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Text color</label>
+                            <input class="form-control form-control-sm" @bind="_watermarkTextColorHex"
+                                   placeholder="#000000" />
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-primary btn-sm" @onclick="ApplyWatermarkAsync" disabled="@_isBusy">Apply
+                            Watermark</button>
+                            <button class="btn btn-outline-secondary btn-sm" @onclick="ResetWatermarkAsync"
+                                    disabled="@_isBusy">Reset Watermark</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-secondary small mt-3 mb-0">
+                    <div><strong>SQLite provider setup:</strong></div>
+                    <div>Connection string key: ConnectionStrings:SqlLite</div>
+                    <div>The sample auto-seeds a local database at startup using Data/sample-reports-sqlite.seed.sql.</div>
+                    <div>It creates the reporting tables used by both sample reports.</div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Report Preview</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrWhiteSpace(_status))
+                        {
+                            <div class="alert alert-info py-2 mb-3">@_status</div>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(_error))
+                        {
+                            <div class="alert alert-danger py-2 mb-3">@_error</div>
+                        }
+
+                        <div class="row">
+                            <div class="col-lg-5 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">Effective ReportDefinition JSON</h6>
+                                        @if (!string.IsNullOrWhiteSpace(_activeReportName))
+                                        {
+                                            <span class="small text-muted">@_activeReportName</span>
+                                        }
+                                    </div>
+                                    <div class="card-body">
+                                        @if (string.IsNullOrWhiteSpace(_definitionJson))
+                                        {
+                                            <p class="text-muted mb-0">Select a template/provider, then click Load Report.</p>
+                                        }
+                                        else
+                                        {
+                                            <pre class="json-preview mb-0">@_definitionJson</pre>
+                                        }
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                @if (_activeDefinition is null)
-                                {
-                                    <p class="text-muted mb-0">Load a report to preview the rendered output.</p>
-                                }
-                                else
-                                {
-                                    <ReportViewer Definition="@_activeDefinition" ReportDocument="@_activeReportDocument" Parameters="@_viewerParameters"
-                                                  AutoExecute="true" OnExecutionComplete="OnViewerExecutionComplete"
-                                                  OnSearchComplete="OnViewerSearchComplete"
-                                                  OnHitTestComplete="OnViewerHitTestComplete" />
-                                }
+
+                            <div class="col-lg-7 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Viewer</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        @if (_activeDefinition is null)
+                                        {
+                                            <p class="text-muted mb-0">Load a report to preview the rendered output.</p>
+                                        }
+                                        else
+                                        {
+                                            <ReportViewer Definition="@_activeDefinition" ReportDocument="@_activeReportDocument" Parameters="@_viewerParameters"
+                                                          AutoExecute="true" OnExecutionComplete="OnViewerExecutionComplete"
+                                                          OnSearchComplete="OnViewerSearchComplete"
+                                                          OnHitTestComplete="OnViewerHitTestComplete" />
+                                        }
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
 @code {
     private static readonly IReadOnlySet<string> LayoutItemTypes = new HashSet<string>(StringComparer.Ordinal)
@@ -229,6 +239,8 @@
         nameof(ReportLayoutItemKind.Table),
         nameof(ReportLayoutItemKind.PageBreak)
     };
+
+    private const string WatermarkPluginId = "kinetic.watermark";
 
     private bool _isBusy;
     private string? _activeReportName;
@@ -250,6 +262,7 @@
     private bool _includePageHeader = true;
     private bool _includePageFooter = true;
     private bool _includePageNumbers = true;
+    private bool _watermarkPluginEnabled = true;
     private bool _watermarkEnabled = true;
     private string _watermarkMessage = "KineticReports";
     private string _watermarkImageUrl = string.Empty;
@@ -289,7 +302,8 @@
         try
         {
             var loadedDefinition = await ReportCatalogService.LoadAsync(_selectedTemplateId, _selectedProviderType);
-            _activeDefinition = ApplyLayoutDisplayOptions(loadedDefinition);
+            var definitionWithLayoutOptions = ApplyLayoutDisplayOptions(loadedDefinition);
+            _activeDefinition = ApplyPluginToggles(definitionWithLayoutOptions);
             _definitionJson = BuildDisplayDefinitionJson(_activeDefinition);
             _activeReportName = _activeDefinition.Name;
             _viewerParameters = BuildDefaultParameters(_activeDefinition);
@@ -404,7 +418,7 @@
         try
         {
             var exportResult = await ViewerReportService
-                .ExportAsync(_activeReportDocument, formatId)
+                .ExportAsync(_activeReportDocument, _activeDefinition, formatId)
                 .ConfigureAwait(false);
 
             var fileBaseName = string.IsNullOrWhiteSpace(_activeDefinition.Name)
@@ -495,6 +509,35 @@
 
         return !string.IsNullOrWhiteSpace(item.Text)
             && item.Text.Contains("{PageNumber}", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private ReportDefinition ApplyPluginToggles(ReportDefinition definition)
+    {
+        var plugins = definition.Plugins
+            .Where(toggle => !string.Equals(toggle.PluginId, WatermarkPluginId, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        var metadata = new Dictionary<string, object>(definition.Metadata, StringComparer.Ordinal)
+        {
+            ["plugins.kinetic.watermark.enabled"] = _watermarkEnabled,
+            ["plugins.kinetic.watermark.message"] = string.IsNullOrWhiteSpace(_watermarkMessage) ? "KineticReports" : _watermarkMessage.Trim(),
+            ["plugins.kinetic.watermark.opacity"] = Clamp(_watermarkOpacity, 0.01f, 1f),
+            ["plugins.kinetic.watermark.rotationDegrees"] = Clamp(_watermarkRotationDegrees, -360f, 360f),
+            ["plugins.kinetic.watermark.fontSizePx"] = Clamp(_watermarkFontSizePx, 10f, 300f),
+            ["plugins.kinetic.watermark.textColorHex"] = string.IsNullOrWhiteSpace(_watermarkTextColorHex) ? "#000000" : _watermarkTextColorHex.Trim()
+        };
+
+        plugins.Add(new ReportPluginToggleDefinition
+        {
+            PluginId = WatermarkPluginId,
+            Enabled = _watermarkPluginEnabled
+        });
+
+        return definition with
+        {
+            Plugins = plugins,
+            Metadata = metadata
+        };
     }
 
     private void ResetTransientStatus()

@@ -773,7 +773,7 @@ public sealed class DefaultReportBuilder : IReportBuilder
             blocks.AddRange(built);
         }
 
-        return ApplyPostProcessors(blocks);
+        return ApplyPostProcessors(blocks, dataContext.Definition);
     }
 
     private bool TryCreateDefinitionBackedBuilder(
@@ -972,13 +972,16 @@ public sealed class DefaultReportBuilder : IReportBuilder
         };
     }
 
-    private IReadOnlyList<ReportBlock> ApplyPostProcessors(IReadOnlyList<ReportBlock> blocks)
+    private IReadOnlyList<ReportBlock> ApplyPostProcessors(
+        IReadOnlyList<ReportBlock> blocks,
+        ReportDefinition? definition)
     {
         if (_pluginManager is null)
             return blocks;
 
         var postProcessors = _pluginManager.LoadedPlugins
             .OfType<IReportBlocksPostProcessorPlugin>()
+            .Where(plugin => PluginExecutionPolicy.IsEnabled(definition, plugin.Id))
             .OrderBy(plugin => plugin.Order)
             .ThenBy(plugin => plugin.Id, StringComparer.Ordinal)
             .ToList();

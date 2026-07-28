@@ -45,6 +45,12 @@ public sealed record ReportDefinition
     public IReadOnlyList<StyleDefinition> Styles { get; init; } = [];
 
     /// <summary>
+    /// Gets or inits per-report plugin toggles.
+    /// When a plugin ID is present with <c>Enabled=false</c>, the plugin is skipped for this report.
+    /// </summary>
+    public IReadOnlyList<ReportPluginToggleDefinition> Plugins { get; init; } = [];
+
+    /// <summary>
     /// Gets or inits the canonical report layout definition used by the default report builder.
     /// </summary>
     public ReportLayoutDefinition? Layout { get; init; }

@@ -22,6 +22,15 @@ public interface IReportService
     Task<string> RenderHtmlAsync(ReportDocument reportDocument, CancellationToken ct = default);
 
     /// <summary>
+    /// Renders a prebuilt report document as HTML for viewer preview, using an optional
+    /// report definition for plugin toggle evaluation.
+    /// </summary>
+    Task<string> RenderHtmlAsync(
+        ReportDocument reportDocument,
+        ReportDefinition? definition,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Gets available export formats.
     /// </summary>
     IReadOnlyList<ReportViewerExportFormat> GetAvailableExportFormats();
@@ -40,6 +49,16 @@ public interface IReportService
     /// </summary>
     Task<ReportViewerExportResult> ExportAsync(
         ReportDocument reportDocument,
+        string formatId,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Exports a prebuilt report document using the requested format, with an optional
+    /// report definition for plugin toggle evaluation.
+    /// </summary>
+    Task<ReportViewerExportResult> ExportAsync(
+        ReportDocument reportDocument,
+        ReportDefinition? definition,
         string formatId,
         CancellationToken ct = default);
 

@@ -6,7 +6,8 @@ This page documents key Core contracts and base abstractions.
 
 | Type | Kind | Purpose | Key Members |
 |---|---|---|---|
-| `ReportDefinition` | record | Canonical report input | `SchemaVersion`, `Id`, `Name`, `Parameters`, `DataSources`, `Styles` |
+| `ReportDefinition` | record | Canonical report input | `SchemaVersion`, `Id`, `Name`, `Parameters`, `DataSources`, `Styles`, `Plugins` |
+| `ReportPluginToggleDefinition` | record | Per-report plugin enable/disable entry | `PluginId`, `Enabled` |
 | `DataSourceDefinition` | record | Declares a data source | `Id`, `Name`, `ProviderType`, `Properties` |
 | `ParameterDefinition` | record | Declares report parameters | `Id`, `Name`, `Type`, `DefaultValue`, `IsRequired` |
 

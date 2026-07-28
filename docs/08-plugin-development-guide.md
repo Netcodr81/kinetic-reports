@@ -13,10 +13,10 @@ Use `PluginBase` for simpler lifecycle handling.
 
 ```mermaid
 flowchart LR
-	A[Plugin DLL] --> B[DefaultPluginManager discovers assembly]
-	B --> C[Find IPlugin implementations]
-	C --> D[InitializeAsync]
-	D --> E[Plugin available]
+    A[Plugin DLL] --> B[DefaultPluginManager discovers assembly]
+    B --> C[Find IPlugin implementations]
+    C --> D[InitializeAsync]
+    D --> E[Plugin available]
 ```
 
 ## Step 3: Add metadata + lifecycle hooks
@@ -41,16 +41,22 @@ Plugins can participate in deterministic seams:
 4. **After exporter output:** `IExportArtifactPostProcessorPlugin`
 5. **After HTML export:** `IHtmlReportPostProcessorPlugin`
 
+Per-report plugin gating:
+
+1. `ReportDefinition.Plugins` controls whether a loaded plugin runs for that report.
+2. Add `ReportPluginToggleDefinition` entries (`PluginId`, `Enabled`).
+3. If a plugin id is not listed, it is enabled by default.
+
 ```mermaid
 flowchart LR
-	A[IReportBuilder.Build] --> B[Report Blocks]
-	B --> C[IReportBlocksPostProcessorPlugin]
-	C --> D[ILayoutEngine.Layout]
-	D --> E[ReportDocument]
-	E --> F[IHtmlExporter.ExportAsync]
-	F --> G[IExportArtifactPostProcessorPlugin]
-	G --> H[IHtmlReportPostProcessorPlugin]
-	H --> I[Final HTML]
+    A[IReportBuilder.Build] --> B[Report Blocks]
+    B --> C[IReportBlocksPostProcessorPlugin]
+    C --> D[ILayoutEngine.Layout]
+    D --> E[ReportDocument]
+    E --> F[IHtmlExporter.ExportAsync]
+    F --> G[IExportArtifactPostProcessorPlugin]
+    G --> H[IHtmlReportPostProcessorPlugin]
+    H --> I[Final HTML]
 ```
 
 Ordering rules for both seams:
@@ -58,6 +64,22 @@ Ordering rules for both seams:
 - Plugins run by ascending `Order`.
 - Ties are resolved by `Id` using ordinal string comparison.
 - This guarantees deterministic output for the same input/plugin set.
+
+Execution context note:
+
+1. Some plugin seams need `ReportDefinition` context to evaluate per-report toggles.
+2. If your host uses a prebuilt `ReportDocument`, use the definition-aware service
+    overloads to pass `ReportDefinition` alongside the document.
+3. In Core viewer service, this is available through:
+    - `RenderHtmlAsync(ReportDocument, ReportDefinition?, ct)`
+    - `ExportAsync(ReportDocument, ReportDefinition?, formatId, ct)`
+
+PDF watermarking note:
+
+1. HTML watermark plugins do not automatically affect PDF output.
+2. PDF watermarking runs in the PDF renderer (Skia) using `RenderOptions.PdfWatermark`.
+3. The sample watermark plugin flow maps report metadata keys
+    (`plugins.kinetic.watermark.*`) into PDF watermark render options.
 
 ## Reference: Plugin API
 
@@ -96,6 +118,7 @@ Packaging note:
 
 - Implement `IReportBlocksPostProcessorPlugin` to add or transform `ReportBlock`s.
 - Implement `IHtmlReportPostProcessorPlugin` to inject HTML/CSS overlays or policies.
+- Implement `IExportArtifactPostProcessorPlugin` for non-HTML artifact transforms.
 - Keep transformations idempotent where possible (safe on repeated runs).
 
 ## Example Plugin Ideas

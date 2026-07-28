@@ -247,6 +247,7 @@
     private readonly string _previewContainerId = $"kr-viewer-preview-{Guid.NewGuid():N}";
     private CancellationTokenSource? _cancellationTokenSource;
     private string? _lastExecutedDefinitionId;
+    private ReportDefinition? _lastExecutedDefinition;
     private IReadOnlyList<ReportViewerExportFormat> _availableFormats = [];
     private string _selectedFormatId = "html";
     private Dictionary<string, object?> _parameterValues = new(StringComparer.Ordinal);
@@ -293,13 +294,16 @@ StringComparison.OrdinalIgnoreCase)))
             await ExecuteReportAsync().ConfigureAwait(false);
             _lastExecutedReportDocument = ReportDocument;
             _lastExecutedDefinitionId = Definition?.Id;
+            _lastExecutedDefinition = Definition;
         }
         else if (AutoExecute
             && Definition is not null
-            && !string.Equals(_lastExecutedDefinitionId, Definition.Id, StringComparison.Ordinal))
+            && (!string.Equals(_lastExecutedDefinitionId, Definition.Id, StringComparison.Ordinal)
+                || !ReferenceEquals(_lastExecutedDefinition, Definition)))
         {
             await ExecuteReportAsync().ConfigureAwait(false);
             _lastExecutedDefinitionId = Definition.Id;
+            _lastExecutedDefinition = Definition;
             _lastExecutedReportDocument = ReportDocument;
         }
     }
@@ -359,6 +363,7 @@ StringComparison.OrdinalIgnoreCase)))
             {
                 HtmlContent = await ReportService.RenderHtmlAsync(
                     ReportDocument,
+                    Definition,
                     _cancellationTokenSource.Token);
             }
             else
@@ -569,6 +574,7 @@ StringComparison.OrdinalIgnoreCase)))
             {
                 exportResult = await ReportService.ExportAsync(
                     ReportDocument,
+                    Definition,
                     _selectedFormatId,
                     CancellationToken.None).ConfigureAwait(false);
             }

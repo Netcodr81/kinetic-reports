@@ -19,6 +19,21 @@ This is the fastest way to decide where to extend KineticReports.
 | Transform exported artifact bytes | `IExportArtifactPostProcessorPlugin` | Plugin load | Runs after exporter output, ordered by `Order` then `Id` |
 | Add optional runtime feature package | `IPlugin` | Plugin manager | Package extension as DLL plugin |
 
+Per-report plugin control:
+
+1. Use `ReportDefinition.Plugins` to disable a loaded plugin for a single report instance.
+2. `enabled: false` skips execution for matching `pluginId`.
+3. Unlisted plugin IDs are treated as enabled.
+4. For hosts that render/export from a prebuilt `ReportDocument`, pass the matching
+	`ReportDefinition` to definition-aware service overloads so plugin toggles can still apply.
+
+Watermark behavior in the sample pipeline:
+
+1. HTML watermark uses `IHtmlReportPostProcessorPlugin`.
+2. PDF watermark is applied in the Skia PDF renderer via `RenderOptions.PdfWatermark`.
+3. Sample watermark options are sourced from report metadata keys under
+	`plugins.kinetic.watermark.*`.
+
 ## Lifecycle Boundaries
 
 ```mermaid

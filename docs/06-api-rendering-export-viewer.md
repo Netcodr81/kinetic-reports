@@ -7,6 +7,8 @@
 | `IRenderer` | interface | Convert `ReportDocument` into render output (PDF/PNG/etc.) | `RenderAsync(...)` |
 | `IGraphicsContext` | interface | Backend-agnostic drawing primitives | `FillRectangle`, `DrawText`, `DrawImage`, etc. |
 | `ReportDocumentRenderer` | class | Traverses `ReportDocument` and issues graphics calls | `Render(...)` |
+| `RenderOptions` | record | Renderer execution options | `Format`, `Dpi`, `Background`, `PdfWatermark` |
+| `PdfWatermarkOptions` | record | Optional PDF watermark overlay settings | `Text`, `Opacity`, `RotationDegrees`, `FontSize`, `Color` |
 
 ## Rendering Implementations
 
@@ -19,6 +21,7 @@
 ## Export Contracts
 
 Deep dive:
+
 - [16 - Exporter Execution Flow](./16-exporter-execution-flow.md)
 
 | Type | Kind | Purpose | Methods |
@@ -45,9 +48,22 @@ HTML export now expects the host to provide the stylesheet location through `Htm
 | `IPlugin` | interface | Plugin lifecycle + metadata | `InitializeAsync`, `UnloadAsync`, metadata props |
 | `IPluginManager` | interface | Discover/load/unload plugins | `DiscoverAndLoadPluginsAsync`, `LoadPluginAsync`, `UnloadPluginAsync` |
 | `PluginBase` | abstract class | Common lifecycle behavior | `OnInitializeAsync`, `OnUnloadAsync` |
+| `IReportBlocksPostProcessorPlugin` | interface | Post-process logical report blocks before layout | `ProcessBlocks(...)`, `Order` |
+| `IHtmlReportPostProcessorPlugin` | interface | Post-process exported HTML | `ProcessHtmlAsync(...)`, `Order` |
 | `IExportFormatRegistryPlugin` | interface | Contribute discoverable format descriptors | `GetFormats()`, `Order` |
 | `IExportNegotiationPlugin` | interface | Negotiate requested format to final format | `Negotiate(...)`, `Order` |
 | `IExportArtifactPostProcessorPlugin` | interface | Post-process artifact bytes after export | `ProcessArtifactAsync(...)`, `Order` |
+
+Per-report plugin execution control is modeled in Core definition types:
+
+- `ReportDefinition.Plugins`
+- `ReportPluginToggleDefinition` (`PluginId`, `Enabled`)
+
+Default behavior:
+
+1. Explicit `enabled: false` skips a matching plugin for that report.
+2. Unlisted plugins are treated as enabled.
+3. Plugin id matching is case-insensitive.
 
 ## Viewer Contracts
 
@@ -76,12 +92,31 @@ HTML export now expects the host to provide the stylesheet location through `Htm
 - `SearchTextAsync(...)` returns deterministic ordered text matches.
 - `GetLatestTrace()` returns latest execution/export trace entries.
 
+Current `IReportService` overloads include:
+
+1. `RenderHtmlAsync(ReportDefinition, parameters, ct)`
+2. `RenderHtmlAsync(ReportDocument, ct)`
+3. `RenderHtmlAsync(ReportDocument, ReportDefinition?, ct)`
+4. `ExportAsync(ReportDefinition, formatId, parameters, ct)`
+5. `ExportAsync(ReportDocument, formatId, ct)`
+6. `ExportAsync(ReportDocument, ReportDefinition?, formatId, ct)`
+
+The definition-aware `ReportDocument` overloads allow hosts to preserve a prebuilt
+document flow while still applying definition-scoped plugin toggles.
+
+PDF watermark note:
+
+1. HTML watermarking runs via `IHtmlReportPostProcessorPlugin`.
+2. PDF watermarking runs during Skia PDF rendering using `RenderOptions.PdfWatermark`.
+3. In the sample host, PDF watermark options are read from report metadata keys under
+   `plugins.kinetic.watermark.*`.
+
 ### Viewer.Blazor Component Surface (Current)
 
 - `ReportViewer` supports completion callbacks:
-	- `OnExecutionComplete`
-	- `OnSearchComplete`
-	- `OnHitTestComplete`
+  - `OnExecutionComplete`
+  - `OnSearchComplete`
+  - `OnHitTestComplete`
 - Preview click-to-hit-test is wired through Viewer.Blazor static asset interop (`wwwroot/reportViewer.js`) and page-local coordinate mapping.
 
 ## Junior Tips

@@ -1,5 +1,7 @@
 namespace KineticReports.Core.Viewer.Services;
 
+using System.Globalization;
+using System.Text.Json;
 using KineticReports.Core.Definition;
 using KineticReports.Core.Engine;
 using KineticReports.Core.Export.Html;
@@ -31,9 +33,9 @@ public sealed class DefaultReportService : IReportService
     private readonly VisualTextSearchIndexBuilder _textSearchIndexBuilder;
     private readonly ITextLayout _textLayout;
     private readonly IPluginManager? _pluginManager;
-    private readonly SkiaRenderer _pdfRenderer = new(new RenderOptions { Format = RenderFormat.Pdf });
     private readonly ILogger<DefaultReportService> _logger;
     private IReadOnlyList<string> _latestTrace = [];
+    private const string WatermarkPluginId = "kinetic.watermark";
 
     /// <summary>
     /// Initializes the service with required dependencies.
@@ -85,13 +87,20 @@ public sealed class DefaultReportService : IReportService
 
     /// <inheritdoc/>
     public async Task<string> RenderHtmlAsync(ReportDocument reportDocument, CancellationToken ct = default)
+        => await RenderHtmlAsync(reportDocument, definition: null, ct).ConfigureAwait(false);
+
+    /// <inheritdoc/>
+    public async Task<string> RenderHtmlAsync(
+        ReportDocument reportDocument,
+        ReportDefinition? definition,
+        CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(reportDocument);
 
         try
         {
             _latestTrace = ["[Render] Using prebuilt ReportDocument", "[Export] Format: html"];
-            return await RenderHtmlCoreAsync(reportDocument, ct).ConfigureAwait(false);
+            return await RenderHtmlCoreAsync(reportDocument, definition, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -115,8 +124,13 @@ public sealed class DefaultReportService : IReportService
         try
         {
             var reportDocument = await ExecuteReportAsync(definition, parameters, ct).ConfigureAwait(false);
-            return await ExportReportDocumentAsync(reportDocument, formatId, "[Render] Executing with default report service", ct)
-                .ConfigureAwait(false);
+            return await ExportReportDocumentAsync(
+                reportDocument,
+                formatId,
+                "[Render] Executing with default report service",
+                definition,
+                ct)
+            .ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -131,6 +145,14 @@ public sealed class DefaultReportService : IReportService
         ReportDocument reportDocument,
         string formatId,
         CancellationToken ct = default)
+        => await ExportAsync(reportDocument, definition: null, formatId, ct).ConfigureAwait(false);
+
+    /// <inheritdoc/>
+    public async Task<ReportViewerExportResult> ExportAsync(
+        ReportDocument reportDocument,
+        ReportDefinition? definition,
+        string formatId,
+        CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(reportDocument);
         if (string.IsNullOrWhiteSpace(formatId))
@@ -138,7 +160,7 @@ public sealed class DefaultReportService : IReportService
 
         try
         {
-            return await ExportReportDocumentAsync(reportDocument, formatId, "[Render] Using prebuilt ReportDocument", ct)
+            return await ExportReportDocumentAsync(reportDocument, formatId, "[Render] Using prebuilt ReportDocument", definition, ct)
                 .ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -295,10 +317,13 @@ public sealed class DefaultReportService : IReportService
         ];
 
         var reportDocument = await ExecuteReportAsync(definition, parameters, ct).ConfigureAwait(false);
-        return await RenderHtmlCoreAsync(reportDocument, ct).ConfigureAwait(false);
+        return await RenderHtmlCoreAsync(reportDocument, definition, ct).ConfigureAwait(false);
     }
 
-    private async Task<string> RenderHtmlCoreAsync(ReportDocument reportDocument, CancellationToken ct)
+    private async Task<string> RenderHtmlCoreAsync(
+        ReportDocument reportDocument,
+        ReportDefinition? definition,
+        CancellationToken ct)
     {
         _latestTrace = [.. _latestTrace, $"[Render] Engine produced {reportDocument.PageCount} page(s)"];
 
@@ -309,16 +334,20 @@ public sealed class DefaultReportService : IReportService
 
         using var reader = new StreamReader(stream);
         var html = await reader.ReadToEndAsync().ConfigureAwait(false);
-        return await ApplyHtmlPostProcessorsAsync(html, ct).ConfigureAwait(false);
+        return await ApplyHtmlPostProcessorsAsync(html, definition, ct).ConfigureAwait(false);
     }
 
-    private async Task<string> ApplyHtmlPostProcessorsAsync(string html, CancellationToken ct)
+    private async Task<string> ApplyHtmlPostProcessorsAsync(
+        string html,
+        ReportDefinition? definition,
+        CancellationToken ct)
     {
         if (_pluginManager == null || string.IsNullOrWhiteSpace(html))
             return html;
 
         var postProcessors = _pluginManager.LoadedPlugins
             .OfType<IHtmlReportPostProcessorPlugin>()
+            .Where(plugin => PluginExecutionPolicy.IsEnabled(definition, plugin.Id))
             .OrderBy(plugin => plugin.Order)
             .ThenBy(plugin => plugin.Id, StringComparer.Ordinal)
             .ToList();
@@ -339,20 +368,20 @@ public sealed class DefaultReportService : IReportService
         CancellationToken ct)
     {
         var context = new LayoutSizingContext(_textLayout);
-        var layoutOptions = ResolveLayoutOptions(definition);
-        return _engine.RunAsync(definition, parameters, context, layoutOptions, ct);
+        return _engine.RunAsync(definition, parameters, context, layoutOptions: null, ct);
     }
 
     private async Task<ReportViewerExportResult> ExportReportDocumentAsync(
         ReportDocument reportDocument,
         string formatId,
         string tracePrefix,
+        ReportDefinition? definition,
         CancellationToken ct)
     {
         if (string.Equals(formatId, "html", StringComparison.OrdinalIgnoreCase))
         {
             _latestTrace = [tracePrefix, "[Export] Format: html"];
-            var html = await RenderHtmlCoreAsync(reportDocument, ct).ConfigureAwait(false);
+            var html = await RenderHtmlCoreAsync(reportDocument, definition, ct).ConfigureAwait(false);
             return new ReportViewerExportResult("html", "text/html", "html", System.Text.Encoding.UTF8.GetBytes(html));
         }
 
@@ -360,8 +389,9 @@ public sealed class DefaultReportService : IReportService
         {
             _latestTrace = [tracePrefix, "[Export] Format: pdf", $"[Render] Engine produced {reportDocument.PageCount} page(s)"];
 
+            var pdfRenderer = CreatePdfRenderer(definition);
             using var stream = new MemoryStream();
-            await _pdfRenderer.RenderAsync(reportDocument, stream, ct).ConfigureAwait(false);
+            await pdfRenderer.RenderAsync(reportDocument, stream, ct).ConfigureAwait(false);
 
             return new ReportViewerExportResult("pdf", "application/pdf", "pdf", stream.ToArray());
         }
@@ -369,13 +399,145 @@ public sealed class DefaultReportService : IReportService
         throw new NotSupportedException($"Default report service supports only 'html' and 'pdf' export. Requested '{formatId}'.");
     }
 
-    private static LayoutOptions ResolveLayoutOptions(ReportDefinition definition)
+    private static SkiaRenderer CreatePdfRenderer(ReportDefinition? definition)
     {
-        if (definition.Layout is not null)
+        var options = new RenderOptions
         {
-            return new LayoutOptions { PageMargins = new Thickness(0f) };
+            Format = RenderFormat.Pdf,
+            PdfWatermark = ResolvePdfWatermark(definition)
+        };
+
+        return new SkiaRenderer(options);
+    }
+
+    private static PdfWatermarkOptions? ResolvePdfWatermark(ReportDefinition? definition)
+    {
+        if (definition == null)
+            return null;
+
+        if (!PluginExecutionPolicy.IsEnabled(definition, WatermarkPluginId))
+            return null;
+
+        var enabled = ReadMetadataBool(definition, "plugins.kinetic.watermark.enabled", fallback: true);
+        if (!enabled)
+            return null;
+
+        var text = ReadMetadataString(definition, "plugins.kinetic.watermark.message", "KineticReports");
+        var opacity = ReadMetadataFloat(definition, "plugins.kinetic.watermark.opacity", 0.08f);
+        var rotation = ReadMetadataFloat(definition, "plugins.kinetic.watermark.rotationDegrees", -30f);
+        var fontSize = ReadMetadataFloat(definition, "plugins.kinetic.watermark.fontSizePx", 72f);
+        var colorHex = ReadMetadataString(definition, "plugins.kinetic.watermark.textColorHex", "#000000");
+
+        return new PdfWatermarkOptions
+        {
+            Text = string.IsNullOrWhiteSpace(text) ? "KineticReports" : text,
+            Opacity = Math.Clamp(opacity, 0.01f, 1f),
+            RotationDegrees = Math.Clamp(rotation, -360f, 360f),
+            FontSize = Math.Clamp(fontSize, 8f, 300f),
+            Color = ParseHexColorOrDefault(colorHex, KineticReports.Core.Styling.Color.Black)
+        };
+    }
+
+    private static string ReadMetadataString(ReportDefinition definition, string key, string fallback)
+    {
+        if (!definition.Metadata.TryGetValue(key, out var raw) || raw == null)
+            return fallback;
+
+        if (raw is string s)
+            return string.IsNullOrWhiteSpace(s) ? fallback : s;
+
+        if (raw is JsonElement element)
+        {
+            if (element.ValueKind == JsonValueKind.String)
+            {
+                var value = element.GetString();
+                return string.IsNullOrWhiteSpace(value) ? fallback : value;
+            }
         }
 
-        return new LayoutOptions();
+        return raw.ToString() ?? fallback;
     }
+
+    private static bool ReadMetadataBool(ReportDefinition definition, string key, bool fallback)
+    {
+        if (!definition.Metadata.TryGetValue(key, out var raw) || raw == null)
+            return fallback;
+
+        if (raw is bool b)
+            return b;
+
+        if (raw is JsonElement element)
+        {
+            if (element.ValueKind == JsonValueKind.True)
+                return true;
+
+            if (element.ValueKind == JsonValueKind.False)
+                return false;
+
+            if (element.ValueKind == JsonValueKind.String
+                && bool.TryParse(element.GetString(), out var parsedBool))
+            {
+                return parsedBool;
+            }
+        }
+
+        return bool.TryParse(raw.ToString(), out var parsed) ? parsed : fallback;
+    }
+
+    private static float ReadMetadataFloat(ReportDefinition definition, string key, float fallback)
+    {
+        if (!definition.Metadata.TryGetValue(key, out var raw) || raw == null)
+            return fallback;
+
+        if (raw is float f)
+            return f;
+
+        if (raw is double d)
+            return (float)d;
+
+        if (raw is decimal m)
+            return (float)m;
+
+        if (raw is JsonElement element)
+        {
+            if (element.ValueKind == JsonValueKind.Number && element.TryGetDouble(out var n))
+                return (float)n;
+
+            if (element.ValueKind == JsonValueKind.String
+                && float.TryParse(element.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var parsedText))
+            {
+                return parsedText;
+            }
+        }
+
+        return float.TryParse(raw.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
+            ? parsed
+            : fallback;
+    }
+
+    private static KineticReports.Core.Styling.Color ParseHexColorOrDefault(
+        string? hex,
+        KineticReports.Core.Styling.Color fallback)
+    {
+        if (string.IsNullOrWhiteSpace(hex))
+            return fallback;
+
+        var value = hex.Trim();
+        if (value.StartsWith('#'))
+            value = value[1..];
+
+        if (value.Length == 6 && uint.TryParse(value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var rgb))
+        {
+            var r = (byte)((rgb >> 16) & 0xFF);
+            var g = (byte)((rgb >> 8) & 0xFF);
+            var b = (byte)(rgb & 0xFF);
+            return KineticReports.Core.Styling.Color.FromRgb(r, g, b);
+        }
+
+        if (value.Length == 8 && uint.TryParse(value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var argb))
+            return KineticReports.Core.Styling.Color.FromArgb(argb);
+
+        return fallback;
+    }
+
 }
