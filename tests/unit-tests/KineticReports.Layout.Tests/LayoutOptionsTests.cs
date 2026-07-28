@@ -1,6 +1,7 @@
 namespace KineticReports.Layout.Tests;
 
 using KineticReports.Core.Geometry;
+using KineticReports.Core.LayoutEngine;
 
 public class LayoutOptionsTests
 {

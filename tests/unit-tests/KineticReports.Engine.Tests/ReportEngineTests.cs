@@ -2,8 +2,8 @@ namespace KineticReports.Engine.Tests;
 
 using KineticReports.Core.Definition;
 using KineticReports.Core.Engine;
+using KineticReports.Core.Engine.Expressions;
 using KineticReports.Core.LayoutEngine;
-using KineticReports.Engine.Expressions;
 using KineticReports.Engine.Tests.Fakes;
 
 public class ReportEngineTests
@@ -106,7 +106,7 @@ public class ReportEngineTests
             resolver ?? new StubDataResolver(),
             new LiteralEvaluator(),
             bandsBuilder ?? new StubReportBuilder(),
-            new KineticReports.Layout.LayoutEngine());
+            new KineticReports.Core.LayoutEngine.LayoutEngine());
     }
 
     private sealed class MeasureContextFake : KineticReports.Core.Layout.ILayoutSizingContext

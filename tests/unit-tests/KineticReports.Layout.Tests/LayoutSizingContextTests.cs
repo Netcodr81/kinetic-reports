@@ -1,6 +1,7 @@
 namespace KineticReports.Layout.Tests;
 
 using KineticReports.Core.Geometry;
+using KineticReports.Core.LayoutEngine;
 using KineticReports.Layout.Tests.Fakes;
 
 public class MeasureContextTests

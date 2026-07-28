@@ -7,7 +7,6 @@ using KineticReports.Core.Geometry;
 using KineticReports.Core.Layout;
 using KineticReports.Core.LayoutEngine;
 using KineticReports.Core.Plugins;
-using KineticReports.Core.Plugins;
 using KineticReports.Core.Rendering;
 using KineticReports.Core.Rendering.Skia;
 using KineticReports.Core.Typography;
@@ -32,7 +31,6 @@ public sealed class DefaultReportService : IReportService
     private readonly VisualTextSearchIndexBuilder _textSearchIndexBuilder;
     private readonly ITextLayout _textLayout;
     private readonly IPluginManager? _pluginManager;
-    private readonly IPluginManager? _pluginManager;
     private readonly SkiaRenderer _pdfRenderer = new(new RenderOptions { Format = RenderFormat.Pdf });
     private readonly ILogger<DefaultReportService> _logger;
     private IReadOnlyList<string> _latestTrace = [];
@@ -49,17 +47,14 @@ public sealed class DefaultReportService : IReportService
         ITextLayout textLayout,
         ILogger<DefaultReportService> logger,
         IPluginManager? pluginManager = null)
-        ILogger<DefaultReportService> logger,
-        IPluginManager? pluginManager = null)
     {
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
-    _htmlExporter = htmlExporter ?? throw new ArgumentNullException(nameof(htmlExporter));
-    _visualDocumentBuilder = visualDocumentBuilder ?? throw new ArgumentNullException(nameof(visualDocumentBuilder));
-    _hitTestIndexBuilder = hitTestIndexBuilder ?? throw new ArgumentNullException(nameof(hitTestIndexBuilder));
-    _textSearchIndexBuilder = textSearchIndexBuilder ?? throw new ArgumentNullException(nameof(textSearchIndexBuilder));
-    _textLayout = textLayout ?? throw new ArgumentNullException(nameof(textLayout));
-    _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    _pluginManager = pluginManager;
+        _htmlExporter = htmlExporter ?? throw new ArgumentNullException(nameof(htmlExporter));
+        _visualDocumentBuilder = visualDocumentBuilder ?? throw new ArgumentNullException(nameof(visualDocumentBuilder));
+        _hitTestIndexBuilder = hitTestIndexBuilder ?? throw new ArgumentNullException(nameof(hitTestIndexBuilder));
+        _textSearchIndexBuilder = textSearchIndexBuilder ?? throw new ArgumentNullException(nameof(textSearchIndexBuilder));
+        _textLayout = textLayout ?? throw new ArgumentNullException(nameof(textLayout));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _pluginManager = pluginManager;
     }
 

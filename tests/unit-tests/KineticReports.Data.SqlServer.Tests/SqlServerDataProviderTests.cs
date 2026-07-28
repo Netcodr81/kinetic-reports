@@ -1,5 +1,5 @@
 using KineticReports.Core.Data;
-using KineticReports.Data.SqlServer;
+using KineticReports.Core.Data.SqlServer;
 
 namespace KineticReports.Data.SqlServer.Tests;
 

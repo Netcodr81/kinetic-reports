@@ -1,6 +1,6 @@
 namespace KineticReports.Engine.Tests.Data;
 
-using KineticReports.Engine.Data;
+using KineticReports.Core.Engine.Data;
 
 public class DataContextTests
 {
