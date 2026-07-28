@@ -8,33 +8,43 @@
 @using System.Text
 @using System.Text.RegularExpressions
 
-<div class="kinetic-report-viewer">
+<div class="@ViewerCssClass" style="@ComputedViewerStyle">
     <div class="kinetic-report-card">
-        <div class="kinetic-report-card-header">
-            <button type="button" class="kinetic-report-header-button" @onclick="PrintAsync" disabled="@string.IsNullOrEmpty(HtmlContent)">
-                <i class="fa-solid fa-print"></i>
-            </button>
-            <div class="kinetic-report-viewer-pager">
-                <button type="button" class="kinetic-report-header-button" @onclick="GoToFirstPage" disabled="@(!CanNavigateBackward)">
+        <div class="kinetic-report-card-header" role="toolbar" aria-label="Report actions">
+            <div class="kinetic-report-toolbar-group">
+                <button type="button" class="kinetic-report-header-button" @onclick="PrintAsync" disabled="@string.IsNullOrEmpty(HtmlContent)" title="Print report" aria-label="Print report">
+                    <i class="fa-solid fa-print"></i>
+                </button>
+            </div>
+
+            <div class="kinetic-report-viewer-pager" aria-label="Report page navigation">
+                <button type="button" class="kinetic-report-header-button" @onclick="GoToFirstPage" disabled="@(!CanNavigateBackward)" title="First page" aria-label="First page">
                     <i class="fa-solid fa-backward-fast"></i>
                 </button>
-                <button type="button" class="kinetic-report-header-button" @onclick="GoToPreviousPage" disabled="@(!CanNavigateBackward)">
+                <button type="button" class="kinetic-report-header-button" @onclick="GoToPreviousPage" disabled="@(!CanNavigateBackward)" title="Previous page" aria-label="Previous page">
                     <i class="fa-solid fa-backward-step"></i>
                 </button>
                 <span>Page @(HasReportPages ? _currentPageNumber : 0) of @TotalPages</span>
-                <button type="button" class="kinetic-report-header-button" @onclick="GoToNextPage" disabled="@(!CanNavigateForward)">
+                <button type="button" class="kinetic-report-header-button" @onclick="GoToNextPage" disabled="@(!CanNavigateForward)" title="Next page" aria-label="Next page">
                     <i class="fa-solid fa-forward-step"></i>
                 </button>
-                <button type="button" class="kinetic-report-header-button" @onclick="GoToLastPage" disabled="@(!CanNavigateForward)">
+                <button type="button" class="kinetic-report-header-button" @onclick="GoToLastPage" disabled="@(!CanNavigateForward)" title="Last page" aria-label="Last page">
                     <i class="fa-solid fa-forward-fast"></i>
                 </button>
             </div>
-            <button type="button" class="kinetic-report-header-button" @onclick="PrintPdf" disabled="@(ReportDocument is null)">
-                <i class="fa-solid fa-file-pdf"></i>
-            </button>
-            <button type="button" class="kinetic-report-header-button" @onclick="PrintHtml" disabled="@(ReportDocument is null)">
-                <i class="fa-brands fa-html5"></i>
-            </button>
+
+            <div class="kinetic-report-toolbar-group">
+                <button type="button" class="kinetic-report-header-button" @onclick="PrintPdf" disabled="@(ReportDocument is null)" title="Download PDF" aria-label="Download PDF">
+                    <i class="fa-solid fa-file-pdf"></i>
+                </button>
+                <button type="button" class="kinetic-report-header-button" @onclick="PrintHtml" disabled="@(ReportDocument is null)" title="Download HTML" aria-label="Download HTML">
+                    <i class="fa-brands fa-html5"></i>
+                </button>
+                @if (ToolbarActions is not null)
+                {
+                    @ToolbarActions
+                }
+            </div>
         </div>
 
         <div class="kinetic-report-card-body">
@@ -84,6 +94,48 @@
     [Parameter]
     public EventCallback<ReportExecutionResult> OnExecutionComplete { get; set; }
 
+    /// <summary>
+    /// Selects the built-in viewer density profile.
+    /// </summary>
+    [Parameter]
+    public ReportViewerDensity Density { get; set; } = ReportViewerDensity.Comfortable;
+
+    /// <summary>
+    /// Optional accent color token (e.g. #2563eb) applied via CSS variable.
+    /// </summary>
+    [Parameter]
+    public string? AccentColor { get; set; }
+
+    /// <summary>
+    /// Optional surface background token applied via CSS variable.
+    /// </summary>
+    [Parameter]
+    public string? SurfaceColor { get; set; }
+
+    /// <summary>
+    /// Optional border color token applied via CSS variable.
+    /// </summary>
+    [Parameter]
+    public string? BorderColor { get; set; }
+
+    /// <summary>
+    /// Optional page background token applied via CSS variable.
+    /// </summary>
+    [Parameter]
+    public string? PageBackgroundColor { get; set; }
+
+    /// <summary>
+    /// Optional additional toolbar content appended to the right toolbar group.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ToolbarActions { get; set; }
+
+    /// <summary>
+    /// Selects the built-in color theme for the viewer.
+    /// </summary>
+    [Parameter]
+    public ReportViewerTheme Theme { get; set; } = ReportViewerTheme.Light;
+
     private string HtmlContent { get; set; } = string.Empty;
     private string ErrorMessage { get; set; } = string.Empty;
     private bool IsLoading { get; set; }
@@ -101,6 +153,10 @@
     private bool CanNavigateForward => HasReportPages && _currentPageNumber < TotalPages;
 
     private IJSObjectReference? _jsModule;
+
+    private string ViewerCssClass => $"kinetic-report-viewer kinetic-report-viewer--{GetDensityClass(Density)} kinetic-report-viewer--{GetThemeClass(Theme)}";
+
+    private string ComputedViewerStyle => BuildViewerStyle();
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
@@ -299,6 +355,45 @@
         }
 
         return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
+    }
+
+    private static string GetDensityClass(ReportViewerDensity density)
+    {
+        return density switch
+        {
+            ReportViewerDensity.Compact => "compact",
+            ReportViewerDensity.Spacious => "spacious",
+            _ => "comfortable"
+        };
+    }
+
+    private static string GetThemeClass(ReportViewerTheme theme)
+    {
+        return theme switch
+        {
+            ReportViewerTheme.Dark => "dark",
+            _ => "light"
+        };
+    }
+
+    private string BuildViewerStyle()
+    {
+        var styleParts = new List<string>();
+
+        AppendCssVariable(styleParts, "--kr-accent", AccentColor);
+        AppendCssVariable(styleParts, "--kr-surface", SurfaceColor);
+        AppendCssVariable(styleParts, "--kr-border", BorderColor);
+        AppendCssVariable(styleParts, "--kr-page-bg", PageBackgroundColor);
+
+        return string.Join(' ', styleParts);
+    }
+
+    private static void AppendCssVariable(List<string> styleParts, string variableName, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return;
+
+        styleParts.Add($"{variableName}: {value.Trim()};");
     }
 
     private async Task<IJSObjectReference> EnsureJsModuleAsync()
