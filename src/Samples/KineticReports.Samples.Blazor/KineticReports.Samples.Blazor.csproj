@@ -7,10 +7,6 @@
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Content Remove="wwwroot\kinetic-report.css" />
-  </ItemGroup>
-
  <ItemGroup>
    <ProjectReference Include="..\..\Core\KineticReports.Core\KineticReports.Core.csproj" />
     <ProjectReference Include="..\..\Viewer\KineticReports.Viewer.Blazor\KineticReports.Viewer.Blazor.csproj" />
@@ -21,12 +17,5 @@
     <Content Include="Data\sample-reports.seed.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="wwwroot\kinetic-report.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <LogicalName>KineticReports.Export.Html.Styles.kinetic-report.css</LogicalName>
-    </EmbeddedResource>
   </ItemGroup>
 </Project>

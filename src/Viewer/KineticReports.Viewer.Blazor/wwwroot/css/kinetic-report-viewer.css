@@ -1,0 +1,205 @@
+﻿/* KineticReports Blazor Report Viewer Styles */
+
+.kinetic-report-viewer {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #f8f9fa;
+    border-radius: 0.375rem;
+    padding: 1.5rem;
+}
+
+.kinetic-report-card-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1rem;
+    background-color: var(--kr-report-header-bg,lightgray);
+    border-bottom: 1px solid var(--kr-report-header-border,darkgray);
+    font-weight: 600;
+    min-height: 50px;
+    gap: 2rem;
+}
+
+
+.kinetic-report-viewer .alert {
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 0.375rem;
+}
+
+.kinetic-report-viewer .alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.kinetic-report-viewer .alert-info {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+}
+
+.kinetic-report-viewer .alert-dismissible {
+    padding-right: 4rem;
+    position: relative;
+}
+
+    .kinetic-report-viewer .alert-dismissible .btn-close {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+        opacity: 0.5;
+        padding: 0;
+    }
+
+.kinetic-report-header-button {
+    border: none;
+    background: inherit;
+    font-size: 1.5rem;
+}
+
+.kinetic-report-viewer-pager {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+}
+
+    .kinetic-report-viewer-pager > span {
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+.kinetic-report-viewer .alert-dismissible .btn-close:hover {
+    opacity: 0.75;
+}
+
+.kinetic-report-viewer .report-output {
+    overflow-x: auto;
+}
+
+.kinetic-report-viewer .preview-content {
+    width: max-content;
+    min-width: 100%;
+    min-height: 960px;
+}
+
+
+.kinetic-report-card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    margin-bottom: 1rem;
+    transition: box-shadow 0.3s ease;
+}
+
+    .kinetic-report-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    }
+
+.kinetic-report-viewer .preview-content #report-document {
+    width: 100%;
+}
+
+.kinetic-report-viewer .preview-content .kinetic-page {
+    background: var(--kr-page-bg, #fff);
+    border: 1px solid var(--kr-page-border, #dcdfe4);
+    box-shadow: var(--kr-page-shadow, 0 2px 8px rgba(0,0,0,0.12));
+}
+
+
+@page {
+    size: auto;
+}
+
+/* Print styles */
+@media print {
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        background: #fff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .kinetic-report-viewer,
+    .kinetic-report-card,
+    .kinetic-report-card-body {
+        background: #fff !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .kinetic-report-card-header,
+    .kinetic-report-viewer .alert {
+        display: none !important;
+    }
+
+    .kinetic-report-viewer .report-output,
+    .kinetic-report-viewer .preview-content {
+        overflow: visible !important;
+        width: auto !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+    }
+
+    .kinetic-page {
+        box-shadow: none !important;
+        border-color: #bbb !important;
+        margin: 0 0 8mm 0 !important;
+        break-after: page;
+        page-break-after: always;
+        overflow: hidden !important;
+    }
+
+    .kinetic-page:last-child {
+        margin-bottom: 0 !important;
+        break-after: auto;
+        page-break-after: auto;
+    }
+
+    .page-background {
+        overflow: hidden !important;
+    }
+
+    .table-element {
+        overflow: hidden !important;
+    }
+
+    .kinetic-table,
+    .table-element table {
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+        table-layout: fixed;
+        width: 100% !important;
+    }
+
+    .kinetic-table td,
+    .kinetic-table th,
+    .table-element td,
+    .table-element th {
+        vertical-align: top;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .report-document {
+        font-size: 92% !important;
+    }
+
+    .text-element,
+    .kinetic-table td,
+    .kinetic-table th,
+    .table-element td,
+    .table-element th {
+        font-size: 0.92em !important;
+        line-height: 1.15 !important;
+    }
+}

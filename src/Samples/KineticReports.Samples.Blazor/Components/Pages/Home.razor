@@ -106,127 +106,116 @@
                 <div class="form-check mb-2">
                     <input class="form-check-input" type="checkbox" id="watermark-plugin-enabled"
                            @bind="_watermarkPluginEnabled" />
-                    <label class="form-check-label small" for="watermark-plugin-enabled">Run plugin kinetic.watermark
-                        for this report</label>
-                    </div>
+                    <label class="form-check-label small" for="watermark-plugin-enabled">
+                        Run plugin kinetic.watermark for this report
+                    </label>
+                </div>
 
-                    <div class="mb-2">
-                        <label class="form-label">Watermark text</label>
-                        <input class="form-control form-control-sm" @bind="_watermarkMessage" maxlength="120" />
-                    </div>
+                <div class="mb-2">
+                    <label class="form-label">Watermark text</label>
+                    <input class="form-control form-control-sm" @bind="_watermarkMessage" maxlength="120" />
+                </div>
 
-                    <div class="mb-2">
-                        <label class="form-label">Watermark image URL (optional)</label>
-                        <input class="form-control form-control-sm" @bind="_watermarkImageUrl"
-                               placeholder="https://example.com/watermark.png" />
-                        <div class="form-text">If set, image is used instead of text.</div>
-                    </div>
+                <div class="mb-2">
+                    <label class="form-label">Watermark image URL (optional)</label>
+                    <input class="form-control form-control-sm" @bind="_watermarkImageUrl"
+                           placeholder="https://example.com/watermark.png" />
+                    <div class="form-text">If set, image is used instead of text.</div>
+                </div>
 
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <label class="form-label">Opacity</label>
-                            <input class="form-control form-control-sm" type="number" min="0.01" max="1" step="0.01"
-                                   @bind="_watermarkOpacity" />
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Rotation</label>
-                            <input class="form-control form-control-sm" type="number" min="-360" max="360" step="1"
-                                   @bind="_watermarkRotationDegrees" />
-                        </div>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">Opacity</label>
+                        <input class="form-control form-control-sm" type="number" min="0.01" max="1" step="0.01"
+                               @bind="_watermarkOpacity" />
                     </div>
-
-                    <div class="row g-2 mt-1">
-                        <div class="col-6">
-                            <label class="form-label">Font size</label>
-                            <input class="form-control form-control-sm" type="number" min="10" max="300" step="1"
-                                   @bind="_watermarkFontSizePx" />
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Text color</label>
-                            <input class="form-control form-control-sm" @bind="_watermarkTextColorHex"
-                                   placeholder="#000000" />
-                        </div>
-                    </div>
-
-                    <div class="d-grid gap-2 mt-3">
-                        <button class="btn btn-primary btn-sm" @onclick="ApplyWatermarkAsync" disabled="@_isBusy">Apply
-                            Watermark</button>
-                            <button class="btn btn-outline-secondary btn-sm" @onclick="ResetWatermarkAsync"
-                                    disabled="@_isBusy">Reset Watermark</button>
-                        </div>
+                    <div class="col-6">
+                        <label class="form-label">Rotation</label>
+                        <input class="form-control form-control-sm" type="number" min="-360" max="360" step="1"
+                               @bind="_watermarkRotationDegrees" />
                     </div>
                 </div>
 
-                <div class="alert alert-secondary small mt-3 mb-0">
-                    <div><strong>SQLite provider setup:</strong></div>
-                    <div>Connection string key: ConnectionStrings:SqlLite</div>
-                    <div>The sample auto-seeds a local database at startup using Data/sample-reports-sqlite.seed.sql.</div>
-                    <div>It creates the reporting tables used by both sample reports.</div>
+                <div class="row g-2 mt-1">
+                    <div class="col-6">
+                        <label class="form-label">Font size</label>
+                        <input class="form-control form-control-sm" type="number" min="10" max="300" step="1"
+                               @bind="_watermarkFontSizePx" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Text color</label>
+                        <input class="form-control form-control-sm" @bind="_watermarkTextColorHex"
+                               placeholder="#000000" />
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-3">
+                    <button class="btn btn-primary btn-sm" @onclick="ApplyWatermarkAsync" disabled="@_isBusy">Apply
+                        Watermark</button>
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="ResetWatermarkAsync"
+                                disabled="@_isBusy">Reset Watermark</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-lg-8">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Report Preview</h5>
-                    </div>
-                    <div class="card-body">
-                        @if (!string.IsNullOrWhiteSpace(_status))
-                        {
-                            <div class="alert alert-info py-2 mb-3">@_status</div>
-                        }
+            <div class="alert alert-secondary small mt-3 mb-0">
+                <div><strong>SQLite provider setup:</strong></div>
+                <div>Connection string key: ConnectionStrings:SqlLite</div>
+                <div>The sample auto-seeds a local database at startup using Data/sample-reports-sqlite.seed.sql.</div>
+                <div>It creates the reporting tables used by both sample reports.</div>
+            </div>
+        </div>
 
-                        @if (!string.IsNullOrWhiteSpace(_error))
-                        {
-                            <div class="alert alert-danger py-2 mb-3">@_error</div>
-                        }
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Report Preview</h5>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrWhiteSpace(_status))
+                    {
+                        <div class="alert alert-info py-2 mb-3">@_status</div>
+                    }
 
-                        <div class="row">
-                            <div class="col-12 mb-3">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h6 class="mb-0">Viewer</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        @if (_activeDefinition is null)
-                                        {
-                                            <p class="text-muted mb-0">Load a report to preview the rendered output.</p>
-                                        }
-                                        else
-                                        {
-                                            <ReportViewer ReportDocument="@_activeReportDocument" AutoRender="true"
-                                                          OnExecutionComplete="OnViewerExecutionComplete" />
-                                        }
-                                    </div>
-                                </div>
-                            </div>
+                    @if (!string.IsNullOrWhiteSpace(_error))
+                    {
+                        <div class="alert alert-danger py-2 mb-3">@_error</div>
+                    }
 
-                            <div class="col-12 mb-3">
-                                <div class="card">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0">Effective ReportDefinition JSON</h6>
-                                        @if (!string.IsNullOrWhiteSpace(_activeReportName))
-                                        {
-                                            <span class="small text-muted">@_activeReportName</span>
-                                        }
-                                    </div>
-                                    <div class="card-body">
-                                        @if (string.IsNullOrWhiteSpace(_definitionJson))
-                                        {
-                                            <p class="text-muted mb-0">Select a template/provider, then click Load Report.</p>
-                                        }
-                                        else
-                                        {
-                                            <pre class="json-preview mb-0">@_definitionJson</pre>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
+                    @if (_activeDefinition is null)
+                    {
+                        <p class="text-muted mb-0">Load a report to preview the rendered output.</p>
+                    }
+                    else
+                    {
+                        <ReportViewer ReportDocument="@_activeReportDocument" AutoRender="true"
+                                      OnExecutionComplete="OnViewerExecutionComplete"
+                                      @rendermode="InteractiveServer" />
+                    }
+
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Effective ReportDefinition JSON</h6>
+                            @if (!string.IsNullOrWhiteSpace(_activeReportName))
+                            {
+                                <span class="small text-muted">@_activeReportName</span>
+                            }
+                        </div>
+                        <div class="card-body">
+                            @if (string.IsNullOrWhiteSpace(_definitionJson))
+                            {
+                                <p class="text-muted mb-0">Select a template/provider, then click Load Report.</p>
+                            }
+                            else
+                            {
+                                <pre class="json-preview mb-0">@_definitionJson</pre>
+                            }
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
 @code {
     private static readonly IReadOnlySet<string> LayoutItemTypes = new HashSet<string>(StringComparer.Ordinal)
@@ -302,7 +291,7 @@
             _definitionJson = BuildDisplayDefinitionJson(_activeDefinition);
             _activeReportName = _activeDefinition.Name;
             _activeReportDocument = await ReportEngine.RunAsync(_activeDefinition);
-            _status = $"Loaded '{_activeDefinition.Name}' using provider '{_selectedProviderType}' and built {_activeReportDocument.PageCount} page(s).";
+            _status = $"Loaded '{_activeDefinition.Name}' using provider '{_selectedProviderType}' and built   {_activeReportDocument.PageCount} page(s).";
         }
         catch (Exception ex)
         {

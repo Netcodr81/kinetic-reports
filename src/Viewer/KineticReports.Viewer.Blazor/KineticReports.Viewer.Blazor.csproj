@@ -21,9 +21,11 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
+ 
+
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components" Version="10.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="10.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.10" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\..\..\..\Users\michael.eckel\Downloads\fontawesome-free-7.3.1-web\fontawesome-free-7.3.1-web\js\all.min.js" Link="wwwroot\all.min.js" />
     <None Include="..\..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 
