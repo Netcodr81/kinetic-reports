@@ -10,25 +10,29 @@
     {
       "id": "regional-performance",
       "name": "Regional Performance",
-      "providerType": "InMemory",
+      "providerType": "Poco",
+      "sourceName": "DefaultInMemory",
       "properties": {}
     },
     {
       "id": "top-accounts",
       "name": "Top Accounts",
-      "providerType": "InMemory",
+      "providerType": "Poco",
+      "sourceName": "DefaultInMemory",
       "properties": {}
     },
     {
       "id": "monthly-trend",
       "name": "Monthly Trend",
-      "providerType": "InMemory",
+      "providerType": "Poco",
+      "sourceName": "DefaultInMemory",
       "properties": {}
     },
     {
       "id": "sales-orders-detail",
       "name": "Selected Closed Orders",
-      "providerType": "InMemory",
+      "providerType": "Poco",
+      "sourceName": "DefaultInMemory",
       "properties": {}
     }
   ],

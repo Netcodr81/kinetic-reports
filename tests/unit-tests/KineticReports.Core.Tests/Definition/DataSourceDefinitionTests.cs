@@ -12,11 +12,13 @@ public class DataSourceDefinitionTests
         {
             Id = "MainDb",
             Name = "Main Database",
-            ProviderType = "SqlServer"
+            ProviderType = "SqlServer",
+            SourceName = "MainSqlServer"
         };
         ds.Id.ShouldBe("MainDb");
         ds.Name.ShouldBe("Main Database");
         ds.ProviderType.ShouldBe("SqlServer");
+        ds.SourceName.ShouldBe("MainSqlServer");
     }
 
     [Fact]
@@ -26,7 +28,8 @@ public class DataSourceDefinitionTests
         {
             Id = "TestDs",
             Name = "Test",
-            ProviderType = "Rest"
+            ProviderType = "Rest",
+            SourceName = "ApiSource"
         };
         ds.Properties.Count.ShouldBe(0);
     }
@@ -44,6 +47,7 @@ public class DataSourceDefinitionTests
             Id = "Db",
             Name = "Database",
             ProviderType = "SqlServer",
+            SourceName = "OperationalSqlServer",
             Properties = props
         };
         ds.Properties["ConnectionString"].ShouldBe("Server=localhost;Database=MyDb;");

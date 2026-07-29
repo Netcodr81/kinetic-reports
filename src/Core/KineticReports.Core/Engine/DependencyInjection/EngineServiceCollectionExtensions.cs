@@ -38,7 +38,7 @@ public static class EngineServiceCollectionExtensions
             typeof(global::KineticReports.Core.Engine.Expressions.DefaultExpressionValidator),
             lifetime));
 
-        services.AddPocoDataProvider();
+        services.AddPocoDataProvider("DefaultInMemory");
 
         services.TryAddEnumerable(new ServiceDescriptor(
             typeof(global::KineticReports.Core.Engine.Data.IDataSourceResolver),

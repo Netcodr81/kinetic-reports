@@ -58,7 +58,8 @@ property supported by `ReportDefinition`.
     {
       "id": "sales-orders",
       "name": "Sales Orders",
-      "providerType": "SampleInMemory",
+      "providerType": "Poco",
+      "sourceName": "DefaultInMemory",
       "properties": {
         "seed": "sales-2026"
       }

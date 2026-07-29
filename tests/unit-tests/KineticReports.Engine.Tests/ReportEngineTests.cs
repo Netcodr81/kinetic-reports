@@ -85,8 +85,8 @@ public class ReportEngineTests
             Id = "rpt",
             Name = "Test",
             DataSources = [
-                new DataSourceDefinition { Id = "ds1", Name = "Source 1", ProviderType = "test" },
-                new DataSourceDefinition { Id = "ds2", Name = "Source 2", ProviderType = "test" }
+                new DataSourceDefinition { Id = "ds1", Name = "Source 1", ProviderType = "test", SourceName = "TestSourceOne" },
+                new DataSourceDefinition { Id = "ds2", Name = "Source 2", ProviderType = "test", SourceName = "TestSourceTwo" }
             ]
         };
 
@@ -111,7 +111,7 @@ public class ReportEngineTests
             SchemaVersion = "1.0",
             Id = "rpt",
             Name = "Test",
-            DataSources = [new DataSourceDefinition { Id = "ds1", Name = "S1", ProviderType = "test" }]
+            DataSources = [new DataSourceDefinition { Id = "ds1", Name = "S1", ProviderType = "test", SourceName = "TestSourceOne" }]
         };
 
         var sut = BuildEngine();

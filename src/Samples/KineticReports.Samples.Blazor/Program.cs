@@ -30,7 +30,8 @@ builder.Services
     .AddKeneticReports()
     .ConfigureHtmlExporter(options => options.StylesheetHref = "/kinetic-report.css")
     .AddBlazorViewer()
-    .AddSqlLiteDataProvider(sqlLiteConnectionString);
+    .AddPocoDataProvider("DefaultInMemory")
+    .AddSqlLiteDataProvider("SampleSqlLite", sqlLiteConnectionString);
 
 builder.Services.AddSingleton<ISampleReportCatalogService, SampleReportCatalogService>();
 
@@ -57,7 +58,10 @@ app.Run();
 static void SeedInMemoryData(IServiceProvider services)
 {
     using var scope = services.CreateScope();
-    var provider = scope.ServiceProvider.GetRequiredService<PocoDataProvider>();
+    var namedProviders = scope.ServiceProvider.GetServices<INamedDataProvider>();
+    var defaultInMemory = namedProviders?.FirstOrDefault(p => p.SourceName == "DefaultInMemory");
+    if (defaultInMemory?.Provider is not PocoDataProvider provider)
+        return;  // Provider not registered or wrong type
 
     provider.SetDataSource(
         "regional-performance",

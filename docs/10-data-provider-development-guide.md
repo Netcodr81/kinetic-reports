@@ -12,7 +12,7 @@ This guide explains how to connect reports to real data.
 ### Steps
 
 1. Create class implementing `IDataResolver`.
-2. Read `DataSourceDefinition` (`Id`, `ProviderType`, `Properties`).
+2. Read `DataSourceDefinition` (`Id`, `ProviderType`, `SourceName`, `Properties`).
 3. Fetch rows from backend.
 4. Return `IReadOnlyList<IReadOnlyDictionary<string, object?>>`.
 5. Register in DI.
@@ -42,7 +42,7 @@ flowchart LR
 
 | Type | Purpose | Key Members |
 |---|---|---|
-| `DataSourceDefinition` | Report-side source declaration | `Id`, `ProviderType`, `Properties` |
+| `DataSourceDefinition` | Report-side source declaration | `Id`, `ProviderType`, `SourceName`, `Properties` |
 | `IDataResolver` | Engine-side resolution contract | `ResolveAsync(...)` |
 | `IDataProvider` | Backend query abstraction | `ExecuteAsync(...)` |
 | `QueryRequest` | Provider request model | `DatasetName`, `QueryText`, `Parameters` |

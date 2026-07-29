@@ -4,7 +4,7 @@ using KineticReports.Core.Data;
 using KineticReports.Core.Definition;
 
 /// <summary>
-/// Resolves data sources by dispatching to a named <see cref="IDataProvider"/>.
+/// Resolves data sources by dispatching to a named <see cref="IDataProvider"/> source.
 /// </summary>
 public sealed class ProviderDataSourceResolver : IDataSourceResolver
 {
@@ -26,7 +26,7 @@ public sealed class ProviderDataSourceResolver : IDataSourceResolver
     public bool CanResolve(DataSourceDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(definition);
-        return FindProvider(definition.ProviderType) is not null;
+        return FindProvider(definition.SourceName, definition.ProviderType) is not null;
     }
 
     /// <inheritdoc/>
@@ -38,11 +38,11 @@ public sealed class ProviderDataSourceResolver : IDataSourceResolver
         ArgumentNullException.ThrowIfNull(definition);
         ArgumentNullException.ThrowIfNull(parameters);
 
-        var provider = FindProvider(definition.ProviderType);
+        var provider = FindProvider(definition.SourceName, definition.ProviderType);
         if (provider is null)
         {
             throw new InvalidOperationException(
-                $"No IDataProvider is registered for provider type '{definition.ProviderType}'.");
+                $"No IDataProvider source named '{definition.SourceName}' is registered for provider type '{definition.ProviderType}'.");
         }
 
         var queryText = ResolveQueryText(definition);
@@ -59,13 +59,15 @@ public sealed class ProviderDataSourceResolver : IDataSourceResolver
         return ConvertRows(queryResult);
     }
 
-    private IDataProvider? FindProvider(string providerType)
+    private IDataProvider? FindProvider(string sourceName, string providerType)
     {
-        if (string.IsNullOrWhiteSpace(providerType))
+        if (string.IsNullOrWhiteSpace(sourceName) || string.IsNullOrWhiteSpace(providerType))
             return null;
 
         return _providers
-            .FirstOrDefault(candidate => string.Equals(candidate.ProviderType, providerType, StringComparison.OrdinalIgnoreCase))
+            .FirstOrDefault(candidate =>
+                string.Equals(candidate.SourceName, sourceName, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(candidate.ProviderType, providerType, StringComparison.OrdinalIgnoreCase))
             ?.Provider;
     }
 

@@ -2,8 +2,7 @@ namespace KineticReports.Core.Definition;
 
 /// <summary>
 /// Describes a data source referenced by the report definition.
-/// The runtime uses <see cref="ProviderType"/> to locate and instantiate
-/// the appropriate data provider plugin.
+/// The runtime uses <see cref="SourceName"/> to locate the registered provider instance.
 /// </summary>
 public sealed record DataSourceDefinition
 {
@@ -14,10 +13,16 @@ public sealed record DataSourceDefinition
     public required string Name { get; init; }
 
     /// <summary>
-    /// Gets or inits the provider type identifier (e.g. "SqlServer", "Rest", "Csv").
-    /// This value is matched against registered <c>IDataProvider</c> implementations.
+    /// Gets or inits the provider type identifier (e.g. "SqlServer", "SqlLite", "Poco").
+    /// This value documents the expected provider category for this data source.
     /// </summary>
     public required string ProviderType { get; init; }
+
+    /// <summary>
+    /// Gets or inits the required registered provider source name.
+    /// This value must match a configured named provider registration.
+    /// </summary>
+    public required string SourceName { get; init; }
 
     /// <summary>
     /// Gets or inits provider-specific connection properties as key-value pairs.

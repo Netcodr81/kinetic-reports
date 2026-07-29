@@ -8,7 +8,7 @@ This page documents key Core contracts and base abstractions.
 |---|---|---|---|
 | `ReportDefinition` | record | Canonical report input | `SchemaVersion`, `Id`, `Name`, `Parameters`, `DataSources`, `Styles`, `Plugins` |
 | `ReportPluginToggleDefinition` | record | Per-report plugin enable/disable entry | `PluginId`, `Enabled` |
-| `DataSourceDefinition` | record | Declares a data source | `Id`, `Name`, `ProviderType`, `Properties` |
+| `DataSourceDefinition` | record | Declares a data source | `Id`, `Name`, `ProviderType`, `SourceName`, `Properties` |
 | `ParameterDefinition` | record | Declares report parameters | `Id`, `Name`, `Type`, `DefaultValue`, `IsRequired` |
 
 ## Core Interfaces

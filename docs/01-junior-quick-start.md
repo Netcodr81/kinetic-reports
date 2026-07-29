@@ -55,3 +55,4 @@ This is the default path for apps that want to pass a `ReportDefinition` in and 
 
 - [02 - Report Generation Flow](./02-report-generation-flow.md)
 - [07 - Extension Points Cheat Sheet](./07-extension-points.md)
+- [18 - Named Data Sources Quick Start](./18-named-data-sources-quick-start.md)

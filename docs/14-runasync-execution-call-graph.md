@@ -31,7 +31,7 @@ sequenceDiagram
         Engine->>Resolver: 5 ResolveAsync(definition DataSourceDefinition, parameters ParameterMap, cancellationToken CancellationToken)
         Resolver->>SourceResolver: 6 CanResolve(definition DataSourceDefinition)
         Resolver->>SourceResolver: 7 ResolveAsync(definition DataSourceDefinition, parameters ParameterMap, cancellationToken CancellationToken)
-        SourceResolver->>SourceResolver: 8 FindProvider(providerType string)
+        SourceResolver->>SourceResolver: 8 FindProvider(sourceName string, providerType string)
         SourceResolver->>SourceResolver: 9 ResolveQueryText(definition DataSourceDefinition)
         SourceResolver->>Provider: 10 ExecuteAsync(request QueryRequest, cancellationToken CancellationToken)
         Provider-->>SourceResolver: 11 QueryResult
@@ -90,7 +90,7 @@ Type aliases used in the diagrams:
 1. Caller invokes report generation from the host application by calling the engine.
 2. ReportEngine receives the call through IReportEngine and switches to the full overload.
 3. CompositeDataResolver iterates each data source in the definition.
-4. ProviderDataSourceResolver selects a provider by ProviderType and resolves query text.
+4. ProviderDataSourceResolver selects a provider by SourceName + ProviderType and resolves query text.
 5. IDataProvider executes the query request and returns schema and row values.
 6. ProviderDataSourceResolver converts provider output into row dictionaries.
 7. DefaultReportBuilder builds report blocks from definition layout and resolved data.
@@ -109,7 +109,7 @@ Type aliases used in the diagrams:
 | `IReportEngine`        | `ReportEngine`                                       | `RunAsync(definition: ReportDefinition, cancellationToken: CancellationToken)` -> `RunAsync(definition: ReportDefinition, parameters: IReadOnlyDictionary<string, object?>, layoutSizingContext: ILayoutSizingContext, layoutOptions: LayoutOptions?, cancellationToken: CancellationToken)` |
 | `IDataResolver`        | `CompositeDataResolver`                              | `ResolveAsync(definition: DataSourceDefinition, parameters: IReadOnlyDictionary<string, object?>, cancellationToken: CancellationToken)` |
 | `IDataSourceResolver`  | `ProviderDataSourceResolver`                         | `CanResolve(definition: DataSourceDefinition)`, `ResolveAsync(definition: DataSourceDefinition, parameters: IReadOnlyDictionary<string, object?>, cancellationToken: CancellationToken)` |
-| `IDataProvider`        | provider-specific implementation selected by provider type | `ExecuteAsync(request: QueryRequest, cancellationToken: CancellationToken)` |
+| `IDataProvider`        | provider-specific implementation selected by source name + provider type | `ExecuteAsync(request: QueryRequest, cancellationToken: CancellationToken)` |
 | `IReportBuilder`       | `DefaultReportBuilder`                               | `Build(dataContext: DataContext, evaluator: IExpressionEvaluator)`, `ConfigureFromLayoutDefinition(builder: DefaultReportBuilder, layout: ReportLayoutDefinition, styles: IReadOnlyList<StyleDefinition>)`, `ApplyPostProcessors(blocks: IReadOnlyList<ReportBlock>)` |
 | `IExpressionEvaluator` | `DefaultExpressionEvaluator`                         | `Evaluate(expression: string, context: ExpressionContext)` |
 | `ILayoutEngine`        | `LayoutEngine`                                       | `Layout(blocks: IReadOnlyList<ReportBlock>, options: LayoutOptions, context: ILayoutSizingContext)` |

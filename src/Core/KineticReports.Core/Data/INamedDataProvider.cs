@@ -1,13 +1,17 @@
 namespace KineticReports.Core.Data;
 
 /// <summary>
-/// Associates an <see cref="IDataProvider"/> with a provider-type key used by
-/// <c>DataSourceDefinition.ProviderType</c>.
+/// Associates an <see cref="IDataProvider"/> with an explicit source name and provider type.
 /// </summary>
 public interface INamedDataProvider
 {
     /// <summary>
-    /// Gets the provider-type key (for example: Poco, SqlServer, SqlLite).
+    /// Gets the required source name used by <c>DataSourceDefinition.SourceName</c>.
+    /// </summary>
+    string SourceName { get; }
+
+    /// <summary>
+    /// Gets the provider type category (for example: Poco, SqlServer, SqlLite).
     /// </summary>
     string ProviderType { get; }
 

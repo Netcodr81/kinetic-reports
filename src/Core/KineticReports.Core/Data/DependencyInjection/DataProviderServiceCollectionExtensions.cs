@@ -11,103 +11,102 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 public static class DataProviderServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers a singleton <see cref="PocoDataProvider"/> and exposes it as
-    /// <see cref="ILinqDataProvider"/>.
+    /// Registers a singleton <see cref="PocoDataProvider"/> as a named source.
     /// </summary>
     /// <param name="services">Service collection.</param>
+    /// <param name="sourceName">Required source name used by report data sources.</param>
     /// <param name="configure">Optional callback used to seed/modify the provider instance at startup.</param>
     /// <returns>The input service collection.</returns>
     public static IServiceCollection AddPocoDataProvider(
         this IServiceCollection services,
+        string sourceName,
         Action<PocoDataProvider>? configure = null)
     {
         ArgumentNullException.ThrowIfNull(services);
+        if (string.IsNullOrWhiteSpace(sourceName))
+            throw new ArgumentException("Source name is required.", nameof(sourceName));
 
-        services.TryAddSingleton<PocoDataProvider>(_ =>
-        {
-            var provider = new PocoDataProvider();
-            configure?.Invoke(provider);
-            return provider;
-        });
+        var provider = new PocoDataProvider();
+        configure?.Invoke(provider);
 
-        services.TryAddSingleton<ILinqDataProvider>(provider => provider.GetRequiredService<PocoDataProvider>());
-
-        AddNamedProviderAlias<PocoDataProvider>(services, "Poco");
-        AddNamedProviderAlias<PocoDataProvider>(services, "InMemory");
+        services.AddSingleton<INamedDataProvider>(new NamedDataProvider(sourceName, "Poco", provider));
+        services.TryAddSingleton<ILinqDataProvider>(provider);
 
         return services;
     }
 
     /// <summary>
-    /// Registers a singleton <see cref="SqlServerDataProvider"/> and maps it to provider type <c>SqlServer</c>.
+    /// Registers a singleton <see cref="SqlServerDataProvider"/> as a named source.
     /// </summary>
     /// <param name="services">Service collection.</param>
+    /// <param name="sourceName">Required source name used by report data sources.</param>
     /// <param name="connectionString">SQL Server connection string.</param>
     /// <returns>The input service collection.</returns>
     public static IServiceCollection AddSqlServerDataProvider(
         this IServiceCollection services,
+        string sourceName,
         string connectionString)
     {
         ArgumentNullException.ThrowIfNull(services);
+        if (string.IsNullOrWhiteSpace(sourceName))
+            throw new ArgumentException("Source name is required.", nameof(sourceName));
         if (string.IsNullOrWhiteSpace(connectionString))
             throw new ArgumentException("Connection string is required.", nameof(connectionString));
 
-        services.TryAddSingleton<SqlServerDataProvider>(_ => new SqlServerDataProvider(connectionString));
-
-        AddNamedProviderAlias<SqlServerDataProvider>(services, "SqlServer");
-        AddNamedProviderAlias<SqlServerDataProvider>(services, "SQL Server");
+        var provider = new SqlServerDataProvider(connectionString);
+        services.AddSingleton<INamedDataProvider>(new NamedDataProvider(sourceName, "SqlServer", provider));
 
         return services;
     }
 
     /// <summary>
-    /// Registers a singleton <see cref="SqlLiteDataProvider"/> and maps it to provider type <c>SqlLite</c>.
+    /// Registers a singleton <see cref="SqlLiteDataProvider"/> as a named source.
     /// </summary>
     /// <param name="services">Service collection.</param>
+    /// <param name="sourceName">Required source name used by report data sources.</param>
     /// <param name="connectionString">SQLite connection string.</param>
     /// <returns>The input service collection.</returns>
     public static IServiceCollection AddSqlLiteDataProvider(
         this IServiceCollection services,
+        string sourceName,
         string connectionString)
     {
         ArgumentNullException.ThrowIfNull(services);
+        if (string.IsNullOrWhiteSpace(sourceName))
+            throw new ArgumentException("Source name is required.", nameof(sourceName));
         if (string.IsNullOrWhiteSpace(connectionString))
             throw new ArgumentException("Connection string is required.", nameof(connectionString));
 
-        services.TryAddSingleton<SqlLiteDataProvider>(_ => new SqlLiteDataProvider(connectionString));
-
-        AddNamedProviderAlias<SqlLiteDataProvider>(services, "SqlLite");
-        AddNamedProviderAlias<SqlLiteDataProvider>(services, "SQLite");
+        var provider = new SqlLiteDataProvider(connectionString);
+        services.AddSingleton<INamedDataProvider>(new NamedDataProvider(sourceName, "SqlLite", provider));
 
         return services;
     }
 
     /// <summary>
-    /// Registers a provider-type alias for an already-registered <see cref="IDataProvider"/> implementation.
+    /// Registers an existing provider instance as a named source.
     /// </summary>
-    /// <typeparam name="TProvider">Provider implementation type.</typeparam>
     /// <param name="services">Service collection.</param>
-    /// <param name="providerType">Provider type key matched from report definitions.</param>
+    /// <param name="sourceName">Required source name used by report data sources.</param>
+    /// <param name="providerType">Provider type category (for example: SqlServer, SqlLite, Poco).</param>
+    /// <param name="provider">Provider instance.</param>
     /// <returns>The input service collection.</returns>
-    public static IServiceCollection AddDataProviderAlias<TProvider>(
+    public static IServiceCollection AddNamedDataProvider(
         this IServiceCollection services,
-        string providerType)
-        where TProvider : class, IDataProvider
+        string sourceName,
+        string providerType,
+        IDataProvider provider)
     {
         ArgumentNullException.ThrowIfNull(services);
-        AddNamedProviderAlias<TProvider>(services, providerType);
+        ArgumentNullException.ThrowIfNull(provider);
+        if (string.IsNullOrWhiteSpace(sourceName))
+            throw new ArgumentException("Source name is required.", nameof(sourceName));
+        if (string.IsNullOrWhiteSpace(providerType))
+            throw new ArgumentException("Provider type is required.", nameof(providerType));
+
+        services.AddSingleton<INamedDataProvider>(new NamedDataProvider(sourceName, providerType, provider));
         return services;
     }
 
-    private static void AddNamedProviderAlias<TProvider>(IServiceCollection services, string providerType)
-        where TProvider : class, IDataProvider
-    {
-        if (string.IsNullOrWhiteSpace(providerType))
-            return;
-
-        services.AddSingleton<INamedDataProvider>(provider =>
-            new NamedDataProvider(providerType, provider.GetRequiredService<TProvider>()));
-    }
-
-    private sealed record NamedDataProvider(string ProviderType, IDataProvider Provider) : INamedDataProvider;
+    private sealed record NamedDataProvider(string SourceName, string ProviderType, IDataProvider Provider) : INamedDataProvider;
 }

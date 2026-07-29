@@ -1,6 +1,7 @@
 namespace KineticReports.Samples.Blazor.DependencyInjection;
 
 using KineticReports.Core.Authoring.DependencyInjection;
+using KineticReports.Core.Data;
 using KineticReports.Core.Data.DependencyInjection;
 using KineticReports.Core.Engine;
 using KineticReports.Core.Engine.Building;
@@ -112,20 +113,34 @@ public sealed class KeneticReportsBuilder
     }
 
     /// <summary>
-    /// Registers a SQL Server data provider mapped to provider type <c>SqlServer</c>.
+    /// Registers a SQL Server data provider mapped to a required source name.
     /// </summary>
-    public KeneticReportsBuilder AddSqlServerDataProvider(string connectionString)
+    public KeneticReportsBuilder AddSqlServerDataProvider(string sourceName, string connectionString)
     {
-        Services.AddSqlServerDataProvider(connectionString);
+        Services.AddSqlServerDataProvider(sourceName, connectionString);
         return this;
     }
 
     /// <summary>
-    /// Registers a SQLite data provider mapped to provider type <c>SqlLite</c>/<c>SQLite</c>.
+    /// Registers a SQLite data provider mapped to a required source name.
     /// </summary>
-    public KeneticReportsBuilder AddSqlLiteDataProvider(string connectionString)
+    public KeneticReportsBuilder AddSqlLiteDataProvider(string sourceName, string connectionString)
     {
-        Services.AddSqlLiteDataProvider(connectionString);
+        Services.AddSqlLiteDataProvider(sourceName, connectionString);
+        return this;
+    }
+
+    /// <summary>
+    /// Registers a singleton POCO (in-memory) data provider mapped to a required source name.
+    /// </summary>
+    /// <param name="sourceName">Required source name used by report data sources.</param>
+    /// <param name="configure">Optional callback used to seed/modify the provider instance at startup.</param>
+    /// <returns>This builder instance for fluent chaining.</returns>
+    public KeneticReportsBuilder AddPocoDataProvider(
+        string sourceName,
+        Action<PocoDataProvider>? configure = null)
+    {
+        Services.AddPocoDataProvider(sourceName, configure);
         return this;
     }
 

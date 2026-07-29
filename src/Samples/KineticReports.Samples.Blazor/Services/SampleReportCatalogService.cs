@@ -27,9 +27,15 @@ public sealed record SampleReportTemplateDescriptor(
 
 internal sealed class SampleReportCatalogService : ISampleReportCatalogService
 {
-    private const string InMemoryProviderType = "InMemory";
+    private const string InMemorySelection = "InMemory";
+    private const string SqlLiteSelection = "SqlLite";
+    private const string SqliteAliasSelection = "SQLite";
+
+    private const string PocoProviderType = "Poco";
     private const string SqlLiteProviderType = "SqlLite";
-    private const string SqliteAliasProviderType = "SQLite";
+
+    private const string InMemorySourceName = "DefaultInMemory";
+    private const string SqlLiteSourceName = "SampleSqlLite";
 
     private static readonly IReadOnlyList<SampleReportTemplateDescriptor> Templates =
     [
@@ -180,18 +186,22 @@ internal sealed class SampleReportCatalogService : ISampleReportCatalogService
         {
             Id = id,
             Name = name,
-            ProviderType = InMemoryProviderType,
+            ProviderType = PocoProviderType,
+            SourceName = InMemorySourceName,
             Properties = new Dictionary<string, string>()
         };
     }
 
     private static ReportDefinition ApplyProvider(ReportDefinition definition, string providerType)
     {
+        var usesSqlLite = string.Equals(providerType, SqlLiteProviderType, StringComparison.OrdinalIgnoreCase);
+
         var updatedDataSources = definition.DataSources
             .Select(source => source with
             {
-                ProviderType = providerType,
-                Properties = BuildDataSourceProperties(source.Id, providerType)
+                ProviderType = usesSqlLite ? SqlLiteProviderType : PocoProviderType,
+                SourceName = usesSqlLite ? SqlLiteSourceName : InMemorySourceName,
+                Properties = BuildDataSourceProperties(source.Id, usesSqlLite)
             })
             .ToList();
 
@@ -202,11 +212,9 @@ internal sealed class SampleReportCatalogService : ISampleReportCatalogService
         };
     }
 
-    private static IReadOnlyDictionary<string, string> BuildDataSourceProperties(string dataSourceId, string providerType)
+    private static IReadOnlyDictionary<string, string> BuildDataSourceProperties(string dataSourceId, bool usesSqlLite)
     {
-        if (string.Equals(providerType, SqlLiteProviderType, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(providerType, SqliteAliasProviderType, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(providerType, "SqlServer", StringComparison.OrdinalIgnoreCase))
+        if (usesSqlLite)
         {
             return new Dictionary<string, string>(StringComparer.Ordinal)
             {
@@ -259,18 +267,18 @@ internal sealed class SampleReportCatalogService : ISampleReportCatalogService
 
     private static string NormalizeProviderType(string providerType)
     {
-        if (string.Equals(providerType, SqlLiteProviderType, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(providerType, SqliteAliasProviderType, StringComparison.OrdinalIgnoreCase)
+        if (string.Equals(providerType, SqlLiteSelection, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(providerType, SqliteAliasSelection, StringComparison.OrdinalIgnoreCase)
             || string.Equals(providerType, "SqlServer", StringComparison.OrdinalIgnoreCase))
             return SqlLiteProviderType;
 
-        return InMemoryProviderType;
+        return InMemorySelection;
     }
 
     private static string GetProviderDisplayName(string providerType)
     {
         return string.Equals(providerType, SqlLiteProviderType, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(providerType, SqliteAliasProviderType, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(providerType, SqliteAliasSelection, StringComparison.OrdinalIgnoreCase)
             ? "SQLite"
             : "In-Memory";
     }

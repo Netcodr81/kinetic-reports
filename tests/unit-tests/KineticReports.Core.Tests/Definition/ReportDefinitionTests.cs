@@ -52,7 +52,7 @@ public class ReportDefinitionTests
                 new ParameterDefinition { Id = "Date", Name = "Date", Type = ParameterType.DateTime }
             },
             DataSources = new[] {
-                new DataSourceDefinition { Id = "Db", Name = "Main", ProviderType = "SqlServer" }
+                new DataSourceDefinition { Id = "Db", Name = "Main", ProviderType = "SqlServer", SourceName = "MainSqlServer" }
             },
             Styles = new[] {
                 new StyleDefinition { Id = "Heading", Name = "Heading Style" }

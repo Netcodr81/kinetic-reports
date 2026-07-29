@@ -66,7 +66,8 @@ var definition = new ReportDefinition
         {
             Id = "sales-orders",
             Name = "Sales Orders",
-            ProviderType = "SampleInMemory",
+            ProviderType = "Poco",
+            SourceName = "DefaultInMemory",
             Properties = new Dictionary<string, string>()
         }
     ],
@@ -88,7 +89,8 @@ var definition = new ReportDefinition
     {
       "id": "sales-orders",
       "name": "Sales Orders",
-      "providerType": "SampleInMemory",
+      "providerType": "Poco",
+      "sourceName": "DefaultInMemory",
       "properties": {}
     }
   ],
