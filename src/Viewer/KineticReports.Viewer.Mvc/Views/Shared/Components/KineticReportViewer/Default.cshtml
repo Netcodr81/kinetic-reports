@@ -1,5 +1,74 @@
 @model KineticReports.Viewer.Mvc.KineticReportViewModel
 
-<div class="kr-mvc-viewer">
-    @Html.Raw(Model.HtmlContent)
+<div id="@Model.ViewerId" class="@Model.ViewerCssClass" style="@Model.ViewerStyle" data-page-count="@Model.PageCount">
+    <div class="kinetic-report-card">
+        @if (Model.ShowToolbar)
+        {
+            <div class="kinetic-report-card-header" role="toolbar" aria-label="Report actions">
+                <div class="kinetic-report-toolbar-group">
+                    <button type="button" class="kinetic-report-header-button" data-action="print" title="Print report"
+                            aria-label="Print report">Print</button>
+                </div>
+
+                <div class="kinetic-report-viewer-pager" aria-label="Report page navigation">
+                    <button type="button" class="kinetic-report-header-button" data-action="first" title="First page"
+                            aria-label="First page">First</button>
+                    <button type="button" class="kinetic-report-header-button" data-action="prev" title="Previous page"
+                            aria-label="Previous page">Prev</button>
+                    <span data-role="page-indicator">Page 1 of @Math.Max(Model.PageCount, 1)</span>
+                    <button type="button" class="kinetic-report-header-button" data-action="next" title="Next page"
+                            aria-label="Next page">Next</button>
+                    <button type="button" class="kinetic-report-header-button" data-action="last" title="Last page"
+                            aria-label="Last page">Last</button>
+                </div>
+
+                <div class="kinetic-report-toolbar-group">
+                    @if (!string.IsNullOrWhiteSpace(Model.ExportPdfUrl))
+                    {
+                        <a class="kinetic-report-header-button kinetic-report-header-link" href="@Model.ExportPdfUrl"
+                           title="Download PDF" aria-label="Download PDF">PDF</a>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.ExportHtmlUrl))
+                    {
+                        <a class="kinetic-report-header-button kinetic-report-header-link" href="@Model.ExportHtmlUrl"
+                           title="Download HTML" aria-label="Download HTML">HTML</a>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="kinetic-report-card-body">
+            @if (!string.IsNullOrWhiteSpace(Model.PreviewMarkup))
+            {
+                <div class="report-output">
+                    <div class="preview-content" data-role="preview-content">@Html.Raw(Model.PreviewMarkup)</div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">Provide a report document to render preview output.</div>
+            }
+        </div>
+    </div>
+
+    <input type="hidden" data-role="print-markup" value="@Model.PrintMarkupBase64" />
 </div>
+
+<script>
+    (function () {
+        var viewerId = "@Model.ViewerId";
+        var initialize = function () {
+            if (window.kineticReportsMvcViewer && typeof window.kineticReportsMvcViewer.initialize === "function") {
+                window.kineticReportsMvcViewer.initialize(viewerId);
+            }
+        };
+
+        if (document.readyState === "complete") {
+            initialize();
+            return;
+        }
+
+        window.addEventListener("load", initialize, { once: true });
+    })();
+</script>

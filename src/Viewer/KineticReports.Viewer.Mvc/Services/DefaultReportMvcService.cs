@@ -1,12 +1,8 @@
 namespace KineticReports.Viewer.Mvc.Services;
 
 using KineticReports.Core.Definition;
-using KineticReports.Core.Engine;
-using KineticReports.Core.Export.Html;
-using KineticReports.Core.Geometry;
 using KineticReports.Core.Layout;
-using KineticReports.Core.LayoutEngine;
-using KineticReports.Core.Typography;
+using KineticReports.Core.Viewer.Services;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -14,24 +10,17 @@ using Microsoft.Extensions.Logging;
 /// </summary>
 public sealed class DefaultReportMvcService : IReportMvcService
 {
-    private readonly IReportEngine _engine;
-    private readonly IHtmlExporter _exporter;
-    private readonly ITextLayout _textLayout;
+    private readonly IReportService _reportService;
     private readonly ILogger<DefaultReportMvcService> _logger;
-    private IReadOnlyList<string> _latestTrace = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultReportMvcService"/> class.
     /// </summary>
     public DefaultReportMvcService(
-        IReportEngine engine,
-        IHtmlExporter exporter,
-        ITextLayout textLayout,
+        IReportService reportService,
         ILogger<DefaultReportMvcService> logger)
     {
-        _engine = engine ?? throw new ArgumentNullException(nameof(engine));
-        _exporter = exporter ?? throw new ArgumentNullException(nameof(exporter));
-        _textLayout = textLayout ?? throw new ArgumentNullException(nameof(textLayout));
+        _reportService = reportService ?? throw new ArgumentNullException(nameof(reportService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -44,35 +33,38 @@ public sealed class DefaultReportMvcService : IReportMvcService
         if (definition == null) throw new ArgumentNullException(nameof(definition));
         if (parameters == null) throw new ArgumentNullException(nameof(parameters));
 
-        _latestTrace = ["[Render] Executing with default MVC viewer service", "[Export] Format: html"];
-
-        var context = new LayoutSizingContext(_textLayout);
-        var layoutOptions = ResolveLayoutOptions(definition);
-
         _logger.LogInformation("MVC viewer rendering report {ReportId}", definition.Id);
 
-        var reportDocument = await _engine
-            .RunAsync(definition, parameters, context, layoutOptions, ct)
+        return await _reportService
+            .RenderHtmlAsync(definition, parameters, ct)
             .ConfigureAwait(false);
-
-        using var stream = new MemoryStream();
-        await _exporter.ExportAsync(reportDocument, stream, ct).ConfigureAwait(false);
-        stream.Position = 0;
-
-        using var reader = new StreamReader(stream);
-        return await reader.ReadToEndAsync().ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
-    public IReadOnlyList<string> GetLatestTrace() => _latestTrace;
-
-    private static LayoutOptions ResolveLayoutOptions(ReportDefinition definition)
+    public Task<string> RenderHtmlAsync(
+        ReportDocument reportDocument,
+        ReportDefinition? definition = null,
+        CancellationToken ct = default)
     {
-        if (definition.Layout is not null)
-        {
-            return new LayoutOptions { PageMargins = new Thickness(0f) };
-        }
-
-        return new LayoutOptions();
+        ArgumentNullException.ThrowIfNull(reportDocument);
+        return _reportService.RenderHtmlAsync(reportDocument, definition, ct);
     }
+
+    /// <inheritdoc/>
+    public IReadOnlyList<ReportViewerExportFormat> GetAvailableExportFormats()
+        => _reportService.GetAvailableExportFormats();
+
+    /// <inheritdoc/>
+    public Task<ReportViewerExportResult> ExportAsync(
+        ReportDocument reportDocument,
+        ReportDefinition? definition,
+        string formatId,
+        CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(reportDocument);
+        return _reportService.ExportAsync(reportDocument, definition, formatId, ct);
+    }
+
+    /// <inheritdoc/>
+    public IReadOnlyList<string> GetLatestTrace() => _reportService.GetLatestTrace();
 }

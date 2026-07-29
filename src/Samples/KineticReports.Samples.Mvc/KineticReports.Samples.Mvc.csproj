@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\KineticReports.Core\KineticReports.Core.csproj" />
+    <ProjectReference Include="..\..\Viewer\KineticReports.Viewer.Mvc\KineticReports.Viewer.Mvc.csproj" />
+    <ProjectReference Include="..\..\Plugins\KineticReports.Samples.Plugins\KineticReports.Samples.Plugins.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Data\sample-reports.seed.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

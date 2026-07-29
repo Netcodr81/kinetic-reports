@@ -1,0 +1,581 @@
+{
+  "schemaVersion": "1.0",
+  "id": "json-quarterly-business-review",
+  "name": "Quarterly Business Review",
+  "description": "A multi-page leadership report loaded directly as a canonical ReportDefinition.",
+  "author": "KineticReports Samples",
+  "metadata": {},
+  "parameters": [],
+  "dataSources": [
+    {
+      "id": "regional-performance",
+      "name": "Regional Performance",
+      "providerType": "Poco",
+      "sourceName": "DefaultInMemory",
+      "properties": {}
+    },
+    {
+      "id": "top-accounts",
+      "name": "Top Accounts",
+      "providerType": "Poco",
+      "sourceName": "DefaultInMemory",
+      "properties": {}
+    },
+    {
+      "id": "monthly-trend",
+      "name": "Monthly Trend",
+      "providerType": "Poco",
+      "sourceName": "DefaultInMemory",
+      "properties": {}
+    },
+    {
+      "id": "sales-orders-detail",
+      "name": "Selected Closed Orders",
+      "providerType": "Poco",
+      "sourceName": "DefaultInMemory",
+      "properties": {}
+    }
+  ],
+  "styles": [
+    {
+      "id": "text-body",
+      "name": "Body Text",
+      "typography": {
+        "family": "Segoe UI",
+        "size": 11,
+        "lineHeight": 1.35,
+        "color": { "a": 255, "r": 37, "g": 50, "b": 65 }
+      }
+    },
+    {
+      "id": "text-title",
+      "name": "Title Text",
+      "basedOn": "text-body",
+      "typography": {
+        "size": 22,
+        "weight": "Bold"
+      }
+    },
+    {
+      "id": "text-subtitle",
+      "name": "Subtitle Text",
+      "basedOn": "text-body",
+      "typography": {
+        "size": 12
+      }
+    },
+    {
+      "id": "text-section-title",
+      "name": "Section Title Text",
+      "basedOn": "text-body",
+      "typography": {
+        "size": 14,
+        "weight": "SemiBold"
+      }
+    },
+    {
+      "id": "table-region",
+      "name": "Table Region",
+      "padding": {
+        "left": 0,
+        "top": 4,
+        "right": 0,
+        "bottom": 10
+      }
+    },
+    {
+      "id": "table-header-cell",
+      "name": "Table Header Cell",
+      "basedOn": "text-body",
+      "typography": {
+        "weight": "SemiBold",
+        "color": { "a": 255, "r": 255, "g": 255, "b": 255 }
+      },
+      "background": { "a": 255, "r": 32, "g": 92, "b": 156 }
+    },
+    {
+      "id": "table-data-cell",
+      "name": "Table Data Cell",
+      "basedOn": "text-body",
+      "typography": {
+        "size": 10
+      }
+    },
+    {
+      "id": "text-footer",
+      "name": "Footer Text",
+      "basedOn": "text-body",
+      "typography": {
+        "size": 10
+      }
+    }
+  ],
+  "layout": {
+    "pageHeader": [
+      {
+        "id": "qbr-title",
+        "kind": "Text",
+        "text": "Quarterly Business Review",
+        "textStyleId": "text-title"
+      },
+      {
+        "id": "qbr-subtitle",
+        "kind": "Text",
+        "text": "FY2026 Q2 revenue performance, strategic accounts, and month-by-month trend.",
+        "textStyleId": "text-subtitle"
+      }
+    ],
+    "body": [
+      {
+        "id": "qbr-intro",
+        "kind": "Text",
+        "text": "Prepared for the executive leadership team on {CurrentDate}. This report shows regional attainment, the current top account portfolio, and the monthly commercial trend line.",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-region-title",
+        "kind": "Text",
+        "text": "Regional Performance",
+        "textStyleId": "text-section-title"
+      },
+      {
+        "id": "qbr-region-table",
+        "kind": "Table",
+        "dataSourceId": "regional-performance",
+        "regionStyleId": "table-region",
+        "headerCellStyleId": "table-header-cell",
+        "dataCellStyleId": "table-data-cell",
+        "footerCellStyleId": "table-data-cell",
+        "columns": [
+          { "header": "Region", "valueExpression": "{Region}", "minWidth": 170, "grow": 2 },
+          { "header": "Revenue", "valueExpression": "{Revenue}", "minWidth": 120, "grow": 1 },
+          { "header": "Target", "valueExpression": "{Target}", "minWidth": 120, "grow": 1 },
+          { "header": "Variance", "valueExpression": "{Variance}", "minWidth": 120, "grow": 1 },
+          { "header": "Accounts", "valueExpression": "{Accounts}", "minWidth": 90, "grow": 1 }
+        ],
+        "footerAggregates": [
+          { "columnIndex": 1, "valueExpression": "{Revenue}", "kind": "Sum", "formatString": "0.##" },
+          { "columnIndex": 2, "valueExpression": "{Target}", "kind": "Sum", "formatString": "0.##" },
+          { "columnIndex": 3, "valueExpression": "{Variance}", "kind": "Sum", "formatString": "0.##" },
+          { "columnIndex": 4, "valueExpression": "{Accounts}", "kind": "Sum", "formatString": "0.##" }
+        ],
+        "footerLabel": "Total",
+        "footerLabelColumnIndex": 0
+      },
+      {
+        "id": "qbr-top-accounts-title",
+        "kind": "Text",
+        "text": "Top Accounts And Renewals",
+        "textStyleId": "text-section-title"
+      },
+      {
+        "id": "qbr-top-accounts-table",
+        "kind": "Table",
+        "dataSourceId": "top-accounts",
+        "regionStyleId": "table-region",
+        "headerCellStyleId": "table-header-cell",
+        "dataCellStyleId": "table-data-cell",
+        "footerCellStyleId": "table-data-cell",
+        "columns": [
+          { "header": "Customer", "valueExpression": "{Customer}", "minWidth": 180, "grow": 2 },
+          { "header": "Segment", "valueExpression": "{Segment}", "minWidth": 110, "grow": 1 },
+          { "header": "Annual Revenue", "valueExpression": "{AnnualRevenue}", "minWidth": 130, "grow": 1 },
+          { "header": "Renewal Date", "valueExpression": "{RenewalDate}", "minWidth": 120, "grow": 1 },
+          { "header": "Owner", "valueExpression": "{Owner}", "minWidth": 130, "grow": 1 }
+        ],
+        "footerAggregates": [
+          { "columnIndex": 2, "valueExpression": "{AnnualRevenue}", "kind": "Sum", "formatString": "0.##" }
+        ],
+        "footerLabel": "Portfolio ARR",
+        "footerLabelColumnIndex": 0
+      },
+      {
+        "id": "qbr-page-break",
+        "kind": "PageBreak"
+      },
+      {
+        "id": "qbr-trend-title",
+        "kind": "Text",
+        "text": "Monthly Commercial Trend",
+        "textStyleId": "text-section-title"
+      },
+      {
+        "id": "qbr-trend-copy",
+        "kind": "Text",
+        "text": "The second page gives the operating cadence view that leaders expect in a board-ready review deck.",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-trend-table",
+        "kind": "Table",
+        "dataSourceId": "monthly-trend",
+        "regionStyleId": "table-region",
+        "headerCellStyleId": "table-header-cell",
+        "dataCellStyleId": "table-data-cell",
+        "footerCellStyleId": "table-data-cell",
+        "columns": [
+          { "header": "Month", "valueExpression": "{Month}", "minWidth": 130, "grow": 2 },
+          { "header": "Billings", "valueExpression": "{Billings}", "minWidth": 130, "grow": 1 },
+          { "header": "Gross Margin", "valueExpression": "{GrossMargin}", "minWidth": 120, "grow": 1 },
+          { "header": "New Logos", "valueExpression": "{NewLogos}", "minWidth": 100, "grow": 1 }
+        ],
+        "footerAggregates": [
+          { "columnIndex": 1, "valueExpression": "{Billings}", "kind": "Sum", "formatString": "0.##" },
+          { "columnIndex": 3, "valueExpression": "{NewLogos}", "kind": "Sum", "formatString": "0.##" }
+        ],
+        "footerLabel": "Six-month total",
+        "footerLabelColumnIndex": 0
+      },
+      {
+        "id": "qbr-orders-title",
+        "kind": "Text",
+        "text": "Selected Closed Orders",
+        "textStyleId": "text-section-title"
+      },
+      {
+        "id": "qbr-orders-table",
+        "kind": "Table",
+        "dataSourceId": "sales-orders-detail",
+        "regionStyleId": "table-region",
+        "headerCellStyleId": "table-header-cell",
+        "dataCellStyleId": "table-data-cell",
+        "footerCellStyleId": "table-data-cell",
+        "columns": [
+          { "header": "Order #", "valueExpression": "{OrderNumber}", "minWidth": 95, "grow": 1 },
+          { "header": "Customer", "valueExpression": "{Customer}", "minWidth": 170, "grow": 2 },
+          { "header": "Region", "valueExpression": "{Region}", "minWidth": 120, "grow": 1 },
+          { "header": "Order Date", "valueExpression": "{OrderDate}", "minWidth": 110, "grow": 1 },
+          { "header": "Amount", "valueExpression": "{Amount}", "minWidth": 120, "grow": 1 },
+          { "header": "Status", "valueExpression": "{Status}", "minWidth": 120, "grow": 1 }
+        ],
+        "footerAggregates": [
+          { "columnIndex": 4, "valueExpression": "{Amount}", "kind": "Sum", "formatString": "0.##" }
+        ],
+        "footerLabel": "Closed-book total",
+        "footerLabelColumnIndex": 0
+      },
+      {
+        "id": "qbr-page-break-image",
+        "kind": "PageBreak"
+      },
+      {
+        "id": "qbr-image-title",
+        "kind": "Text",
+        "text": "Product Showcase Image",
+        "textStyleId": "text-section-title"
+      },
+      {
+        "id": "qbr-image-copy",
+        "kind": "Text",
+        "text": "This third page demonstrates image rendering using the sample asset bundled with the Blazor app.",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-demo-image",
+        "kind": "Image",
+        "sourceKey": "/images/demo-image.jpg",
+        "stretch": "Uniform"
+      },
+      {
+        "id": "qbr-image-embedded-title",
+        "kind": "Text",
+        "text": "Embedded Image (Data URI)",
+        "textStyleId": "text-section-title"
+      },
+      {
+        "id": "qbr-image-embedded-copy",
+        "kind": "Text",
+        "text": "This image demonstrates a helper-generated embedded source key loaded from the same demo image.",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-demo-image-embedded",
+        "kind": "Image",
+        "sourceKey": "__EMBED_DEMO_IMAGE__",
+        "stretch": "Uniform"
+      },
+      {
+        "id": "qbr-page-break-barcodes",
+        "kind": "PageBreak"
+      },
+      {
+        "id": "qbr-barcodes-title",
+        "kind": "Text",
+        "text": "Barcode Catalog",
+        "textStyleId": "text-section-title"
+      },
+      {
+        "id": "qbr-barcodes-copy",
+        "kind": "Text",
+        "text": "All supported barcode types are shown below with a label and sample value.",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-qr-label",
+        "kind": "Text",
+        "text": "QR Code (QR)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-qr",
+        "kind": "Barcode",
+        "symbologyType": "QrCode",
+        "symbology": "QR",
+        "value": "https://kineticreports.dev",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-microqr-label",
+        "kind": "Text",
+        "text": "Micro QR (MICROQR)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-microqr",
+        "kind": "Barcode",
+        "symbologyType": "MicroQr",
+        "symbology": "MICROQR",
+        "value": "MQR-42",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-code128-label",
+        "kind": "Text",
+        "text": "Code 128 (CODE128)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-code128",
+        "kind": "Barcode",
+        "symbologyType": "Code128",
+        "symbology": "CODE128",
+        "value": "SO-2026-001",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-code39-label",
+        "kind": "Text",
+        "text": "Code 39 (CODE39)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-code39",
+        "kind": "Barcode",
+        "symbologyType": "Code39",
+        "symbology": "CODE39",
+        "value": "INV-4472",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-ean13-label",
+        "kind": "Text",
+        "text": "EAN-13 (EAN13)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-ean13",
+        "kind": "Barcode",
+        "symbologyType": "Ean13",
+        "symbology": "EAN13",
+        "value": "5901234123457",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-ean8-label",
+        "kind": "Text",
+        "text": "EAN-8 (EAN8)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-ean8",
+        "kind": "Barcode",
+        "symbologyType": "Ean8",
+        "symbology": "EAN8",
+        "value": "55123457",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-upca-label",
+        "kind": "Text",
+        "text": "UPC-A (UPCA)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-upca",
+        "kind": "Barcode",
+        "symbologyType": "UpcA",
+        "symbology": "UPCA",
+        "value": "036000291452",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-upce-label",
+        "kind": "Text",
+        "text": "UPC-E (UPCE)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-upce",
+        "kind": "Barcode",
+        "symbologyType": "UpcE",
+        "symbology": "UPCE",
+        "value": "01234565",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-itf-label",
+        "kind": "Text",
+        "text": "ITF (Interleaved 2 of 5) (ITF)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-itf",
+        "kind": "Barcode",
+        "symbologyType": "Itf",
+        "symbology": "ITF",
+        "value": "12345670",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-pdf417-label",
+        "kind": "Text",
+        "text": "PDF417 (PDF417)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-pdf417",
+        "kind": "Barcode",
+        "symbologyType": "Pdf417",
+        "symbology": "PDF417",
+        "value": "PO-4472|Dock-07|Gate-C",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-datamatrix-label",
+        "kind": "Text",
+        "text": "Data Matrix (DATAMATRIX)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-datamatrix",
+        "kind": "Barcode",
+        "symbologyType": "DataMatrix",
+        "symbology": "DATAMATRIX",
+        "value": "SN:KR-2026-00091",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-codabar-label",
+        "kind": "Text",
+        "text": "Codabar (CODABAR)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-codabar",
+        "kind": "Barcode",
+        "symbologyType": "Codabar",
+        "symbology": "CODABAR",
+        "value": "A40156B",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-page-break-charts",
+        "kind": "PageBreak"
+      },
+      {
+        "id": "qbr-charts-title",
+        "kind": "Text",
+        "text": "Chart Catalog",
+        "textStyleId": "text-section-title"
+      },
+      {
+        "id": "qbr-charts-copy",
+        "kind": "Text",
+        "text": "Built-in chart types are shown below with sample datasets.",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-charts-bar_vertical-label",
+        "kind": "Text",
+        "text": "Vertical Bar Chart (BAR_VERTICAL)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-charts-bar_vertical",
+        "kind": "Chart",
+        "chartTypeValue": "BarVertical",
+        "chartType": "BAR_VERTICAL",
+        "chartDataJson": "{\"points\":[{\"label\":\"North\",\"value\":46},{\"label\":\"South\",\"value\":38},{\"label\":\"East\",\"value\":57},{\"label\":\"West\",\"value\":42}],\"options\":{\"xAxisLabel\":\"Region\",\"yAxisLabel\":\"Revenue (USD M)\",\"showAxes\":true,\"showGridLines\":true,\"showTicks\":true,\"showTickLabels\":true,\"yAxisTickCount\":6,\"axisLineWidth\":1.2,\"gridLineWidth\":0.8,\"labelFontSize\":9,\"barGapRatio\":0.22,\"showLegend\":true,\"legendPosition\":\"Right\",\"legendFontSize\":9,\"legendMarkerSize\":10}}",
+        "chartStyleId": "text-body"
+      },
+      {
+        "id": "qbr-charts-bar_horizontal-label",
+        "kind": "Text",
+        "text": "Horizontal Bar Chart (BAR_HORIZONTAL)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-charts-bar_horizontal",
+        "kind": "Chart",
+        "chartTypeValue": "BarHorizontal",
+        "chartType": "BAR_HORIZONTAL",
+        "chartDataJson": "{\"points\":[{\"label\":\"Support\",\"value\":72},{\"label\":\"Delivery\",\"value\":61},{\"label\":\"Sales\",\"value\":88},{\"label\":\"Finance\",\"value\":54}],\"options\":{\"xAxisLabel\":\"SLA Compliance (%)\",\"yAxisLabel\":\"Team\",\"showAxes\":true,\"showGridLines\":true,\"showTicks\":true,\"showTickLabels\":true,\"xAxisTickCount\":6,\"yAxisTickCount\":6,\"labelFontSize\":9,\"barGapRatio\":0.25,\"minValue\":0,\"maxValue\":100,\"showLegend\":true,\"legendPosition\":\"Right\",\"legendFontSize\":9,\"legendMarkerSize\":10}}",
+        "chartStyleId": "text-body"
+      },
+      {
+        "id": "qbr-charts-line-label",
+        "kind": "Text",
+        "text": "Line Chart (LINE)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-charts-line",
+        "kind": "Chart",
+        "chartTypeValue": "Line",
+        "chartType": "LINE",
+        "chartDataJson": "{\"points\":[{\"label\":\"Jan\",\"value\":18},{\"label\":\"Feb\",\"value\":22},{\"label\":\"Mar\",\"value\":27},{\"label\":\"Apr\",\"value\":25},{\"label\":\"May\",\"value\":31},{\"label\":\"Jun\",\"value\":36}],\"options\":{\"xAxisLabel\":\"Month\",\"yAxisLabel\":\"Pipeline ($M)\",\"showAxes\":true,\"showGridLines\":true,\"showTicks\":true,\"showTickLabels\":true,\"yAxisTickCount\":5,\"lineWidth\":2.4,\"showMarkers\":true,\"labelFontSize\":9,\"lineColor\":\"#2563EB\",\"showLegend\":true,\"legendPosition\":\"Right\",\"legendFontSize\":9,\"legendMarkerSize\":10}}",
+        "chartStyleId": "text-body"
+      },
+      {
+        "id": "qbr-charts-pie-label",
+        "kind": "Text",
+        "text": "Pie Chart (PIE)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-charts-pie",
+        "kind": "Chart",
+        "chartTypeValue": "Pie",
+        "chartType": "PIE",
+        "chartDataJson": "{\"points\":[{\"label\":\"Enterprise\",\"value\":44},{\"label\":\"Mid-Market\",\"value\":31},{\"label\":\"SMB\",\"value\":25}],\"options\":{\"showAxes\":false,\"showGridLines\":false,\"showTicks\":false,\"showTickLabels\":true,\"showPieLabels\":true,\"pieLabelColor\":\"#1F2937\",\"pieLabelFontWeight\":\"SemiBold\",\"labelFontSize\":9,\"showLegend\":true,\"legendPosition\":\"Right\",\"legendFontSize\":9,\"legendMarkerSize\":10,\"legendTextColor\":\"#111827\"}}",
+        "chartStyleId": "text-body"
+      }
+    ],
+    "pageFooter": [
+      {
+        "id": "qbr-footer-page",
+        "kind": "Text",
+        "text": "Page {PageNumber}",
+        "textStyleId": "text-footer"
+      },
+      {
+        "id": "qbr-footer-generated",
+        "kind": "Text",
+        "text": "Generated {CurrentDate}",
+        "textStyleId": "text-footer"
+      }
+    ]
+  }
+}

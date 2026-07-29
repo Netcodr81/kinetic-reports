@@ -12,9 +12,22 @@
             "webRoot": "${workspaceFolder}"
         },
         {
+            "name": "Launch MVC Sample",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/src/Samples/KineticReports.Samples.Mvc/KineticReports.Samples.Mvc.csproj"
+        },
+        {
+            "name": "Launch Blazor Sample",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/src/Samples/KineticReports.Samples.Blazor/KineticReports.Samples.Blazor.csproj"
+        },
+        {
             "name": "ReSharper: Launch .NET Project",
             "type": "dotnet",
-            "request": "launch"
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/src/Samples/KineticReports.Samples.Blazor/KineticReports.Samples.Blazor.csproj"
         }
     ]
 }

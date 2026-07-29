@@ -1,0 +1,203 @@
+﻿@model KineticReports.Samples.Mvc.Models.HomePageViewModel
+@using KineticReports.Viewer.Mvc
+
+@{
+    ViewData["Title"] = "KineticReports MVC Sample";
+}
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Report Inputs</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Index" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label asp-for="SelectedTemplateId" class="form-label">Report Template</label>
+                        <select asp-for="SelectedTemplateId" class="form-select form-select-sm">
+                            @foreach (var template in Model.Templates)
+                            {
+                                <option value="@template.Id">@template.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="SelectedProviderType" class="form-label">Data Provider</label>
+                        <select asp-for="SelectedProviderType" class="form-select form-select-sm">
+                            @foreach (var provider in Model.Providers)
+                            {
+                                <option value="@provider.ProviderType">@provider.DisplayName</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Display Options</label>
+                        <div class="form-check">
+                            <input asp-for="IncludePageHeader" class="form-check-input" />
+                            <label asp-for="IncludePageHeader" class="form-check-label small">Include page
+                                header</label>
+                            </div>
+                            <div class="form-check">
+                                <input asp-for="IncludePageFooter" class="form-check-input" />
+                                <label asp-for="IncludePageFooter" class="form-check-label small">Include page
+                                    footer</label>
+                                </div>
+                                <div class="form-check">
+                                    <input asp-for="IncludePageNumbers" class="form-check-input" />
+                                    <label asp-for="IncludePageNumbers" class="form-check-label small">Include page
+                                        numbers</label>
+                                    </div>
+                                </div>
+
+                                <div class="card mb-3">
+                                    <div class="card-header py-2">
+                                        <h6 class="mb-0">Watermark</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-check mb-2">
+                                            <input asp-for="WatermarkEnabled" class="form-check-input" />
+                                            <label asp-for="WatermarkEnabled" class="form-check-label small">Enable
+                                                watermark</label>
+                                            </div>
+
+                                            <div class="form-check mb-2">
+                                                <input asp-for="WatermarkPluginEnabled" class="form-check-input" />
+                                                <label asp-for="WatermarkPluginEnabled" class="form-check-label small">Run plugin
+                                                    kinetic.watermark for this report</label>
+                                                </div>
+
+                                                <div class="mb-2">
+                                                    <label asp-for="WatermarkMessage" class="form-label">Watermark text</label>
+                                                    <input asp-for="WatermarkMessage" class="form-control form-control-sm"
+                                                           maxlength="120" />
+                                                </div>
+
+                                                <div class="mb-2">
+                                                    <label asp-for="WatermarkImageUrl" class="form-label">Watermark image URL
+                                                        (optional)</label>
+                                                        <input asp-for="WatermarkImageUrl" class="form-control form-control-sm"
+                                                               placeholder="https://example.com/watermark.png" />
+                                                    </div>
+
+                                                    <div class="row g-2">
+                                                        <div class="col-6">
+                                                            <label asp-for="WatermarkOpacity" class="form-label">Opacity</label>
+                                                            <input asp-for="WatermarkOpacity" class="form-control form-control-sm" type="number"
+                                                                   min="0.01" max="1" step="0.01" />
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label asp-for="WatermarkRotationDegrees" class="form-label">Rotation</label>
+                                                            <input asp-for="WatermarkRotationDegrees" class="form-control form-control-sm"
+                                                                   type="number" min="-360" max="360" step="1" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row g-2 mt-1">
+                                                        <div class="col-6">
+                                                            <label asp-for="WatermarkFontSizePx" class="form-label">Font size</label>
+                                                            <input asp-for="WatermarkFontSizePx" class="form-control form-control-sm"
+                                                                   type="number" min="10" max="300" step="1" />
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label asp-for="WatermarkTextColorHex" class="form-label">Text color</label>
+                                                            <input asp-for="WatermarkTextColorHex" class="form-control form-control-sm"
+                                                                   placeholder="#000000" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="d-grid gap-2 mb-3">
+                                                <button type="submit" class="btn btn-primary btn-sm">Load Report</button>
+
+                                                @if (!string.IsNullOrWhiteSpace(Model.DownloadJsonUrl))
+                                                {
+                                                    <a class="btn btn-outline-secondary btn-sm" href="@Model.DownloadJsonUrl">Download Effective
+                                                        JSON</a>
+                                                    }
+
+                                                    @if (!string.IsNullOrWhiteSpace(Model.ExportHtmlUrl))
+                                                    {
+                                                        <a class="btn btn-outline-secondary btn-sm" href="@Model.ExportHtmlUrl">Export HTML</a>
+                                                    }
+
+                                                    @if (!string.IsNullOrWhiteSpace(Model.ExportPdfUrl))
+                                                    {
+                                                        <a class="btn btn-outline-secondary btn-sm" href="@Model.ExportPdfUrl">Export PDF</a>
+                                                    }
+                                                </div>
+                                            </form>
+
+                                            @if (!string.IsNullOrWhiteSpace(Model.SelectedTemplateDescription))
+                                            {
+                                                <p class="small text-muted mb-0">@Model.SelectedTemplateDescription</p>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-secondary small mt-3 mb-0">
+                                        <div><strong>SQLite provider setup:</strong></div>
+                                        <div>Connection string key: ConnectionStrings:SqlLite</div>
+                                        <div>The sample auto-seeds a local database at startup.</div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-8">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Report Preview</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            @if (!string.IsNullOrWhiteSpace(Model.Status))
+                                            {
+                                                <div class="alert alert-info py-2 mb-3">@Model.Status</div>
+                                            }
+
+                                            @if (!string.IsNullOrWhiteSpace(Model.Error))
+                                            {
+                                                <div class="alert alert-danger py-2 mb-3">@Model.Error</div>
+                                            }
+
+                                            @if (Model.ActiveReportDocument is null)
+                                            {
+                                                <p class="text-muted mb-0">Load a report to preview the rendered output.</p>
+                                            }
+                                            else
+                                            {
+                                                var viewerOptions = Model.BuildViewerOptions();
+                                                @await Component.InvokeAsync("KineticReportViewer", new
+                                                {
+                                                    reportDocument = Model.ActiveReportDocument,
+                                                    reportDefinition = Model.ActiveDefinition,
+                                                    options = viewerOptions
+                                                })
+                                            }
+
+                                            <div class="card mt-3">
+                                                <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <h6 class="mb-0">Effective ReportDefinition JSON</h6>
+                                                    @if (!string.IsNullOrWhiteSpace(Model.ActiveReportName))
+                                                    {
+                                                        <span class="small text-muted">@Model.ActiveReportName</span>
+                                                    }
+                                                </div>
+                                                <div class="card-body">
+                                                    @if (string.IsNullOrWhiteSpace(Model.DefinitionJson))
+                                                    {
+                                                        <p class="text-muted mb-0">Select a template/provider, then click Load Report.</p>
+                                                    }
+                                                    else
+                                                    {
+                                                        <pre class="json-preview mb-0">@Model.DefinitionJson</pre>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>

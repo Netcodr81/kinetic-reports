@@ -8,6 +8,7 @@
   </Folder>
   <Folder Name="/src/Samples/">
     <Project Path="src/Samples/KineticReports.Samples.Blazor/KineticReports.Samples.Blazor.csproj" />
+    <Project Path="src/Samples/KineticReports.Samples.Mvc/KineticReports.Samples.Mvc.csproj" />
   </Folder>
   <Folder Name="/src/Viewer/">
     <Project Path="src/Viewer/KineticReports.Viewer.Blazor/KineticReports.Viewer.Blazor.csproj" />
