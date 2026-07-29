@@ -158,6 +158,7 @@ public sealed class HtmlExporter : IHtmlExporter
     {
         return block switch
         {
+            ContentBlock content => content.Children.Cast<LayoutBlock>().ToList(),
             ContainerBlock container => container.Children,
             PageSectionBlock section => section.Children,
             ReportBlock reportBlock => reportBlock.Children,
@@ -176,6 +177,11 @@ public sealed class HtmlExporter : IHtmlExporter
 
         switch (element)
         {
+            // ContentBlock unified dispatch
+            case ContentBlock content:
+                RenderContentBlock(html, content, pageNumber);
+                break;
+
             case TextBlock textElem:
                 RenderTextBlock(html, textElem, pageNumber);
                 break;
@@ -246,6 +252,220 @@ public sealed class HtmlExporter : IHtmlExporter
                     .CloseTag("p");
             }
         }
+    }
+
+    private static void RenderContentBlock(HtmlBuilder html, ContentBlock content, int pageNumber)
+    {
+        switch (content.ContentType)
+        {
+            case BlockContentType.Text:
+                if (content.TextRuns.Count == 0)
+                {
+                    html.Text(ResolveSystemTextTokens(content.Text, pageNumber));
+                }
+                else
+                {
+                    foreach (var run in content.TextRuns)
+                    {
+                        var runStyle = CssBuilder.BuildStyle(run.Style);
+                        html
+                            .OpenTag("p", style: runStyle)
+                            .Text(ResolveSystemTextTokens(run.Text, pageNumber))
+                            .CloseTag("p");
+                    }
+                }
+                break;
+
+            case BlockContentType.Image:
+                // Images in ContentBlock need similar rendering to ImageBlock
+                if (string.IsNullOrWhiteSpace(content.SourceKey))
+                {
+                    html
+                        .OpenTag("div", classAttr: "visual-image-placeholder")
+                        .Text("[Image placeholder]")
+                        .CloseTag("div");
+                }
+                else
+                {
+                    html
+                        .OpenTag("div", classAttr: "visual-image-placeholder")
+                        .Text($"[Image: {content.SourceKey}]")
+                        .CloseTag("div");
+                }
+                break;
+
+            case BlockContentType.Shape:
+                RenderContentBlockShape(html, content);
+                break;
+
+            case BlockContentType.Chart:
+                html.Text("[Chart Element]");
+                break;
+
+            case BlockContentType.Barcode:
+                html.Text("[Barcode Element]");
+                break;
+
+            case BlockContentType.Table:
+                RenderContentBlockTable(html, content, pageNumber);
+                break;
+
+            case BlockContentType.Row:
+                RenderContentBlockRow(html, content, "td", pageNumber);
+                break;
+
+            case BlockContentType.Cell:
+                RenderContentBlockCellChildren(html, content, pageNumber);
+                break;
+
+            case BlockContentType.Container:
+            case BlockContentType.ReportSection:
+            case BlockContentType.PageSection:
+            case BlockContentType.Page:
+                // Container-like blocks: render children
+                foreach (var child in content.Children)
+                    RenderElement(html, child, content.Bounds.X, content.Bounds.Y, pageNumber);
+                break;
+        }
+    }
+
+    private static void RenderContentBlockTable(HtmlBuilder html, ContentBlock table, int pageNumber)
+    {
+        html.OpenTag("table", classAttr: "kinetic-table");
+
+        // Separate rows by type (header vs body)
+        // Note: ContentBlock rows don't have RowType property, so treat all as body rows
+        // unless we have custom metadata; for now, treat first row as header if present
+        var rows = table.Children.ToList();
+
+        if (rows.Count > 0)
+        {
+            // Render first row as header if present
+            html.OpenTag("thead");
+            RenderContentBlockRow(html, rows[0], "th", pageNumber);
+            html.CloseTag("thead");
+
+            // Render remaining rows as body
+            if (rows.Count > 1)
+            {
+                html.OpenTag("tbody");
+                for (int i = 1; i < rows.Count; i++)
+                {
+                    RenderContentBlockRow(html, rows[i], "td", pageNumber);
+                }
+                html.CloseTag("tbody");
+            }
+        }
+
+        html.CloseTag("table");
+    }
+
+    private static void RenderContentBlockRow(HtmlBuilder html, ContentBlock row, string cellTag, int pageNumber)
+    {
+        html.OpenTag("tr", classAttr: "kinetic-table-row");
+
+        foreach (var cell in row.Children)
+        {
+            if (cell.ContentType != BlockContentType.Cell)
+                continue;
+
+            var cellStyle = $"position: relative; width: {cell.Bounds.Width:F1}px; height: {cell.Bounds.Height:F1}px; {CssBuilder.BuildStyle(cell.Style)}";
+            var attributes = new Dictionary<string, string>();
+
+            if (cell.ColSpan > 1)
+                attributes["colspan"] = cell.ColSpan.ToString();
+
+            if (cell.RowSpan > 1)
+                attributes["rowspan"] = cell.RowSpan.ToString();
+
+            html.OpenTag(cellTag, style: cellStyle, attributes: attributes.Count == 0 ? null : attributes);
+
+            RenderContentBlockCellChildren(html, cell, pageNumber);
+
+            html.CloseTag(cellTag);
+        }
+
+        html.CloseTag("tr");
+    }
+
+    private static void RenderContentBlockCellChildren(HtmlBuilder html, ContentBlock cell, int pageNumber)
+    {
+        foreach (var child in cell.Children)
+        {
+            RenderContentBlockCellChildInline(html, child, pageNumber);
+        }
+    }
+
+    private static void RenderContentBlockCellChildInline(HtmlBuilder html, ContentBlock child, int pageNumber)
+    {
+        if (child.ContentType == BlockContentType.Text)
+        {
+            if (child.TextRuns.Count == 0)
+            {
+                html
+                    .OpenTag("span", style: CssBuilder.BuildStyle(child.Style))
+                    .Text(ResolveSystemTextTokens(child.Text, pageNumber))
+                    .CloseTag("span");
+                return;
+            }
+
+            foreach (var run in child.TextRuns)
+            {
+                html
+                    .OpenTag("span", style: CssBuilder.BuildStyle(run.Style))
+                    .Text(ResolveSystemTextTokens(run.Text, pageNumber))
+                    .CloseTag("span");
+            }
+
+            return;
+        }
+
+        var isContainerLike = child.ContentType is BlockContentType.Container
+            or BlockContentType.Cell
+            or BlockContentType.Row
+            or BlockContentType.ReportSection
+            or BlockContentType.PageSection
+            or BlockContentType.Page;
+
+        if (isContainerLike)
+        {
+            foreach (var grandchild in child.Children)
+            {
+                RenderContentBlockCellChildInline(html, grandchild, pageNumber);
+            }
+
+            return;
+        }
+
+        RenderElement(html, child, child.Bounds.X, child.Bounds.Y, pageNumber);
+    }
+
+    private static void RenderContentBlockShape(HtmlBuilder html, ContentBlock shape)
+    {
+        var width = shape.Bounds.Width;
+        var height = shape.Bounds.Height;
+        var svgStyle = $"width: {width:F1}px; height: {height:F1}px; display: block;";
+
+        html
+            .OpenTag("svg", style: svgStyle, id: shape.Id)
+            .Raw($"viewBox=\"0 0 {width:F1} {height:F1}\" ")
+            .Raw(RenderSvgContentShape(shape))
+            .CloseTag("svg");
+    }
+
+    private static string RenderSvgContentShape(ContentBlock shape)
+    {
+        var fill = shape.Fill.HasValue ? $"fill=\"{CssColorToSvg(shape.Fill.Value)}\"" : "fill=\"none\"";
+        var stroke = shape.Stroke.HasValue ? $"stroke=\"{CssColorToSvg(shape.Stroke.Value)}\" stroke-width=\"{shape.StrokeWidth:F1}\"" : "stroke=\"none\"";
+        var attrs = $"{fill} {stroke}";
+
+        return shape.Kind switch
+        {
+            ShapeKind.Rectangle => $"<rect x=\"0\" y=\"0\" width=\"{shape.Bounds.Width:F1}\" height=\"{shape.Bounds.Height:F1}\" {attrs} />",
+            ShapeKind.Ellipse => $"<ellipse cx=\"{shape.Bounds.Width / 2:F1}\" cy=\"{shape.Bounds.Height / 2:F1}\" rx=\"{shape.Bounds.Width / 2:F1}\" ry=\"{shape.Bounds.Height / 2:F1}\" {attrs} />",
+            ShapeKind.Line => $"<line x1=\"0\" y1=\"0\" x2=\"{shape.Bounds.Width:F1}\" y2=\"{shape.Bounds.Height:F1}\" {stroke} />",
+            _ => string.Empty
+        };
     }
 
     private static void RenderImageElement(HtmlBuilder html, ImageBlock imgElem)
@@ -371,7 +591,7 @@ public sealed class HtmlExporter : IHtmlExporter
 
         foreach (var cell in row.Cells)
         {
-            var cellStyle = $"width: {cell.Bounds.Width:F1}px; height: {cell.Bounds.Height:F1}px; {CssBuilder.BuildStyle(cell.Style)}";
+            var cellStyle = $"position: relative; width: {cell.Bounds.Width:F1}px; height: {cell.Bounds.Height:F1}px; {CssBuilder.BuildStyle(cell.Style)}";
             var attributes = new Dictionary<string, string>();
 
             if (cell.ColSpan > 1)
@@ -396,6 +616,32 @@ public sealed class HtmlExporter : IHtmlExporter
         if (child is TextBlock textElem)
         {
             RenderTextBlockInline(html, textElem, pageNumber);
+            return;
+        }
+
+        if (child is ContentBlock content)
+        {
+            RenderContentBlockCellChildInline(html, content, pageNumber);
+            return;
+        }
+
+        if (child is ContainerBlock container)
+        {
+            foreach (var grandchild in container.Children)
+            {
+                RenderTableCellChild(html, grandchild, pageNumber);
+            }
+
+            return;
+        }
+
+        if (child is CellBlock cell)
+        {
+            foreach (var grandchild in cell.Children)
+            {
+                RenderTableCellChild(html, grandchild, pageNumber);
+            }
+
             return;
         }
 

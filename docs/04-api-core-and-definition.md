@@ -25,32 +25,35 @@ This page documents key Core contracts and base abstractions.
 | Type | Kind | Purpose | Key Members |
 |---|---|---|---|
 | `LayoutBlock` | abstract class | Base for all layout blocks | `Id`, `Style`, `Bounds`, `DesiredSize`, `LayoutSize`, `Arrange` |
+| `ContentBlock` | sealed class | Unified layout element with type discriminator (v3.0.0+) | `Id`, `Style`, `ContentType`, `Children`, type-specific properties |
 
-## Layout Element Types
+## Layout Element Types (v3.0.0+)
 
-| Element | Role |
-|---|---|
-| `PageBlock` | Represents one final page |
-| `ReportBlock` | Header/detail/footer grouping and repetition |
-| `PageSectionBlock` | Structural grouping (header/body/footer areas) |
-| `ContainerBlock` | Generic children container |
-| `TextBlock` | Text content and text runs |
-| `TableBlock` | Table root |
-| `RowBlock` | Table row |
-| `CellBlock` | Table cell |
-| `ImageBlock` | Images |
-| `ShapeBlock` | Vector shapes |
-| `ChartBlock` | Charts |
-| `BarcodeBlock` | Barcodes |
+All layout elements are now instances of **`ContentBlock`** differentiated by the **`BlockContentType`** enum discriminator.
 
-### ReportBlock vs PageSectionBlock (Semantic Distinction)
-
-These two container types are intentionally different even though both stack children vertically.
-
-| Type | Semantic Layer | Meaning | Typical Source |
+| ContentType Value | Purpose | Type-Specific Properties | Typical Usage |
 |---|---|---|---|
-| `ReportBlock` | Logical report content (pre-pagination) | What content repeats and when (detail, group header/footer, report header/footer, page header/footer) | `IReportBuilder.Build(...)` and report-block plugins |
-| `PageSectionBlock` | Physical page structure (post-pagination) | Where arranged content sits on a concrete page (page header/footer sections) | Pagination output (`PageBlock.Header`/`PageBlock.Footer`) |
+| `Text` | Text content with optional formatting | `Text: string?`, `TextRuns: IReadOnlyList<TextRun>` | Paragraphs, labels, dynamic text |
+| `Image` | Raster or vector images | `SourceKey: string?`, `Stretch: ImageStretch` | Photos, logos, backgrounds |
+| `Shape` | Vector shapes | `Kind: ShapeKind`, `Fill: Color?`, `Stroke: Color?`, `StrokeWidth: float` | Rectangles, ellipses, dividers |
+| `Chart` | Charts and graphs | `ChartType: string?`, `ChartData: object?` | Bar/Line/Pie charts, data visualization |
+| `Barcode` | Machine-readable codes | `Symbology: string?`, `Value: string?`, `ShowText: bool` | QR codes, Code128, EAN13 |
+| `Container` | Generic children container | `Children: IReadOnlyList<ContentBlock>` | Layout sections, flexible grouping |
+| `Table` | Table root | `Children: IReadOnlyList<ContentBlock>` (rows) | Tabular data, structured layouts |
+| `Row` | Table row | `Children: IReadOnlyList<ContentBlock>` (cells) | Row within a table |
+| `Cell` | Table cell | `Children: IReadOnlyList<ContentBlock>`, `ColumnIndex: int`, `ColSpan: int`, `RowSpan: int` | Cell content, merge support |
+| `ReportSection` | Header/detail/footer logical grouping | `Children: IReadOnlyList<ContentBlock>` | Logical report regions (pre-pagination) |
+| `PageSection` | Physical page structure (header/footer) | `Children: IReadOnlyList<ContentBlock>` | Page-level sections (post-pagination) |
+| `Page` | Represents one final page | `Children: IReadOnlyList<ContentBlock>` | Output page |
+
+### ReportSection vs PageSection (Semantic Distinction)
+
+These two container types (`ContentType.ReportSection` and `ContentType.PageSection`) are intentionally different even though both stack children vertically.
+
+| ContentType | Semantic Layer | Meaning | Typical Source |
+|---|---|---|---|
+| `ReportSection` | Logical report content (pre-pagination) | What content repeats and when (detail, group header/footer, report header/footer, page header/footer) | `IReportBuilder.Build(...)` and report-block plugins |
+| `PageSection` | Physical page structure (post-pagination) | Where arranged content sits on a concrete page (page header/footer sections) | Pagination output (`PageBlock.Header`/`PageBlock.Footer`) |
 
 Practical rule:
 

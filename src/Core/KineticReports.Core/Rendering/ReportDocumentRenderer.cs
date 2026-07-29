@@ -63,6 +63,11 @@ public sealed class ReportDocumentRenderer
         // Dispatch by element type
         switch (element)
         {
+            // Unified ContentBlock dispatch (handles Text, Image, Shape, Barcode, Chart, Container, etc.)
+            case ContentBlock content:
+                RenderContentBlock(content, context, pageNumber);
+                break;
+
             case TextBlock text:
                 foreach (var run in text.TextRuns)
                     context.DrawText(ResolveSystemTextTokens(run, pageNumber));
@@ -112,7 +117,85 @@ public sealed class ReportDocumentRenderer
     }
 
     // -------------------------------------------------------------------------
-    // Shape rendering
+    // ContentBlock rendering (unified dispatch for Text, Image, Shape, Barcode, Chart, Container)
+    // -------------------------------------------------------------------------
+
+    private void RenderContentBlock(ContentBlock content, IGraphicsContext context, int pageNumber)
+    {
+        switch (content.ContentType)
+        {
+            case BlockContentType.Text:
+                foreach (var run in content.TextRuns)
+                    context.DrawText(ResolveSystemTextTokens(run, pageNumber));
+                break;
+
+            case BlockContentType.Image:
+                // Note: ContentBlock for images doesn't have ImageReference set by layout engine yet
+                // This will be implemented in Phase 3.4+ when image resolution is handled
+                break;
+
+            case BlockContentType.Shape:
+                RenderShape(content, context);
+                break;
+
+            case BlockContentType.Chart:
+                // Chart rendering is renderer-specific; this is a placeholder
+                break;
+
+            case BlockContentType.Barcode:
+                // Barcode rendering is renderer-specific; this is a placeholder
+                break;
+
+            case BlockContentType.Container:
+            case BlockContentType.ReportSection:
+            case BlockContentType.PageSection:
+            case BlockContentType.Page:
+            case BlockContentType.Table:
+            case BlockContentType.Row:
+                // Container-like blocks: render all children
+                foreach (var child in content.Children)
+                    RenderElement(child, context, pageNumber);
+                break;
+
+            case BlockContentType.Cell:
+                // Cell blocks: render all children
+                foreach (var child in content.Children)
+                    RenderElement(child, context, pageNumber);
+                break;
+        }
+    }
+
+    private static void RenderShape(ContentBlock shape, IGraphicsContext context)
+    {
+        switch (shape.Kind)
+        {
+            case ShapeKind.Rectangle:
+                if (shape.Fill.HasValue)
+                    context.FillRectangle(shape.Bounds, shape.Fill.Value);
+                if (shape.Stroke.HasValue)
+                    context.StrokeRectangle(shape.Bounds, shape.Stroke.Value, shape.StrokeWidth);
+                break;
+
+            case ShapeKind.Ellipse:
+                if (shape.Fill.HasValue)
+                    context.FillEllipse(shape.Bounds, shape.Fill.Value);
+                if (shape.Stroke.HasValue)
+                    context.StrokeEllipse(shape.Bounds, shape.Stroke.Value, shape.StrokeWidth);
+                break;
+
+            case ShapeKind.Line:
+                if (shape.Stroke.HasValue)
+                {
+                    var from = new Point(shape.Bounds.X, shape.Bounds.Y);
+                    var to = new Point(shape.Bounds.Right, shape.Bounds.Bottom);
+                    context.DrawLine(from, to, shape.Stroke.Value, shape.StrokeWidth);
+                }
+                break;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Shape rendering (legacy - for backward compatibility with ShapeBlock)
     // -------------------------------------------------------------------------
 
     private static void RenderShape(ShapeBlock shape, IGraphicsContext context)

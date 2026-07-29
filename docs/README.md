@@ -1,12 +1,18 @@
-# KineticReports Documentation (Junior Developer Edition)
+# KineticReports Documentation
 
 Welcome. This documentation explains **how KineticReports works end-to-end** and how to extend it safely.
 
-## Start Here
+## 🚀 **START HERE** → [Comprehensive Developer Guide](./COMPREHENSIVE_DEVELOPER_GUIDE.md)
 
-1. [01 - Quick Start for Junior Developers](./01-junior-quick-start.md)
-2. [02 - Report Generation Flow](./02-report-generation-flow.md)
-3. [03 - Architecture and Project Map](./03-architecture-project-map.md)
+This is the **consolidated, all-in-one guide** designed for junior developers. It covers everything from basic concepts to advanced extensions, with practical code examples.
+
+## Alternative: Topic-by-Topic Learning
+
+If you prefer to learn topics individually:
+
+1. [01 - Quick Start for Junior Developers](./01-junior-quick-start.md) - 5-minute overview
+2. [02 - Report Generation Flow](./02-report-generation-flow.md) - How reports are generated
+3. [03 - Architecture and Project Map](./03-architecture-project-map.md) - Project structure
 
 ## API Reference
 

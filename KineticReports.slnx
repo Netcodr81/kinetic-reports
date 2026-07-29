@@ -16,6 +16,9 @@
     <Project Path="src/Viewer/KineticReports.Viewer.Web/KineticReports.Viewer.Web.csproj" />
   </Folder>
   <Folder Name="/tests/" />
+  <Folder Name="/tests/perf-tests/">
+    <Project Path="tests/perf-tests/KineticReports.Perf.Tests/KineticReports.Perf.Tests.csproj" />
+  </Folder>
   <Folder Name="/tests/unit-tests/">
     <Project Path="tests/unit-tests/KineticReports.Core.Tests/KineticReports.Core.Tests.csproj" />
     <Project Path="tests/unit-tests/KineticReports.Data.SqlServer.Tests/KineticReports.Data.SqlServer.Tests.csproj" />

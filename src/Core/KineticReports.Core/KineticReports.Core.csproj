@@ -8,7 +8,7 @@
     <Version>1.0.0</Version>
     <PackageVersion>1.0.0</PackageVersion>
     <Title>KineticReports Core</Title>
-    <Description>Core KineticReports runtime package containing authoring, engine, layout, visual model, rendering, Skia integration, built-in HTML/PDF export, plugins, and SQL data providers.</Description>
+    <Description>Core KineticReports runtime package containing authoring, engine, layout, visual model, rendering, Skia integration, built-in HTML/PDF export, plugins, and SQL data providers. Initial release with unified block architecture and comprehensive extension points.</Description>
     <Authors>Mike Eckel</Authors>
     <Company>KineticReports</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -16,7 +16,7 @@
     <PackageProjectUrl>https://github.com/michaeleckel/kinetic-reports</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>1.0.0: Consolidated the KineticReports runtime into KineticReports.Core with built-in authoring, engine, layout, rendering, Skia, HTML/PDF export, plugins, and SQL data providers.</PackageReleaseNotes>
+    <PackageReleaseNotes>v1.0.0: Initial release with unified block architecture, comprehensive extension points, and optimized performance. Features deterministic document generation, plugin support, multiple exporters, and full Blazor viewer integration.</PackageReleaseNotes>
     <PackageTags>reporting;pdf;html;skia;blazor;aspnetcore</PackageTags>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>

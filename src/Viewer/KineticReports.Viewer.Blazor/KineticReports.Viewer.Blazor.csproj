@@ -8,7 +8,7 @@
     <Version>1.0.0</Version>
     <PackageVersion>1.0.0</PackageVersion>
     <Title>KineticReports Viewer for Blazor</Title>
-    <Description>Embeddable Blazor viewer components for rendering, exporting, searching, and hit-testing KineticReports documents.</Description>
+    <Description>Embeddable Blazor viewer components for rendering, exporting, searching, and hit-testing KineticReports documents. Fully compatible with Blazor Web App render modes (Static, Interactive, Auto).</Description>
     <Authors>Mike Eckel</Authors>
     <Company>KineticReports</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

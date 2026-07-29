@@ -34,7 +34,8 @@ public class DefaultReportBuilderTests
         block.Kind.ShouldBe(BlockType.ReportHeader);
         block.Id.ShouldBe("header-1");
 
-        var text = block.Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>();
+        var text = (ContentBlock)block.Children.ShouldHaveSingleItem();
+        text.ContentType.ShouldBe(BlockContentType.Text);
         text.Text.ShouldBe("Sales Summary");
     }
 
@@ -54,8 +55,13 @@ public class DefaultReportBuilderTests
         result[0].Id.ShouldBe("order-row-1");
         result[1].Id.ShouldBe("order-row-2");
 
-        result[0].Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Text.ShouldBe("Contoso");
-        result[1].Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Text.ShouldBe("Fabrikam");
+        var text0 = (ContentBlock)result[0].Children.ShouldHaveSingleItem();
+        text0.ContentType.ShouldBe(BlockContentType.Text);
+        text0.Text.ShouldBe("Contoso");
+
+        var text1 = (ContentBlock)result[1].Children.ShouldHaveSingleItem();
+        text1.ContentType.ShouldBe(BlockContentType.Text);
+        text1.Text.ShouldBe("Fabrikam");
     }
 
     [Fact]
@@ -98,16 +104,16 @@ public class DefaultReportBuilderTests
         table.Rows.Count.ShouldBe(3);
 
         table.Rows[0].RowType.ShouldBe(RowType.Header);
-        table.Rows[0].Cells[0].Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Text.ShouldBe("Customer");
-        table.Rows[0].Cells[1].Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Text.ShouldBe("Amount");
+        ((ContentBlock)table.Rows[0].Cells[0].Children.ShouldHaveSingleItem()).Text.ShouldBe("Customer");
+        ((ContentBlock)table.Rows[0].Cells[1].Children.ShouldHaveSingleItem()).Text.ShouldBe("Amount");
 
         table.Rows[1].RowType.ShouldBe(RowType.Data);
-        table.Rows[1].Cells[0].Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Text.ShouldBe("Contoso");
-        table.Rows[1].Cells[1].Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Text.ShouldBe("123.45");
+        ((ContentBlock)table.Rows[1].Cells[0].Children.ShouldHaveSingleItem()).Text.ShouldBe("Contoso");
+        ((ContentBlock)table.Rows[1].Cells[1].Children.ShouldHaveSingleItem()).Text.ShouldBe("123.45");
 
         table.Rows[2].RowType.ShouldBe(RowType.Data);
-        table.Rows[2].Cells[0].Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Text.ShouldBe("Fabrikam");
-        table.Rows[2].Cells[1].Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Text.ShouldBe("456.78");
+        ((ContentBlock)table.Rows[2].Cells[0].Children.ShouldHaveSingleItem()).Text.ShouldBe("Fabrikam");
+        ((ContentBlock)table.Rows[2].Cells[1].Children.ShouldHaveSingleItem()).Text.ShouldBe("456.78");
     }
 
     [Fact]
@@ -134,7 +140,9 @@ public class DefaultReportBuilderTests
 
         result.Count.ShouldBe(1);
         result[0].Id.ShouldBe("line-1");
-        result[0].Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Text.ShouldBe("Row 1: Litware");
+        var text = (ContentBlock)result[0].Children.ShouldHaveSingleItem();
+        text.ContentType.ShouldBe(BlockContentType.Text);
+        text.Text.ShouldBe("Row 1: Litware");
     }
 
     [Fact]
@@ -186,17 +194,22 @@ public class DefaultReportBuilderTests
 
         table.Rows.Count.ShouldBe(7);
 
-        var firstGroupHeader = table.Rows[1];
-        firstGroupHeader.RowType.ShouldBe(RowType.Data);
-        firstGroupHeader.Cells[0].Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Text.ShouldBe("Group: East");
+        // First group header row
+        var firstGroupHeaderRow = table.Rows[1].ShouldBeOfType<RowBlock>();
+        var firstGroupCell = firstGroupHeaderRow.Cells[0].ShouldBeOfType<CellBlock>();
+        ((ContentBlock)firstGroupCell.Children.ShouldHaveSingleItem()).Text.ShouldBe("Group: East");
 
-        var secondGroupHeader = table.Rows[4];
-        secondGroupHeader.Cells[0].Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Text.ShouldBe("Group: West");
+        // Second group header row
+        var secondGroupHeaderRow = table.Rows[4].ShouldBeOfType<RowBlock>();
+        var secondGroupCell = secondGroupHeaderRow.Cells[0].ShouldBeOfType<CellBlock>();
+        ((ContentBlock)secondGroupCell.Children.ShouldHaveSingleItem()).Text.ShouldBe("Group: West");
 
-        var footer = table.Rows[^1];
-        footer.RowType.ShouldBe(RowType.Footer);
-        footer.Cells[0].Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Text.ShouldBe("Grand Total");
-        footer.Cells[1].Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Text.ShouldBe("350.00");
+        // Footer row
+        var footerRow = table.Rows[^1].ShouldBeOfType<RowBlock>();
+        var footerLabelCell = footerRow.Cells[0].ShouldBeOfType<CellBlock>();
+        ((ContentBlock)footerLabelCell.Children.ShouldHaveSingleItem()).Text.ShouldBe("Grand Total");
+        var footerValueCell = footerRow.Cells[1].ShouldBeOfType<CellBlock>();
+        ((ContentBlock)footerValueCell.Children.ShouldHaveSingleItem()).Text.ShouldBe("350.00");
     }
 
     [Fact]
@@ -280,7 +293,8 @@ public class DefaultReportBuilderTests
         block.Style.Padding.ShouldBe(new Thickness(12f));
         block.Style.Background.ShouldBe(Color.FromRgb(245, 245, 245));
 
-        var text = block.Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>();
+        var text = (ContentBlock)block.Children.ShouldHaveSingleItem();
+        text.ContentType.ShouldBe(BlockContentType.Text);
         text.Style.FontFamily.ShouldBe("Segoe UI");
         text.Style.FontSize.ShouldBe(18f);
         text.Style.FontWeight.ShouldBe(FontWeight.Bold);
@@ -366,15 +380,18 @@ public class DefaultReportBuilderTests
         tableRegion.Style.Padding.ShouldBe(new Thickness(6f));
 
         var table = tableRegion.Children.ShouldHaveSingleItem().ShouldBeOfType<TableBlock>();
+
         table.Rows.Count.ShouldBe(2);
 
-        var headerCell = table.Rows[0].Cells.ShouldHaveSingleItem();
+        var headerRow = table.Rows[0].ShouldBeOfType<RowBlock>();
+        var headerCell = headerRow.Cells.ShouldHaveSingleItem().ShouldBeOfType<CellBlock>();
         headerCell.Style.Background.ShouldBe(Color.FromRgb(22, 84, 140));
-        headerCell.Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Style.FontWeight.ShouldBe(FontWeight.SemiBold);
+        ((ContentBlock)headerCell.Children.ShouldHaveSingleItem()).Style.FontWeight.ShouldBe(FontWeight.SemiBold);
 
-        var dataCell = table.Rows[1].Cells.ShouldHaveSingleItem();
-        dataCell.Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Style.FontSize.ShouldBe(10f);
-        dataCell.Children.ShouldHaveSingleItem().ShouldBeOfType<TextBlock>().Style.TextColor.ShouldBe(Color.FromRgb(45, 45, 45));
+        var dataRow = table.Rows[1].ShouldBeOfType<RowBlock>();
+        var dataCell = dataRow.Cells.ShouldHaveSingleItem().ShouldBeOfType<CellBlock>();
+        ((ContentBlock)dataCell.Children.ShouldHaveSingleItem()).Style.FontSize.ShouldBe(10f);
+        ((ContentBlock)dataCell.Children.ShouldHaveSingleItem()).Style.TextColor.ShouldBe(Color.FromRgb(45, 45, 45));
     }
 
     [Fact]
@@ -405,7 +422,8 @@ public class DefaultReportBuilderTests
         var result = sut.Build(CreateDataContext(definition: definition), new LiteralEvaluator());
 
         var region = result.ShouldHaveSingleItem();
-        var image = region.Children.ShouldHaveSingleItem().ShouldBeOfType<ImageBlock>();
+        var image = (ContentBlock)region.Children.ShouldHaveSingleItem();
+        image.ContentType.ShouldBe(BlockContentType.Image);
         image.SourceKey.ShouldBe("https://example.com/hero.png");
         image.Stretch.ShouldBe(ImageStretch.Fill);
     }

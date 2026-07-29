@@ -8,7 +8,7 @@
     <Version>1.0.0</Version>
     <PackageVersion>1.0.0</PackageVersion>
     <Title>KineticReports Excel Export Example</Title>
-    <Description>Example Excel exporter package for KineticReports. Core built-in exporters are HTML and PDF.</Description>
+    <Description>Example Excel exporter package for KineticReports. Core built-in exporters are HTML and PDF. This is an example implementation demonstrating the exporter extension pattern.</Description>
     <Authors>Mike Eckel</Authors>
     <Company>KineticReports</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
