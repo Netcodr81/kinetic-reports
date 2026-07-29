@@ -40,6 +40,39 @@ public class DefaultReportBuilderTests
     }
 
     [Fact]
+    public void AddBarcodeRegion_WithTypedSymbology_StoresTypedAndStringValues()
+    {
+        var sut = new DefaultReportBuilder()
+            .AddBarcodeRegion("barcode-typed", BarcodeSymbology.Code128, "SO-2026-001", showText: true);
+
+        var result = sut.Build(CreateDataContext(), new LiteralEvaluator());
+
+        var block = result.ShouldHaveSingleItem();
+        var barcode = block.Children.ShouldHaveSingleItem().ShouldBeOfType<ContentBlock>();
+        barcode.ContentType.ShouldBe(BlockContentType.Barcode);
+        barcode.SymbologyType.ShouldBe(BarcodeSymbology.Code128);
+        barcode.Symbology.ShouldBe("CODE128");
+        barcode.Value.ShouldBe("SO-2026-001");
+    }
+
+    [Fact]
+    public void AddMicroQrCodeRegion_SetsMicroQrSymbology()
+    {
+        var sut = new DefaultReportBuilder()
+            .AddMicroQrCodeRegion("micro-qr-1", "MQR-42", showText: false);
+
+        var result = sut.Build(CreateDataContext(), new LiteralEvaluator());
+
+        var block = result.ShouldHaveSingleItem();
+        var barcode = block.Children.ShouldHaveSingleItem().ShouldBeOfType<ContentBlock>();
+        barcode.ContentType.ShouldBe(BlockContentType.Barcode);
+        barcode.SymbologyType.ShouldBe(BarcodeSymbology.MicroQr);
+        barcode.Symbology.ShouldBe("MICROQR");
+        barcode.Value.ShouldBe("MQR-42");
+        barcode.ShowText.ShouldBeFalse();
+    }
+
+    [Fact]
     public void ForEachRowText_WithFieldExpression_BindsRowValues()
     {
         var sut = new DefaultReportBuilder()
@@ -426,6 +459,80 @@ public class DefaultReportBuilderTests
         image.ContentType.ShouldBe(BlockContentType.Image);
         image.SourceKey.ShouldBe("https://example.com/hero.png");
         image.Stretch.ShouldBe(ImageStretch.Fill);
+    }
+
+    [Fact]
+    public void Build_WithDefinitionBackedLayout_BarcodeItem_UsesTypedSymbology()
+    {
+        var definition = new ReportDefinition
+        {
+            SchemaVersion = "1.0",
+            Id = "barcode-definition",
+            Name = "Barcode Definition",
+            Layout = new ReportLayoutDefinition
+            {
+                Body =
+                [
+                    new ReportLayoutItemDefinition
+                    {
+                        Id = "ship-label",
+                        Kind = ReportLayoutItemKind.Barcode,
+                        SymbologyType = BarcodeSymbology.Code128,
+                        Value = "SO-2026-001",
+                        ShowText = true
+                    }
+                ]
+            }
+        };
+
+        var sut = new DefaultReportBuilder();
+
+        var result = sut.Build(CreateDataContext(definition: definition), new LiteralEvaluator());
+
+        var region = result.ShouldHaveSingleItem();
+        var barcode = region.Children.ShouldHaveSingleItem().ShouldBeOfType<ContentBlock>();
+        barcode.ContentType.ShouldBe(BlockContentType.Barcode);
+        barcode.SymbologyType.ShouldBe(BarcodeSymbology.Code128);
+        barcode.Symbology.ShouldBe("CODE128");
+        barcode.Value.ShouldBe("SO-2026-001");
+        barcode.ShowText.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Build_WithDefinitionBackedLayout_BarcodeItem_UsesLegacyStringSymbology()
+    {
+        var definition = new ReportDefinition
+        {
+            SchemaVersion = "1.0",
+            Id = "barcode-legacy-definition",
+            Name = "Barcode Legacy Definition",
+            Layout = new ReportLayoutDefinition
+            {
+                Body =
+                [
+                    new ReportLayoutItemDefinition
+                    {
+                        Id = "legacy-label",
+                        Kind = ReportLayoutItemKind.Barcode,
+                        Symbology = "PDF417",
+                        Value = "PO-4472",
+                        ShowText = false
+                    }
+                ]
+            }
+        };
+
+        var sut = new DefaultReportBuilder();
+
+        var result = sut.Build(CreateDataContext(definition: definition), new LiteralEvaluator());
+
+        var region = result.ShouldHaveSingleItem();
+        var barcode = region.Children.ShouldHaveSingleItem().ShouldBeOfType<ContentBlock>();
+        barcode.ContentType.ShouldBe(BlockContentType.Barcode);
+        barcode.Symbology.ShouldBe("PDF417");
+        barcode.SymbologyType.ShouldBe(BarcodeSymbology.Pdf417);
+        barcode.Value.ShouldBe("PO-4472");
+        barcode.ShowText.ShouldBeFalse();
     }
 
     [Fact]

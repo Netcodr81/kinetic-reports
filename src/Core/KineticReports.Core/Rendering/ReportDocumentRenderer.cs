@@ -81,6 +81,10 @@ public sealed class ReportDocumentRenderer
                 RenderShape(shape, context);
                 break;
 
+            case BarcodeBlock barcode:
+                RenderBarcodeBlock(barcode, context, pageNumber);
+                break;
+
             case ContainerBlock container:
                 foreach (var child in container.Children)
                     RenderElement(child, context, pageNumber);
@@ -143,7 +147,7 @@ public sealed class ReportDocumentRenderer
                 break;
 
             case BlockContentType.Barcode:
-                // Barcode rendering is renderer-specific; this is a placeholder
+                RenderContentBarcode(content, context, pageNumber);
                 break;
 
             case BlockContentType.Container:
@@ -245,6 +249,90 @@ public sealed class ReportDocumentRenderer
     {
         if (side is null || side.Style == BorderLineStyle.None || side.Width <= 0f) return;
         context.DrawLine(from, to, side.Color, side.Width);
+    }
+
+    private static void RenderContentBarcode(ContentBlock content, IGraphicsContext context, int pageNumber)
+    {
+        var resolvedValue = ResolveSystemTextTokens(content.Value ?? string.Empty, pageNumber);
+        if (!TryRenderBarcodeImage(content.Id, content.SymbologyType, content.Symbology, resolvedValue, content.Bounds, context))
+            return;
+
+        if (content.ShowText)
+            RenderBarcodeLabel(resolvedValue, content.Style, content.Bounds, context);
+    }
+
+    private static void RenderBarcodeBlock(BarcodeBlock barcode, IGraphicsContext context, int pageNumber)
+    {
+        var resolvedValue = ResolveSystemTextTokens(barcode.Value, pageNumber);
+        if (!TryRenderBarcodeImage(barcode.Id, barcode.SymbologyType, barcode.Symbology, resolvedValue, barcode.Bounds, context))
+            return;
+
+        if (barcode.ShowText)
+            RenderBarcodeLabel(resolvedValue, barcode.Style, barcode.Bounds, context);
+    }
+
+    private static bool TryRenderBarcodeImage(
+        string id,
+        BarcodeSymbology? symbologyType,
+        string? symbology,
+        string value,
+        Rect bounds,
+        IGraphicsContext context)
+    {
+        var symbolBounds = GetBarcodeSymbolBounds(bounds, symbologyType, symbology);
+        if (!BarcodeImageFactory.TryCreateImageReference(id, symbologyType, symbology, value, symbolBounds, out var imageReference))
+            return false;
+
+        context.DrawImage(symbolBounds, imageReference, ImageStretch.Fill);
+        return true;
+    }
+
+    private static Rect GetBarcodeSymbolBounds(Rect bounds, BarcodeSymbology? symbologyType, string? symbology)
+    {
+        var labelHeight = GetBarcodeLabelHeight(bounds);
+        var symbolHeight = Math.Max(1f, bounds.Height - labelHeight);
+        var symbolWidth = Math.Max(1f, bounds.Width);
+
+        if (!BarcodeImageFactory.IsSquareSymbology(symbologyType, symbology))
+            return new Rect(bounds.X, bounds.Y, symbolWidth, symbolHeight);
+
+        var side = Math.Max(1f, MathF.Min(symbolWidth, symbolHeight));
+        var offsetX = (symbolWidth - side) / 2f;
+        return new Rect(bounds.X + offsetX, bounds.Y, side, side);
+    }
+
+    private static float GetBarcodeLabelHeight(Rect bounds)
+    {
+        if (bounds.Height < 28f)
+            return 0f;
+
+        return MathF.Min(18f, MathF.Max(12f, bounds.Height * 0.2f));
+    }
+
+    private static void RenderBarcodeLabel(string value, AppliedStyle style, Rect bounds, IGraphicsContext context)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return;
+
+        var labelHeight = GetBarcodeLabelHeight(bounds);
+        if (labelHeight <= 0f)
+            return;
+
+        var labelRect = new Rect(bounds.X, bounds.Bottom - labelHeight, bounds.Width, labelHeight);
+        var fontSize = MathF.Min(style.FontSize, MathF.Max(9f, labelHeight - 3f));
+        var estimatedWidth = value.Length * fontSize * 0.52f;
+        var baselineX = labelRect.X + MathF.Max(0f, (labelRect.Width - estimatedWidth) / 2f);
+        var baselineY = labelRect.Bottom - 2f;
+
+        var runStyle = style with { FontSize = fontSize };
+        context.DrawText(new TextRun
+        {
+            Text = value,
+            BaselineOrigin = new Point(baselineX, baselineY),
+            Bounds = labelRect,
+            Style = runStyle,
+            IsRightToLeft = false
+        });
     }
 
     private static TextRun ResolveSystemTextTokens(TextRun run, int pageNumber)

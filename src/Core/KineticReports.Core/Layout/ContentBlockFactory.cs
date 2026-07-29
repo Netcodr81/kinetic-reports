@@ -141,7 +141,40 @@ public static class ContentBlockFactory
             Id = id,
             Style = style,
             ContentType = BlockContentType.Barcode,
+            SymbologyType = BarcodeSymbologyName.TryParse(symbology, out var parsed) ? parsed : null,
             Symbology = symbology,
+            Value = value,
+            ShowText = showText
+        };
+    }
+
+    /// <summary>
+    /// Creates a barcode <see cref="ContentBlock"/> with strongly typed symbology.
+    /// </summary>
+    /// <param name="id">Stable block id.</param>
+    /// <param name="style">Resolved block style.</param>
+    /// <param name="symbology">Strongly typed barcode symbology.</param>
+    /// <param name="value">Encoded value.</param>
+    /// <param name="showText">Whether to render human-readable text.</param>
+    /// <returns>A configured barcode <see cref="ContentBlock"/>.</returns>
+    public static ContentBlock CreateBarcode(
+        string id,
+        AppliedStyle style,
+        BarcodeSymbology symbology,
+        string value,
+        bool showText = true)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+        ArgumentNullException.ThrowIfNull(style);
+        ArgumentNullException.ThrowIfNull(value);
+
+        return new ContentBlock
+        {
+            Id = id,
+            Style = style,
+            ContentType = BlockContentType.Barcode,
+            SymbologyType = symbology,
+            Symbology = BarcodeSymbologyName.ToIdentifier(symbology),
             Value = value,
             ShowText = showText
         };
@@ -161,7 +194,24 @@ public static class ContentBlockFactory
         string value,
         bool showText = false)
     {
-        return CreateBarcode(id, style, "QR", value, showText);
+        return CreateBarcode(id, style, BarcodeSymbology.QrCode, value, showText);
+    }
+
+    /// <summary>
+    /// Creates a Micro QR code <see cref="ContentBlock"/>.
+    /// </summary>
+    /// <param name="id">Stable block id.</param>
+    /// <param name="style">Resolved block style.</param>
+    /// <param name="value">Encoded value.</param>
+    /// <param name="showText">Whether to render human-readable text.</param>
+    /// <returns>A configured Micro QR <see cref="ContentBlock"/>.</returns>
+    public static ContentBlock CreateMicroQrCode(
+        string id,
+        AppliedStyle style,
+        string value,
+        bool showText = false)
+    {
+        return CreateBarcode(id, style, BarcodeSymbology.MicroQr, value, showText);
     }
 
     /// <summary>

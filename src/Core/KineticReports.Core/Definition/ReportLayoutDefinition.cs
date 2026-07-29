@@ -31,6 +31,18 @@ public sealed record ReportLayoutItemDefinition
     /// <summary>Gets or inits text content for text items.</summary>
     public string? Text { get; init; }
 
+    /// <summary>Gets or inits barcode symbology identifier for barcode items (legacy string form).</summary>
+    public string? Symbology { get; init; }
+
+    /// <summary>Gets or inits strongly typed barcode symbology for barcode items.</summary>
+    public BarcodeSymbology? SymbologyType { get; init; }
+
+    /// <summary>Gets or inits the encoded barcode value for barcode items.</summary>
+    public string? Value { get; init; }
+
+    /// <summary>Gets or inits whether to render the human-readable barcode text.</summary>
+    public bool ShowText { get; init; } = true;
+
     /// <summary>Gets or inits the image source key or URI for image items.</summary>
     public string? SourceKey { get; init; }
 
@@ -54,6 +66,12 @@ public sealed record ReportLayoutItemDefinition
     /// Used by image items.
     /// </summary>
     public string? ImageStyleId { get; init; }
+
+    /// <summary>
+    /// Gets or inits the optional named style id applied to barcode content.
+    /// Used by barcode items.
+    /// </summary>
+    public string? BarcodeStyleId { get; init; }
 
     /// <summary>Gets or inits the bound data source id for table items.</summary>
     public string? DataSourceId { get; init; }
@@ -120,6 +138,9 @@ public enum ReportLayoutItemKind
 
     /// <summary>Single image region.</summary>
     Image,
+
+    /// <summary>Single barcode or QR-code region.</summary>
+    Barcode,
 
     /// <summary>Data-backed table.</summary>
     Table,

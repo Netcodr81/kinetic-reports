@@ -56,6 +56,82 @@ public class PdfReportDocumentExporterTests
         Encoding.ASCII.GetString(artifact, 0, 4).ShouldBe("%PDF");
     }
 
+    [Fact]
+    public async Task ExportAsync_WithQrBarcodeContentBlock_ReturnsPdf()
+    {
+        var reportDocument = new ReportDocument
+        {
+            Pages =
+            [
+                new PageBlock
+                {
+                    Id = "page-1",
+                    Style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f },
+                    PageNumber = 1,
+                    PageWidth = 612f,
+                    PageHeight = 792f,
+                    Children =
+                    [
+                        new ContentBlock
+                        {
+                            Id = "barcode-qr-1",
+                            Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+                            ContentType = BlockContentType.Barcode,
+                            Symbology = "QR",
+                            Value = "https://kineticreports.dev/pdf",
+                            ShowText = true
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var sut = new PdfReportDocumentExporter();
+
+        var artifact = await sut.ExportAsync(reportDocument);
+
+        artifact.Length.ShouldBeGreaterThan(100);
+        Encoding.ASCII.GetString(artifact, 0, 4).ShouldBe("%PDF");
+    }
+
+    [Fact]
+    public async Task ExportAsync_WithCode128BarcodeContentBlock_ReturnsPdf()
+    {
+        var reportDocument = new ReportDocument
+        {
+            Pages =
+            [
+                new PageBlock
+                {
+                    Id = "page-1",
+                    Style = new AppliedStyle { FontFamily = "Arial", FontSize = 12f },
+                    PageNumber = 1,
+                    PageWidth = 612f,
+                    PageHeight = 792f,
+                    Children =
+                    [
+                        new ContentBlock
+                        {
+                            Id = "barcode-code128-1",
+                            Style = new AppliedStyle { FontFamily = "Arial", FontSize = 11f },
+                            ContentType = BlockContentType.Barcode,
+                            Symbology = "Code128",
+                            Value = "SO-1001-2026",
+                            ShowText = true
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var sut = new PdfReportDocumentExporter();
+
+        var artifact = await sut.ExportAsync(reportDocument);
+
+        artifact.Length.ShouldBeGreaterThan(100);
+        Encoding.ASCII.GetString(artifact, 0, 4).ShouldBe("%PDF");
+    }
+
     private static ReportDocument CreateReportDocument()
     {
         return new ReportDocument

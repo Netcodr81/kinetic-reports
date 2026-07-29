@@ -2,6 +2,7 @@ using KineticReports.Core.Geometry;
 using KineticReports.Core.Layout;
 using KineticReports.Core.Rendering;
 using KineticReports.Core.Styling;
+using KineticReports.Core.Typography;
 using Shouldly;
 using Xunit;
 
@@ -13,6 +14,26 @@ namespace KineticReports.Core.Tests.Layout;
 /// </summary>
 public class ContentBlockTests
 {
+    private sealed class TestTextLayout : ITextLayout
+    {
+        public Size MeasureText(string text, AppliedStyle style, float maxWidth) => new(64f, 16f);
+
+        public IReadOnlyList<TextRun> ShapeText(string text, AppliedStyle style, Rect bounds) => [];
+
+        public float GetAscent(FontDescriptor descriptor) => 10f;
+
+        public float GetDescent(FontDescriptor descriptor) => 3f;
+
+        public float GetLineGap(FontDescriptor descriptor) => 2f;
+    }
+
+    private sealed class TestLayoutSizingContext : ILayoutSizingContext
+    {
+        public ITextLayout TextLayout { get; } = new TestTextLayout();
+
+        public Size? ResolveImageSize(string imageKey) => null;
+    }
+
     private static AppliedStyle CreateDefaultStyle() =>
         new AppliedStyle
         {
@@ -340,6 +361,23 @@ public class ContentBlockTests
     }
 
     [Fact]
+    public void BarcodeBlock_StoresStronglyTypedSymbology()
+    {
+        var block = new ContentBlock
+        {
+            Id = "bc2b",
+            Style = CreateDefaultStyle(),
+            ContentType = BlockContentType.Barcode,
+            SymbologyType = BarcodeSymbology.Pdf417,
+            Symbology = BarcodeSymbologyName.ToIdentifier(BarcodeSymbology.Pdf417),
+            Value = "PO-1009"
+        };
+
+        block.SymbologyType.ShouldBe(BarcodeSymbology.Pdf417);
+        block.Symbology.ShouldBe("PDF417");
+    }
+
+    [Fact]
     public void BarcodeBlock_StoresShowTextFlag()
     {
         var block = new ContentBlock
@@ -638,5 +676,47 @@ public class ContentBlockTests
 
         // DesiredSize should be zero before LayoutSize is called
         block.DesiredSize.ShouldBe(new Size(0, 0));
+    }
+
+    [Theory]
+    [InlineData(BlockContentType.Shape)]
+    [InlineData(BlockContentType.Chart)]
+    [InlineData(BlockContentType.Barcode)]
+    public void ContentBlock_LayoutSize_WithInfinityInput_ProducesFiniteDesiredSize(BlockContentType contentType)
+    {
+        var block = new ContentBlock
+        {
+            Id = $"finite-{contentType}",
+            Style = CreateDefaultStyle(),
+            ContentType = contentType
+        };
+
+        block.LayoutSize(Size.Infinity, new TestLayoutSizingContext());
+
+        float.IsFinite(block.DesiredSize.Width).ShouldBeTrue();
+        float.IsFinite(block.DesiredSize.Height).ShouldBeTrue();
+        block.DesiredSize.Width.ShouldBeGreaterThan(0f);
+        block.DesiredSize.Height.ShouldBeGreaterThan(0f);
+    }
+
+    [Theory]
+    [InlineData(true, 200f, 96f)]
+    [InlineData(false, 200f, 80f)]
+    public void BarcodeContentBlock_LayoutSize_WithLargeAvailableSpace_UsesCompactDefaultSize(bool showText, float expectedWidth, float expectedHeight)
+    {
+        var block = new ContentBlock
+        {
+            Id = "barcode-compact",
+            Style = CreateDefaultStyle(),
+            ContentType = BlockContentType.Barcode,
+            Symbology = "QR",
+            Value = "SO-1001",
+            ShowText = showText
+        };
+
+        block.LayoutSize(new Size(1000f, 1000f), new TestLayoutSizingContext());
+
+        block.DesiredSize.Width.ShouldBe(expectedWidth);
+        block.DesiredSize.Height.ShouldBe(expectedHeight);
     }
 }

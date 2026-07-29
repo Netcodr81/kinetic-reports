@@ -7,6 +7,7 @@ using KineticReports.Core.Authoring.Documents;
 using KineticReports.Core.Authoring.Serialization;
 using KineticReports.Core.Definition;
 using KineticReports.Core.Geometry;
+using KineticReports.Core.Layout;
 using KineticReports.Core.Styling;
 using Microsoft.AspNetCore.Hosting;
 
@@ -62,6 +63,22 @@ internal sealed class SampleReportCatalogService : ISampleReportCatalogService
             Name: "Operations Executive Pack (fluent builder)",
             Description: "A multi-page operational report authored with the fluent ReportDesignerDocumentBuilder and compiled to ReportDefinition.",
             SourceType: "Fluent")
+    ];
+
+    private static readonly IReadOnlyList<BarcodeCatalogEntry> BarcodeCatalogEntries =
+    [
+        new(BarcodeSymbology.QrCode, "QR Code", "https://kineticreports.dev"),
+        new(BarcodeSymbology.MicroQr, "Micro QR", "MQR-42"),
+        new(BarcodeSymbology.Code128, "Code 128", "SO-2026-001"),
+        new(BarcodeSymbology.Code39, "Code 39", "INV-4472"),
+        new(BarcodeSymbology.Ean13, "EAN-13", "5901234123457"),
+        new(BarcodeSymbology.Ean8, "EAN-8", "55123457"),
+        new(BarcodeSymbology.UpcA, "UPC-A", "036000291452"),
+        new(BarcodeSymbology.UpcE, "UPC-E", "01234565"),
+        new(BarcodeSymbology.Itf, "ITF (Interleaved 2 of 5)", "12345670"),
+        new(BarcodeSymbology.Pdf417, "PDF417", "PO-4472|Dock-07|Gate-C"),
+        new(BarcodeSymbology.DataMatrix, "Data Matrix", "SN:KR-2026-00091"),
+        new(BarcodeSymbology.Codabar, "Codabar", "A40156B")
     ];
 
     private readonly IWebHostEnvironment _environment;
@@ -213,7 +230,8 @@ internal sealed class SampleReportCatalogService : ISampleReportCatalogService
                         Id = "ops-demo-image-embedded",
                         Kind = ReportLayoutItemKind.Image,
                         SourceKey = embeddedDemoImageSource
-                    }
+                    },
+                    .. BuildBarcodeCatalogLayoutItems("ops")
                 ],
                 PageFooter =
                 [
@@ -310,6 +328,32 @@ internal sealed class SampleReportCatalogService : ISampleReportCatalogService
                     .WithProperty("TextStyleId", "text-section-title"))
             .AddComponent("ops-demo-image-embedded", ReportComponentType.Image, image =>
                 image.WithBinding("SourceKey", embeddedDemoImageSource))
+            .AddComponent("ops-barcode-page-break", ReportComponentType.PageBreak)
+            .AddComponent("ops-barcodes-title", ReportComponentType.Text, text =>
+                text.WithBinding("Text", "Barcode Catalog")
+                    .WithProperty("TextStyleId", "text-section-title"))
+            .AddComponent("ops-barcodes-copy", ReportComponentType.Text, text =>
+                text.WithBinding("Text", "All supported barcode types are shown below with a label and sample value.")
+                    .WithProperty("TextStyleId", "text-body"));
+
+        foreach (var entry in BarcodeCatalogEntries)
+        {
+            var slug = BarcodeSymbologyName.ToIdentifier(entry.Symbology).ToLowerInvariant();
+            var labelText = $"{entry.Label} ({BarcodeSymbologyName.ToIdentifier(entry.Symbology)})";
+
+            documentBuilder
+                .AddComponent($"ops-barcodes-{slug}-label", ReportComponentType.Text, text =>
+                    text.WithBinding("Text", labelText)
+                        .WithProperty("TextStyleId", "text-body"))
+                .AddComponent($"ops-barcodes-{slug}", ReportComponentType.Barcode, barcode =>
+                    barcode.WithBinding("Value", entry.Value)
+                        .WithProperty("SymbologyType", entry.Symbology.ToString())
+                        .WithProperty("Symbology", BarcodeSymbologyName.ToIdentifier(entry.Symbology))
+                        .WithProperty("ShowText", entry.ShowText ? "true" : "false")
+                        .WithProperty("BarcodeStyleId", "text-body"));
+        }
+
+        documentBuilder
             .AddComponent("ops-footer", ReportComponentType.Footer, footer =>
             {
                 footer
@@ -607,4 +651,42 @@ internal sealed class SampleReportCatalogService : ISampleReportCatalogService
 
     private static ReportLayoutTableAggregateDefinition Aggregate(int columnIndex, string valueExpression)
         => new() { ColumnIndex = columnIndex, ValueExpression = valueExpression, Kind = "Sum", FormatString = "0.##" };
+
+    private static IReadOnlyList<ReportLayoutItemDefinition> BuildBarcodeCatalogLayoutItems(string prefix)
+    {
+        var items = new List<ReportLayoutItemDefinition>
+        {
+            new()
+            {
+                Id = $"{prefix}-barcode-page-break",
+                Kind = ReportLayoutItemKind.PageBreak
+            },
+            TextItem($"{prefix}-barcodes-title", "Barcode Catalog", textStyleId: "text-section-title"),
+            TextItem($"{prefix}-barcodes-copy", "All supported barcode types are shown below with a label and sample value.", textStyleId: "text-body")
+        };
+
+        foreach (var entry in BarcodeCatalogEntries)
+        {
+            var identifier = BarcodeSymbologyName.ToIdentifier(entry.Symbology);
+            var slug = identifier.ToLowerInvariant();
+            items.Add(TextItem(
+                id: $"{prefix}-barcodes-{slug}-label",
+                text: $"{entry.Label} ({identifier})",
+                textStyleId: "text-body"));
+            items.Add(new ReportLayoutItemDefinition
+            {
+                Id = $"{prefix}-barcodes-{slug}",
+                Kind = ReportLayoutItemKind.Barcode,
+                SymbologyType = entry.Symbology,
+                Symbology = identifier,
+                Value = entry.Value,
+                ShowText = entry.ShowText,
+                BarcodeStyleId = "text-body"
+            });
+        }
+
+        return items;
+    }
+
+    private sealed record BarcodeCatalogEntry(BarcodeSymbology Symbology, string Label, string Value, bool ShowText = true);
 }

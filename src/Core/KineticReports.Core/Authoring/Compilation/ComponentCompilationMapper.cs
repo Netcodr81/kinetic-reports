@@ -202,6 +202,40 @@ internal static class ComponentCompilationMapper
             }
         }
 
+        if (string.Equals(component.CanonicalType, "Barcode", StringComparison.OrdinalIgnoreCase))
+        {
+            var value = TryGetBinding(component, "Value")
+                ?? TryGetProperty(component, "Value")
+                ?? TryGetBinding(component, "Text")
+                ?? TryGetProperty(component, "Text");
+
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                var symbologyRaw = TryGetBinding(component, "Symbology")
+                    ?? TryGetProperty(component, "Symbology")
+                    ?? TryGetProperty(component, "SymbologyType")
+                    ?? "QR";
+
+                BarcodeSymbology? parsedSymbology = BarcodeSymbologyName.TryParse(symbologyRaw, out var typedSymbology)
+                    ? typedSymbology
+                    : null;
+
+                target.Add(new ReportLayoutItemDefinition
+                {
+                    Id = component.Id,
+                    Kind = ReportLayoutItemKind.Barcode,
+                    Symbology = symbologyRaw,
+                    SymbologyType = parsedSymbology,
+                    Value = NormalizeTokens(value),
+                    ShowText = TryParseBool(TryGetProperty(component, "ShowText")) ?? true,
+                    BlockStyleId = TryGetProperty(component, "BlockStyleId"),
+                    BarcodeStyleId = TryGetProperty(component, "BarcodeStyleId")
+                });
+
+                return;
+            }
+        }
+
         if (string.Equals(component.CanonicalType, "Table", StringComparison.OrdinalIgnoreCase)
             && !string.IsNullOrWhiteSpace(component.DataSourceId))
         {

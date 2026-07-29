@@ -1,6 +1,8 @@
 namespace KineticReports.Core.Export.Html;
 
+using KineticReports.Core.Geometry;
 using KineticReports.Core.Layout;
+using KineticReports.Core.Rendering;
 using KineticReports.Core.Styling;
 using Microsoft.Extensions.Options;
 using System.Text;
@@ -227,8 +229,8 @@ public sealed class HtmlExporter : IHtmlExporter
                 html.Text("[Chart Element]");
                 break;
 
-            case BarcodeBlock:
-                html.Text("[Barcode Element]");
+            case BarcodeBlock barcode:
+                RenderBarcodeElement(html, barcode, pageNumber);
                 break;
         }
 
@@ -304,7 +306,7 @@ public sealed class HtmlExporter : IHtmlExporter
                 break;
 
             case BlockContentType.Barcode:
-                html.Text("[Barcode Element]");
+                RenderContentBlockBarcode(html, content, pageNumber);
                 break;
 
             case BlockContentType.Table:
@@ -567,6 +569,90 @@ public sealed class HtmlExporter : IHtmlExporter
             ShapeKind.Line => $"<line x1=\"0\" y1=\"0\" x2=\"{shape.Bounds.Width:F1}\" y2=\"{shape.Bounds.Height:F1}\" {stroke} />",
             _ => string.Empty
         };
+    }
+
+    private static void RenderBarcodeElement(HtmlBuilder html, BarcodeBlock barcode, int pageNumber)
+    {
+        var resolvedValue = ResolveSystemTextTokens(barcode.Value, pageNumber);
+        var symbolBounds = GetBarcodeSymbolBounds(barcode.Bounds, barcode.SymbologyType, barcode.Symbology);
+
+        if (BarcodeImageFactory.TryCreateDataUri(barcode.SymbologyType, barcode.Symbology, resolvedValue, symbolBounds, out var source))
+        {
+            html.VoidTag("img", attributes: new()
+            {
+                ["src"] = source,
+                ["alt"] = barcode.Id,
+                ["style"] = $"width: {symbolBounds.Width:F1}px; height: {symbolBounds.Height:F1}px; object-fit: fill;"
+            });
+        }
+        else
+        {
+            html
+                .OpenTag("div", classAttr: "visual-barcode-placeholder")
+                .Text($"[Barcode: {barcode.Symbology}]")
+                .CloseTag("div");
+        }
+
+        if (barcode.ShowText && !string.IsNullOrWhiteSpace(resolvedValue))
+        {
+            html
+                .OpenTag("figcaption", classAttr: "barcode-caption")
+                .Text(resolvedValue)
+                .CloseTag("figcaption");
+        }
+    }
+
+    private static void RenderContentBlockBarcode(HtmlBuilder html, ContentBlock barcode, int pageNumber)
+    {
+        var resolvedValue = ResolveSystemTextTokens(barcode.Value ?? string.Empty, pageNumber);
+        var symbolBounds = GetBarcodeSymbolBounds(barcode.Bounds, barcode.SymbologyType, barcode.Symbology);
+
+        if (BarcodeImageFactory.TryCreateDataUri(barcode.SymbologyType, barcode.Symbology, resolvedValue, symbolBounds, out var source))
+        {
+            html.VoidTag("img", attributes: new()
+            {
+                ["src"] = source,
+                ["alt"] = barcode.Id,
+                ["style"] = $"width: {symbolBounds.Width:F1}px; height: {symbolBounds.Height:F1}px; object-fit: fill;"
+            });
+        }
+        else
+        {
+            html
+                .OpenTag("div", classAttr: "visual-barcode-placeholder")
+                .Text($"[Barcode: {barcode.Symbology}]")
+                .CloseTag("div");
+        }
+
+        if (barcode.ShowText && !string.IsNullOrWhiteSpace(resolvedValue))
+        {
+            html
+                .OpenTag("figcaption", classAttr: "barcode-caption")
+                .Text(resolvedValue)
+                .CloseTag("figcaption");
+        }
+    }
+
+    private static Rect GetBarcodeSymbolBounds(Rect bounds, BarcodeSymbology? symbologyType, string? symbology)
+    {
+        var labelHeight = GetBarcodeLabelHeight(bounds);
+        var symbolHeight = Math.Max(1f, bounds.Height - labelHeight);
+        var symbolWidth = Math.Max(1f, bounds.Width);
+
+        if (!BarcodeImageFactory.IsSquareSymbology(symbologyType, symbology))
+            return new Rect(bounds.X, bounds.Y, symbolWidth, symbolHeight);
+
+        var side = Math.Max(1f, MathF.Min(symbolWidth, symbolHeight));
+        var offsetX = (symbolWidth - side) / 2f;
+        return new Rect(bounds.X + offsetX, bounds.Y, side, side);
+    }
+
+    private static float GetBarcodeLabelHeight(Rect bounds)
+    {
+        if (bounds.Height < 28f)
+            return 0f;
+
+        return MathF.Min(18f, MathF.Max(12f, bounds.Height * 0.2f));
     }
 
     private static void RenderTableElement(HtmlBuilder html, TableBlock tableElem, int pageNumber)

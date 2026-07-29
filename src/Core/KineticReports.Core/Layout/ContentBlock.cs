@@ -65,6 +65,9 @@ public sealed class ContentBlock : LayoutBlock
     public float StrokeWidth { get; init; } = 1f;
 
     // ===== Barcode Properties =====
+    /// <summary>Gets the strongly typed barcode symbology (Barcode blocks only).</summary>
+    public BarcodeSymbology? SymbologyType { get; init; }
+
     /// <summary>Gets the barcode symbology identifier (e.g., "QR", "Code128", "EAN13"; Barcode blocks only).</summary>
     public string? Symbology { get; init; }
 
@@ -239,20 +242,37 @@ public sealed class ContentBlock : LayoutBlock
 
     private void LayoutSizeShape(Size availableSize, ILayoutSizingContext context)
     {
-        // Shapes don't impose sizing; they fit within available space
-        DesiredSize = availableSize;
+        var horizontalInset = Style.Padding.Horizontal + GetBorderLeftWidth() + GetBorderRightWidth();
+        var verticalInset = Style.Padding.Vertical + GetBorderTopWidth() + GetBorderBottomWidth();
+
+        var maxWidth = NormalizeLayoutAxis(availableSize.Width - horizontalInset, 240f);
+        var maxHeight = NormalizeLayoutAxis(availableSize.Height - verticalInset, 120f);
+
+        DesiredSize = new Size(maxWidth + horizontalInset, maxHeight + verticalInset);
     }
 
     private void LayoutSizeChart(Size availableSize, ILayoutSizingContext context)
     {
-        // Charts don't impose sizing; they fit within available space
-        DesiredSize = availableSize;
+        var horizontalInset = Style.Padding.Horizontal + GetBorderLeftWidth() + GetBorderRightWidth();
+        var verticalInset = Style.Padding.Vertical + GetBorderTopWidth() + GetBorderBottomWidth();
+
+        var maxWidth = NormalizeLayoutAxis(availableSize.Width - horizontalInset, 360f);
+        var maxHeight = NormalizeLayoutAxis(availableSize.Height - verticalInset, 220f);
+
+        DesiredSize = new Size(maxWidth + horizontalInset, maxHeight + verticalInset);
     }
 
     private void LayoutSizeBarcode(Size availableSize, ILayoutSizingContext context)
     {
-        // Barcodes have minimal sizing constraints
-        DesiredSize = availableSize;
+        var horizontalInset = Style.Padding.Horizontal + GetBorderLeftWidth() + GetBorderRightWidth();
+        var verticalInset = Style.Padding.Vertical + GetBorderTopWidth() + GetBorderBottomWidth();
+
+        // Barcodes must always resolve to finite dimensions; unconstrained inputs can be Infinity.
+        // Keep barcode visuals compact by default, even when a wide/tall region is available.
+        var maxWidth = MathF.Min(NormalizeLayoutAxis(availableSize.Width - horizontalInset, 200f), 200f);
+        var maxHeight = MathF.Min(NormalizeLayoutAxis(availableSize.Height - verticalInset, ShowText ? 96f : 80f), ShowText ? 96f : 80f);
+
+        DesiredSize = new Size(maxWidth + horizontalInset, maxHeight + verticalInset);
     }
 
     // ===== Type-Specific Arrange Implementations =====

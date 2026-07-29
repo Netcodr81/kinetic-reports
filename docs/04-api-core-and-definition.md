@@ -79,7 +79,7 @@ ReportDefinition
 | `CodeBlockFamily` | enum | Coarse grouping for tooling and validation | `Structure`, `Content`, `Supporting` |
 | `CodeBlockTypeExtensions` | static class | Canonical alias collapsing and runtime mapping | `GetFamily`, `ToCanonicalType`, `ToLayoutBlockType` |
 | `ReportBlockFactory` | static class | Creates concrete `ReportBlock` instances from typed roles | `Create(...)`, `CreatePageBreak(...)` |
-| `ContentBlockFactory` | static class | Creates strongly typed content blocks for code-first builders | `CreateText`, `CreateImage`, `CreateRectangle`, `CreateEllipse`, `CreateLine`, `CreateBarcode`, `CreateQrCode`, `CreateChart` |
+| `ContentBlockFactory` | static class | Creates strongly typed content blocks for code-first builders | `CreateText`, `CreateImage`, `CreateRectangle`, `CreateEllipse`, `CreateLine`, `CreateBarcode`, `CreateQrCode`, `CreateMicroQrCode`, `CreateChart` |
 | `ReportDsl` | static class | Minimal fluent helpers for common report patterns | `TextRegion`, `TextCell` |
 | `ReportLayoutBuilder` | sealed class | Fluent builder for assembling ordered report blocks | `Add`, `AddRange`, `AddTextRegion`, `AddPageBreak`, `BeginTable`, `CreateTableRegion`, `Build` |
 
@@ -195,6 +195,22 @@ var blocks = new ReportLayoutBuilder()
 ```
 
 `blocks` is now an ordered `IReadOnlyList<ReportBlock>` ready for layout and pagination.
+
+### Barcode Usage Notes
+
+Barcode and QR rendering follows a few rules that are useful when authoring reports:
+
+1. `QR` and `MICROQR` always render as square symbols (never stretched rectangles).
+2. Other symbologies (`Code128`, `EAN13`, `PDF417`, etc.) render using rectangular symbol bounds.
+3. When sizing is unconstrained or very large, barcode layout uses compact defaults to avoid oversized output:
+	- With human-readable label (`ShowText = true`): up to `200 x 96` DIPs.
+	- Without label (`ShowText = false`): up to `200 x 80` DIPs.
+
+Practical sizing guidance:
+
+1. Use `ShowText = false` for compact QR badges or dense table rows.
+2. Place barcodes in narrower regions/columns when you want smaller output.
+3. Use container/table styles (`Padding`, borders) to control whitespace around symbols.
 
 ## Styling Types
 

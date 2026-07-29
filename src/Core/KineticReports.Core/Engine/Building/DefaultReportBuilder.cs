@@ -230,6 +230,40 @@ public sealed class DefaultReportBuilder : IReportBuilder
     }
 
     /// <summary>
+    /// Adds a single-barcode report region using strongly typed symbology.
+    /// </summary>
+    /// <param name="id">Stable block id.</param>
+    /// <param name="symbology">Strongly typed barcode symbology.</param>
+    /// <param name="value">Encoded value.</param>
+    /// <param name="showText">Whether to display human-readable text.</param>
+    /// <param name="blockType">Region role.</param>
+    /// <param name="blockStyle">Optional region style.</param>
+    /// <param name="barcodeStyle">Optional barcode element style.</param>
+    /// <returns>The current builder.</returns>
+    public DefaultReportBuilder AddBarcodeRegion(
+        string id,
+        BarcodeSymbology symbology,
+        string value,
+        bool showText = true,
+        BlockType blockType = BlockType.Detail,
+        AppliedStyle? blockStyle = null,
+        AppliedStyle? barcodeStyle = null)
+    {
+        ValidateRequired(id, nameof(id));
+        ValidateRequired(value, nameof(value));
+
+        var child = ContentBlockFactory.CreateBarcode(
+            $"{id}-barcode",
+            ResolveBlockStyle(barcodeStyle),
+            symbology,
+            value,
+            showText);
+
+        _steps.Add((_, _) => [ReportBlockFactory.Create(blockType, id, ResolveBlockStyle(blockStyle), [child])]);
+        return this;
+    }
+
+    /// <summary>
     /// Adds a single QR-code report region.
     /// </summary>
     /// <param name="id">Stable block id.</param>
@@ -252,6 +286,37 @@ public sealed class DefaultReportBuilder : IReportBuilder
 
         var child = ContentBlockFactory.CreateQrCode(
             $"{id}-qr",
+            ResolveBlockStyle(barcodeStyle),
+            value,
+            showText);
+
+        _steps.Add((_, _) => [ReportBlockFactory.Create(blockType, id, ResolveBlockStyle(blockStyle), [child])]);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a single Micro QR-code report region.
+    /// </summary>
+    /// <param name="id">Stable block id.</param>
+    /// <param name="value">Encoded value.</param>
+    /// <param name="showText">Whether to display human-readable text.</param>
+    /// <param name="blockType">Region role.</param>
+    /// <param name="blockStyle">Optional region style.</param>
+    /// <param name="barcodeStyle">Optional QR-code element style.</param>
+    /// <returns>The current builder.</returns>
+    public DefaultReportBuilder AddMicroQrCodeRegion(
+        string id,
+        string value,
+        bool showText = false,
+        BlockType blockType = BlockType.Detail,
+        AppliedStyle? blockStyle = null,
+        AppliedStyle? barcodeStyle = null)
+    {
+        ValidateRequired(id, nameof(id));
+        ValidateRequired(value, nameof(value));
+
+        var child = ContentBlockFactory.CreateMicroQrCode(
+            $"{id}-micro-qr",
             ResolveBlockStyle(barcodeStyle),
             value,
             showText);
@@ -847,6 +912,34 @@ public sealed class DefaultReportBuilder : IReportBuilder
                     blockType: blockType,
                     blockStyle: ResolveStyleId(item.BlockStyleId, nameof(item.BlockStyleId)),
                     imageStyle: ResolveStyleId(item.ImageStyleId, nameof(item.ImageStyleId)));
+                break;
+
+            case ReportLayoutItemKind.Barcode:
+                var value = item.Value ?? item.Text;
+                if (string.IsNullOrWhiteSpace(value))
+                    break;
+
+                if (item.SymbologyType.HasValue)
+                {
+                    builder.AddBarcodeRegion(
+                        id: item.Id,
+                        symbology: item.SymbologyType.Value,
+                        value: value,
+                        showText: item.ShowText,
+                        blockType: blockType,
+                        blockStyle: ResolveStyleId(item.BlockStyleId, nameof(item.BlockStyleId)),
+                        barcodeStyle: ResolveStyleId(item.BarcodeStyleId, nameof(item.BarcodeStyleId)));
+                    break;
+                }
+
+                builder.AddBarcodeRegion(
+                    id: item.Id,
+                    symbology: item.Symbology ?? "QR",
+                    value: value,
+                    showText: item.ShowText,
+                    blockType: blockType,
+                    blockStyle: ResolveStyleId(item.BlockStyleId, nameof(item.BlockStyleId)),
+                    barcodeStyle: ResolveStyleId(item.BarcodeStyleId, nameof(item.BarcodeStyleId)));
                 break;
 
             case ReportLayoutItemKind.PageBreak:

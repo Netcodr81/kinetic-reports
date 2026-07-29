@@ -191,6 +191,52 @@ public class ReportDocumentRendererTests
         hi.ShouldBeLessThan(bi);
     }
 
+    [Fact]
+    public void RenderPage_QrBarcodeInWideRegion_DrawsCenteredSquareImage()
+    {
+        var ctx = new ImageBoundsRecordingGraphicsContext();
+        var barcode = new ContentBlock
+        {
+            Id = "barcode-qr-square-1",
+            Style = DefaultStyle,
+            ContentType = BlockContentType.Barcode,
+            Symbology = "QR",
+            Value = "SO-1001",
+            ShowText = true
+        };
+        barcode.Arrange(new Rect(0, 0, 180, 120));
+
+        _sut.RenderPage(MakePage(barcode), ctx, _options);
+
+        ctx.LastImageBounds.Width.ShouldBe(102f);
+        ctx.LastImageBounds.Height.ShouldBe(102f);
+        ctx.LastImageBounds.X.ShouldBe(39f);
+        ctx.LastImageBounds.Y.ShouldBe(0f);
+    }
+
+    [Fact]
+    public void RenderPage_MicroQrBarcodeInWideRegion_DrawsCenteredSquareImage()
+    {
+        var ctx = new ImageBoundsRecordingGraphicsContext();
+        var barcode = new ContentBlock
+        {
+            Id = "barcode-micro-square-1",
+            Style = DefaultStyle,
+            ContentType = BlockContentType.Barcode,
+            SymbologyType = BarcodeSymbology.MicroQr,
+            Value = "SO-1001",
+            ShowText = true
+        };
+        barcode.Arrange(new Rect(0, 0, 180, 120));
+
+        _sut.RenderPage(MakePage(barcode), ctx, _options);
+
+        ctx.LastImageBounds.Width.ShouldBe(102f);
+        ctx.LastImageBounds.Height.ShouldBe(102f);
+        ctx.LastImageBounds.X.ShouldBe(39f);
+        ctx.LastImageBounds.Y.ShouldBe(0f);
+    }
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
@@ -249,5 +295,23 @@ public class ReportDocumentRendererTests
     {
         public KineticReports.Core.Typography.ITextLayout TextLayout { get; } = new FakeTextLayout();
         public Size? ResolveImageSize(string imageKey) => null;
+    }
+
+    private sealed class ImageBoundsRecordingGraphicsContext : IGraphicsContext
+    {
+        public Rect LastImageBounds { get; private set; }
+
+        public void FillRectangle(Rect bounds, Color color) { }
+        public void FillEllipse(Rect bounds, Color color) { }
+        public void StrokeRectangle(Rect bounds, Color color, float strokeWidth) { }
+        public void StrokeEllipse(Rect bounds, Color color, float strokeWidth) { }
+        public void DrawLine(Point from, Point to, Color color, float strokeWidth) { }
+        public void DrawPath(PathGeometry path) { }
+        public void DrawText(TextRun run) { }
+        public void DrawImage(Rect destinationBounds, ImageReference image, ImageStretch stretch) => LastImageBounds = destinationBounds;
+        public void PushClip(Rect clip) { }
+        public void PopClip() { }
+        public void PushOpacity(float opacity) { }
+        public void PopOpacity() { }
     }
 }

@@ -237,6 +237,84 @@ public class HtmlExporterTests
     }
 
     [Fact]
+    public async Task ExportAsync_WithQrBarcodeContentBlock_RendersEmbeddedBarcodeImage()
+    {
+        var barcode = new ContentBlock
+        {
+            Id = "barcode-qr-1",
+            Style = DefaultStyle,
+            ContentType = BlockContentType.Barcode,
+            Symbology = "QR",
+            Value = "https://kineticreports.dev/demo",
+            ShowText = true
+        };
+        barcode.Arrange(new Rect(20, 40, 140, 140));
+
+        var page = MakePage(1, [barcode]);
+        var tree = new ReportDocument { Pages = [page] };
+
+        var exporter = CreateExporter();
+        using var output = new MemoryStream();
+        await exporter.ExportAsync(tree, output);
+
+        var html = Encoding.UTF8.GetString(output.ToArray());
+        html.ShouldContain("data:image/png;base64,");
+        html.ShouldContain("barcode-caption");
+        html.ShouldContain("https://kineticreports.dev/demo");
+    }
+
+    [Fact]
+    public async Task ExportAsync_WithQrBarcodeInWideRegion_RendersSquareBarcodeImage()
+    {
+        var barcode = new ContentBlock
+        {
+            Id = "barcode-qr-square-1",
+            Style = DefaultStyle,
+            ContentType = BlockContentType.Barcode,
+            Symbology = "QR",
+            Value = "SO-1001",
+            ShowText = true
+        };
+        barcode.Arrange(new Rect(20, 40, 180, 120));
+
+        var page = MakePage(1, [barcode]);
+        var tree = new ReportDocument { Pages = [page] };
+
+        var exporter = CreateExporter();
+        using var output = new MemoryStream();
+        await exporter.ExportAsync(tree, output);
+
+        var html = Encoding.UTF8.GetString(output.ToArray());
+        html.ShouldContain("width: 102.0px; height: 102.0px; object-fit: fill;");
+    }
+
+    [Fact]
+    public async Task ExportAsync_WithUnsupportedBarcodeSymbology_RendersPlaceholder()
+    {
+        var barcode = new ContentBlock
+        {
+            Id = "barcode-unsupported-1",
+            Style = DefaultStyle,
+            ContentType = BlockContentType.Barcode,
+            Symbology = "NoSuchSymbology",
+            Value = "12345",
+            ShowText = false
+        };
+        barcode.Arrange(new Rect(20, 40, 160, 80));
+
+        var page = MakePage(1, [barcode]);
+        var tree = new ReportDocument { Pages = [page] };
+
+        var exporter = CreateExporter();
+        using var output = new MemoryStream();
+        await exporter.ExportAsync(tree, output);
+
+        var html = Encoding.UTF8.GetString(output.ToArray());
+        html.ShouldContain("visual-barcode-placeholder");
+        html.ShouldContain("[Barcode: NoSuchSymbology]");
+    }
+
+    [Fact]
     public async Task ExportAsync_WithNull_ThrowsArgumentNullException()
     {
         var exporter = CreateExporter();

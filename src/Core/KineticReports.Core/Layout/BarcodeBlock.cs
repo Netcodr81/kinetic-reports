@@ -11,6 +11,11 @@ public sealed class BarcodeBlock : LayoutBlock
     public override LayoutBlockType LayoutBlockType => LayoutBlockType.Barcode;
 
     /// <summary>
+    /// Gets the strongly typed barcode symbology.
+    /// </summary>
+    public BarcodeSymbology? SymbologyType { get; init; }
+
+    /// <summary>
     /// Gets the barcode symbology identifier (e.g. "QR", "Code128", "EAN13", "PDF417").
     /// </summary>
     public required string Symbology { get; init; }

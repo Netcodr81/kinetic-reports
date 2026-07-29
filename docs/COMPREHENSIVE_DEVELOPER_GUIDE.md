@@ -576,6 +576,7 @@ public sealed class ContentBlock : LayoutBlock
     public int ColumnIndex { get; init; }
     public int ColSpan { get; init; }
     public int RowSpan { get; init; }
+    public BarcodeSymbology? SymbologyType { get; init; }
     public string? Symbology { get; init; }
     public string? Value { get; init; }
     public bool ShowText { get; init; }
@@ -878,6 +879,11 @@ var qrBlock = ContentBlockFactory.CreateQrCode(
     value: "https://example.com",
     style: defaultStyle);
 
+var microQrBlock = ContentBlockFactory.CreateMicroQrCode(
+    value: "SO-1001",
+    showText: false,
+    style: defaultStyle);
+
 var barcodeBlock = ContentBlockFactory.CreateBarcode(
     symbology: "Code128",
     value: "123456789",
@@ -894,6 +900,38 @@ var chartBlock = ContentBlockFactory.CreateChart(
     chartType: "BarChart",
     chartData: chartDataObject,
     style: defaultStyle);
+```
+
+### 7.1.1 Barcode Sizing and Compact Usage
+
+Barcode layout defaults are intentionally compact to keep reports readable:
+
+1. `ShowText = true` targets up to `200 x 96` DIPs.
+2. `ShowText = false` targets up to `200 x 80` DIPs.
+3. `QR` and `MICROQR` always render square and are centered within their symbol area.
+
+When you want smaller barcodes in production reports:
+
+1. Prefer `ShowText = false` for QR/MicroQR badges.
+2. Place barcode regions in narrower columns/containers.
+3. Use style padding on the parent region to tune surrounding whitespace.
+
+Example (fluent builder, compact QR):
+
+```csharp
+var compactBlockStyle = new AppliedStyle
+{
+    FontFamily = "Arial",
+    FontSize = 11f,
+    Padding = new Thickness(2f, 2f, 2f, 2f)
+};
+
+var builder = DefaultReportBuilder.Create()
+    .AddQrCodeRegion(
+        id: "ticket-qr",
+        value: "https://example.com/t/1001",
+        showText: false,
+        blockStyle: compactBlockStyle);
 ```
 
 ### 7.2 Using ReportLayoutBuilder (Fluent API)

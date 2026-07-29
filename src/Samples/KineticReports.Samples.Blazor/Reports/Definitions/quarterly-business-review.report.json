@@ -293,6 +293,202 @@
         "kind": "Image",
         "sourceKey": "__EMBED_DEMO_IMAGE__",
         "stretch": "Uniform"
+      },
+      {
+        "id": "qbr-page-break-barcodes",
+        "kind": "PageBreak"
+      },
+      {
+        "id": "qbr-barcodes-title",
+        "kind": "Text",
+        "text": "Barcode Catalog",
+        "textStyleId": "text-section-title"
+      },
+      {
+        "id": "qbr-barcodes-copy",
+        "kind": "Text",
+        "text": "All supported barcode types are shown below with a label and sample value.",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-qr-label",
+        "kind": "Text",
+        "text": "QR Code (QR)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-qr",
+        "kind": "Barcode",
+        "symbologyType": "QrCode",
+        "symbology": "QR",
+        "value": "https://kineticreports.dev",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-microqr-label",
+        "kind": "Text",
+        "text": "Micro QR (MICROQR)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-microqr",
+        "kind": "Barcode",
+        "symbologyType": "MicroQr",
+        "symbology": "MICROQR",
+        "value": "MQR-42",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-code128-label",
+        "kind": "Text",
+        "text": "Code 128 (CODE128)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-code128",
+        "kind": "Barcode",
+        "symbologyType": "Code128",
+        "symbology": "CODE128",
+        "value": "SO-2026-001",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-code39-label",
+        "kind": "Text",
+        "text": "Code 39 (CODE39)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-code39",
+        "kind": "Barcode",
+        "symbologyType": "Code39",
+        "symbology": "CODE39",
+        "value": "INV-4472",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-ean13-label",
+        "kind": "Text",
+        "text": "EAN-13 (EAN13)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-ean13",
+        "kind": "Barcode",
+        "symbologyType": "Ean13",
+        "symbology": "EAN13",
+        "value": "5901234123457",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-ean8-label",
+        "kind": "Text",
+        "text": "EAN-8 (EAN8)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-ean8",
+        "kind": "Barcode",
+        "symbologyType": "Ean8",
+        "symbology": "EAN8",
+        "value": "55123457",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-upca-label",
+        "kind": "Text",
+        "text": "UPC-A (UPCA)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-upca",
+        "kind": "Barcode",
+        "symbologyType": "UpcA",
+        "symbology": "UPCA",
+        "value": "036000291452",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-upce-label",
+        "kind": "Text",
+        "text": "UPC-E (UPCE)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-upce",
+        "kind": "Barcode",
+        "symbologyType": "UpcE",
+        "symbology": "UPCE",
+        "value": "01234565",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-itf-label",
+        "kind": "Text",
+        "text": "ITF (Interleaved 2 of 5) (ITF)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-itf",
+        "kind": "Barcode",
+        "symbologyType": "Itf",
+        "symbology": "ITF",
+        "value": "12345670",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-pdf417-label",
+        "kind": "Text",
+        "text": "PDF417 (PDF417)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-pdf417",
+        "kind": "Barcode",
+        "symbologyType": "Pdf417",
+        "symbology": "PDF417",
+        "value": "PO-4472|Dock-07|Gate-C",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-datamatrix-label",
+        "kind": "Text",
+        "text": "Data Matrix (DATAMATRIX)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-datamatrix",
+        "kind": "Barcode",
+        "symbologyType": "DataMatrix",
+        "symbology": "DATAMATRIX",
+        "value": "SN:KR-2026-00091",
+        "showText": true,
+        "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-codabar-label",
+        "kind": "Text",
+        "text": "Codabar (CODABAR)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-barcodes-codabar",
+        "kind": "Barcode",
+        "symbologyType": "Codabar",
+        "symbology": "CODABAR",
+        "value": "A40156B",
+        "showText": true,
+        "barcodeStyleId": "text-body"
       }
     ],
     "pageFooter": [
