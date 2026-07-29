@@ -120,6 +120,220 @@ public class ReportDocumentRendererTests
         ctx.Calls.ShouldContain(c => c.StartsWith("DrawLine"));
     }
 
+    [Fact]
+    public void RenderPage_VerticalBarChart_EmitsFillRectangles()
+    {
+        var ctx = new RecordingGraphicsContext();
+        var chart = ArrangeChart(ChartTypeName.BarVertical);
+
+        _sut.RenderPage(MakePage(chart), ctx, _options);
+
+        ctx.Calls.Count(call => call.StartsWith("FillRect")).ShouldBeGreaterThan(1);
+    }
+
+    [Fact]
+    public void RenderPage_HorizontalBarChart_EmitsFillRectangles()
+    {
+        var ctx = new RecordingGraphicsContext();
+        var chart = ArrangeChart(ChartTypeName.BarHorizontal);
+
+        _sut.RenderPage(MakePage(chart), ctx, _options);
+
+        ctx.Calls.Count(call => call.StartsWith("FillRect")).ShouldBeGreaterThan(1);
+    }
+
+    [Fact]
+    public void RenderPage_LineChart_EmitsDrawLine()
+    {
+        var ctx = new RecordingGraphicsContext();
+        var chart = ArrangeChart(ChartTypeName.Line);
+
+        _sut.RenderPage(MakePage(chart), ctx, _options);
+
+        ctx.Calls.ShouldContain(call => call.StartsWith("DrawLine"));
+    }
+
+    [Fact]
+    public void RenderPage_PieChart_EmitsDrawPath()
+    {
+        var ctx = new RecordingGraphicsContext();
+        var chart = ArrangeChart(ChartTypeName.Pie);
+
+        _sut.RenderPage(MakePage(chart), ctx, _options);
+
+        ctx.Calls.ShouldContain("DrawPath");
+    }
+
+    [Fact]
+    public void RenderPage_PieChart_EmitsSliceLabels()
+    {
+        var ctx = new RecordingGraphicsContext();
+        var chart = ContentBlockFactory.CreateChart(
+            id: "pie-labels-1",
+            style: DefaultStyle,
+            chartType: ChartTypeName.Pie,
+            chartData: new ChartSeriesData
+            {
+                Points =
+                [
+                    new ChartDataPoint { Label = "Enterprise", Value = 44 },
+                    new ChartDataPoint { Label = "Mid-Market", Value = 31 },
+                    new ChartDataPoint { Label = "SMB", Value = 25 }
+                ],
+                Options = new ChartOptions
+                {
+                    ShowTickLabels = true,
+                    LabelFontSize = 9f
+                }
+            });
+
+        chart.Arrange(new Rect(10, 10, 220, 140));
+
+        _sut.RenderPage(MakePage(chart), ctx, _options);
+
+        ctx.Calls.ShouldContain(call => call.StartsWith("DrawText(Enterprise (44"));
+    }
+
+    [Fact]
+    public void RenderPage_PieChartWithLegend_EmitsLegendText()
+    {
+        var ctx = new RecordingGraphicsContext();
+        var chart = ContentBlockFactory.CreateChart(
+            id: "pie-legend-1",
+            style: DefaultStyle,
+            chartType: ChartTypeName.Pie,
+            chartData: new ChartSeriesData
+            {
+                Points =
+                [
+                    new ChartDataPoint { Label = "Enterprise", Value = 44 },
+                    new ChartDataPoint { Label = "Mid-Market", Value = 31 },
+                    new ChartDataPoint { Label = "SMB", Value = 25 }
+                ],
+                Options = new ChartOptions
+                {
+                    ShowLegend = true,
+                    LegendPosition = PieLegendPosition.Right
+                }
+            });
+
+        chart.Arrange(new Rect(10, 10, 280, 160));
+
+        _sut.RenderPage(MakePage(chart), ctx, _options);
+
+        ctx.Calls.ShouldContain(call => call == "DrawText(Enterprise)");
+        ctx.Calls.ShouldContain(call => call == "DrawText(Mid-Market)");
+        ctx.Calls.ShouldContain(call => call == "DrawText(SMB)");
+    }
+
+    [Fact]
+    public void RenderPage_PieChartWithManyLegendItems_UsesCompactLegendWithoutTruncation()
+    {
+        var ctx = new RecordingGraphicsContext();
+        var points = Enumerable.Range(1, 12)
+            .Select(i => new ChartDataPoint { Label = $"Segment {i}", Value = 10 + i })
+            .ToList();
+
+        var chart = ContentBlockFactory.CreateChart(
+            id: "pie-legend-compact-1",
+            style: DefaultStyle,
+            chartType: ChartTypeName.Pie,
+            chartData: new ChartSeriesData
+            {
+                Points = points,
+                Options = new ChartOptions
+                {
+                    ShowLegend = true,
+                    LegendPosition = PieLegendPosition.Right,
+                    LegendFontSize = 9f,
+                    LegendMarkerSize = 10f
+                }
+            });
+
+        chart.Arrange(new Rect(10, 10, 300, 170));
+
+        _sut.RenderPage(MakePage(chart), ctx, _options);
+
+        for (var i = 1; i <= 12; i++)
+        {
+            ctx.Calls.ShouldContain(call => call == $"DrawText(Segment {i})");
+        }
+    }
+
+    [Fact]
+    public void RenderPage_LineChartWithManyLegendItems_UsesCompactLegendWithoutTruncation()
+    {
+        var ctx = new RecordingGraphicsContext();
+        var points = Enumerable.Range(1, 12)
+            .Select(i => new ChartDataPoint { Label = $"Series {i}", Value = 10 + i })
+            .ToList();
+
+        var chart = ContentBlockFactory.CreateChart(
+            id: "line-legend-compact-1",
+            style: DefaultStyle,
+            chartType: ChartTypeName.Line,
+            chartData: new ChartSeriesData
+            {
+                Points = points,
+                Options = new ChartOptions
+                {
+                    ShowLegend = true,
+                    LegendPosition = PieLegendPosition.Right,
+                    LegendFontSize = 9f,
+                    LegendMarkerSize = 10f,
+                    ShowTickLabels = false,
+                    ShowTicks = false,
+                    ShowGridLines = false,
+                    ShowAxes = false
+                }
+            });
+
+        chart.Arrange(new Rect(10, 10, 300, 170));
+
+        _sut.RenderPage(MakePage(chart), ctx, _options);
+
+        for (var i = 1; i <= 12; i++)
+        {
+            ctx.Calls.ShouldContain(call => call == $"DrawText(Series {i})");
+        }
+    }
+
+    [Fact]
+    public void RenderPage_LineChartWithAxisOptions_EmitsAxisTextAndGuideLines()
+    {
+        var ctx = new RecordingGraphicsContext();
+        var chart = ContentBlockFactory.CreateChart(
+            id: "chart-axis-1",
+            style: DefaultStyle,
+            chartType: ChartTypeName.Line,
+            chartData: new ChartSeriesData
+            {
+                Points =
+                [
+                    new ChartDataPoint { Label = "Jan", Value = 18 },
+                    new ChartDataPoint { Label = "Feb", Value = 22 },
+                    new ChartDataPoint { Label = "Mar", Value = 27 }
+                ],
+                Options = new ChartOptions
+                {
+                    XAxisLabel = "Month",
+                    YAxisLabel = "Revenue",
+                    ShowAxes = true,
+                    ShowGridLines = true,
+                    ShowTicks = true,
+                    ShowTickLabels = true
+                }
+            });
+
+        chart.Arrange(new Rect(10, 10, 220, 140));
+
+        _sut.RenderPage(MakePage(chart), ctx, _options);
+
+        ctx.Calls.ShouldContain(call => call.StartsWith("DrawText(Month)"));
+        ctx.Calls.ShouldContain(call => call.StartsWith("DrawText(Revenue)"));
+        ctx.Calls.Count(call => call.StartsWith("DrawLine")).ShouldBeGreaterThan(4);
+    }
+
     // -------------------------------------------------------------------------
     // Opacity
     // -------------------------------------------------------------------------
@@ -288,6 +502,26 @@ public class ReportDocumentRendererTests
     {
         shape.Arrange(new Rect(10, 10, 100, 50));
         return shape;
+    }
+
+    private static ContentBlock ArrangeChart(ChartTypeName chartType)
+    {
+        var chart = ContentBlockFactory.CreateChart(
+            id: $"chart-{chartType}",
+            style: DefaultStyle,
+            chartType: chartType,
+            chartData: new ChartSeriesData
+            {
+                Points =
+                [
+                    new ChartDataPoint { Label = "A", Value = 25 },
+                    new ChartDataPoint { Label = "B", Value = 50 },
+                    new ChartDataPoint { Label = "C", Value = 35 }
+                ]
+            });
+
+        chart.Arrange(new Rect(10, 10, 220, 140));
+        return chart;
     }
 
     // Minimal ILayoutSizingContext backed by FakeTextLayout

@@ -195,6 +195,92 @@ public sealed class DefaultReportBuilder : IReportBuilder
     }
 
     /// <summary>
+    /// Adds a single-chart report region using strongly typed chart type.
+    /// </summary>
+    /// <param name="id">Stable block id.</param>
+    /// <param name="chartType">Strongly typed chart type.</param>
+    /// <param name="chartData">Optional chart payload for the renderer.</param>
+    /// <param name="blockType">Region role.</param>
+    /// <param name="blockStyle">Optional region style.</param>
+    /// <param name="chartStyle">Optional chart element style.</param>
+    /// <returns>The current builder.</returns>
+    public DefaultReportBuilder AddChartRegion(
+        string id,
+        ChartTypeName chartType,
+        object? chartData = null,
+        BlockType blockType = BlockType.Detail,
+        AppliedStyle? blockStyle = null,
+        AppliedStyle? chartStyle = null)
+    {
+        ValidateRequired(id, nameof(id));
+
+        var child = ContentBlockFactory.CreateChart(
+            $"{id}-chart",
+            ResolveBlockStyle(chartStyle),
+            chartType,
+            chartData);
+
+        _steps.Add((_, _) => [ReportBlockFactory.Create(blockType, id, ResolveBlockStyle(blockStyle), [child])]);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a vertical bar chart report region.
+    /// </summary>
+    public DefaultReportBuilder AddVerticalBarChartRegion(
+        string id,
+        IReadOnlyList<ChartDataPoint> points,
+        BlockType blockType = BlockType.Detail,
+        AppliedStyle? blockStyle = null,
+        AppliedStyle? chartStyle = null)
+    {
+        ArgumentNullException.ThrowIfNull(points);
+        return AddChartRegion(id, ChartTypeName.BarVertical, new ChartSeriesData { Points = points }, blockType, blockStyle, chartStyle);
+    }
+
+    /// <summary>
+    /// Adds a horizontal bar chart report region.
+    /// </summary>
+    public DefaultReportBuilder AddHorizontalBarChartRegion(
+        string id,
+        IReadOnlyList<ChartDataPoint> points,
+        BlockType blockType = BlockType.Detail,
+        AppliedStyle? blockStyle = null,
+        AppliedStyle? chartStyle = null)
+    {
+        ArgumentNullException.ThrowIfNull(points);
+        return AddChartRegion(id, ChartTypeName.BarHorizontal, new ChartSeriesData { Points = points }, blockType, blockStyle, chartStyle);
+    }
+
+    /// <summary>
+    /// Adds a line chart report region.
+    /// </summary>
+    public DefaultReportBuilder AddLineChartRegion(
+        string id,
+        IReadOnlyList<ChartDataPoint> points,
+        BlockType blockType = BlockType.Detail,
+        AppliedStyle? blockStyle = null,
+        AppliedStyle? chartStyle = null)
+    {
+        ArgumentNullException.ThrowIfNull(points);
+        return AddChartRegion(id, ChartTypeName.Line, new ChartSeriesData { Points = points }, blockType, blockStyle, chartStyle);
+    }
+
+    /// <summary>
+    /// Adds a pie chart report region.
+    /// </summary>
+    public DefaultReportBuilder AddPieChartRegion(
+        string id,
+        IReadOnlyList<ChartDataPoint> points,
+        BlockType blockType = BlockType.Detail,
+        AppliedStyle? blockStyle = null,
+        AppliedStyle? chartStyle = null)
+    {
+        ArgumentNullException.ThrowIfNull(points);
+        return AddChartRegion(id, ChartTypeName.Pie, new ChartSeriesData { Points = points }, blockType, blockStyle, chartStyle);
+    }
+
+    /// <summary>
     /// Adds a single-barcode report region.
     /// </summary>
     /// <param name="id">Stable block id.</param>
@@ -940,6 +1026,34 @@ public sealed class DefaultReportBuilder : IReportBuilder
                     blockType: blockType,
                     blockStyle: ResolveStyleId(item.BlockStyleId, nameof(item.BlockStyleId)),
                     barcodeStyle: ResolveStyleId(item.BarcodeStyleId, nameof(item.BarcodeStyleId)));
+                break;
+
+            case ReportLayoutItemKind.Chart:
+                object? chartData = null;
+                if (!string.IsNullOrWhiteSpace(item.ChartDataJson))
+                {
+                    chartData = global::System.Text.Json.JsonSerializer.Deserialize<object>(item.ChartDataJson);
+                }
+
+                if (item.ChartTypeValue.HasValue)
+                {
+                    builder.AddChartRegion(
+                        id: item.Id,
+                        chartType: item.ChartTypeValue.Value,
+                        chartData: chartData,
+                        blockType: blockType,
+                        blockStyle: ResolveStyleId(item.BlockStyleId, nameof(item.BlockStyleId)),
+                        chartStyle: ResolveStyleId(item.ChartStyleId, nameof(item.ChartStyleId)));
+                    break;
+                }
+
+                builder.AddChartRegion(
+                    id: item.Id,
+                    chartType: item.ChartType ?? "BAR_VERTICAL",
+                    chartData: chartData,
+                    blockType: blockType,
+                    blockStyle: ResolveStyleId(item.BlockStyleId, nameof(item.BlockStyleId)),
+                    chartStyle: ResolveStyleId(item.ChartStyleId, nameof(item.ChartStyleId)));
                 break;
 
             case ReportLayoutItemKind.PageBreak:

@@ -49,6 +49,15 @@ public sealed record ReportLayoutItemDefinition
     /// <summary>Gets or inits the image stretch mode for image items.</summary>
     public ImageStretch Stretch { get; init; } = ImageStretch.Uniform;
 
+    /// <summary>Gets or inits chart type identifier for chart items (legacy string form).</summary>
+    public string? ChartType { get; init; }
+
+    /// <summary>Gets or inits strongly typed chart type for chart items.</summary>
+    public ChartTypeName? ChartTypeValue { get; init; }
+
+    /// <summary>Gets or inits optional JSON chart data payload for chart items.</summary>
+    public string? ChartDataJson { get; init; }
+
     /// <summary>
     /// Gets or inits the optional named style id applied to the containing block.
     /// Used by text and page-break items, and as a generic fallback.
@@ -72,6 +81,12 @@ public sealed record ReportLayoutItemDefinition
     /// Used by barcode items.
     /// </summary>
     public string? BarcodeStyleId { get; init; }
+
+    /// <summary>
+    /// Gets or inits the optional named style id applied to chart content.
+    /// Used by chart items.
+    /// </summary>
+    public string? ChartStyleId { get; init; }
 
     /// <summary>Gets or inits the bound data source id for table items.</summary>
     public string? DataSourceId { get; init; }
@@ -141,6 +156,9 @@ public enum ReportLayoutItemKind
 
     /// <summary>Single barcode or QR-code region.</summary>
     Barcode,
+
+    /// <summary>Single chart region.</summary>
+    Chart,
 
     /// <summary>Data-backed table.</summary>
     Table,

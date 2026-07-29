@@ -78,6 +78,9 @@ public sealed class ContentBlock : LayoutBlock
     public bool ShowText { get; init; } = true;
 
     // ===== Chart Properties =====
+    /// <summary>Gets the strongly typed chart type (Chart blocks only).</summary>
+    public ChartTypeName? ChartTypeValue { get; init; }
+
     /// <summary>Gets the chart type identifier (e.g., "Bar", "Line", "Pie"; Chart blocks only).</summary>
     public string? ChartType { get; init; }
 

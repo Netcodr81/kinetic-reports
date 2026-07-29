@@ -314,6 +314,245 @@ public class HtmlExporterTests
         html.ShouldContain("[Barcode: NoSuchSymbology]");
     }
 
+    [Theory]
+    [InlineData(ChartTypeName.BarVertical, "<rect")]
+    [InlineData(ChartTypeName.BarHorizontal, "<rect")]
+    [InlineData(ChartTypeName.Line, "<polyline")]
+    [InlineData(ChartTypeName.Pie, "<path")]
+    public async Task ExportAsync_WithChartContentBlock_RendersSvgByChartType(ChartTypeName chartType, string marker)
+    {
+        var chart = ContentBlockFactory.CreateChart(
+            id: "chart-1",
+            style: DefaultStyle,
+            chartType: chartType,
+            chartData: new ChartSeriesData
+            {
+                Points =
+                [
+                    new ChartDataPoint { Label = "A", Value = 20 },
+                    new ChartDataPoint { Label = "B", Value = 35 },
+                    new ChartDataPoint { Label = "C", Value = 45 }
+                ]
+            });
+
+        chart.Arrange(new Rect(20, 40, 220, 140));
+
+        var page = MakePage(1, [chart]);
+        var tree = new ReportDocument { Pages = [page] };
+
+        var exporter = CreateExporter();
+        using var output = new MemoryStream();
+        await exporter.ExportAsync(tree, output);
+
+        var html = Encoding.UTF8.GetString(output.ToArray());
+        html.ShouldContain("<svg");
+        html.ShouldContain(marker);
+    }
+
+    [Fact]
+    public async Task ExportAsync_WithChartOptions_RendersAxisLabelsAndGuides()
+    {
+        var chart = ContentBlockFactory.CreateChart(
+            id: "chart-axis-1",
+            style: DefaultStyle,
+            chartType: ChartTypeName.Line,
+            chartData: new ChartSeriesData
+            {
+                Points =
+                [
+                    new ChartDataPoint { Label = "Jan", Value = 18 },
+                    new ChartDataPoint { Label = "Feb", Value = 22 },
+                    new ChartDataPoint { Label = "Mar", Value = 27 }
+                ],
+                Options = new ChartOptions
+                {
+                    XAxisLabel = "Month",
+                    YAxisLabel = "Revenue",
+                    ShowAxes = true,
+                    ShowGridLines = true,
+                    ShowTicks = true,
+                    ShowTickLabels = true
+                }
+            });
+
+        chart.Arrange(new Rect(20, 40, 220, 140));
+
+        var page = MakePage(1, [chart]);
+        var tree = new ReportDocument { Pages = [page] };
+
+        var exporter = CreateExporter();
+        using var output = new MemoryStream();
+        await exporter.ExportAsync(tree, output);
+
+        var html = Encoding.UTF8.GetString(output.ToArray());
+        html.ShouldContain(">Month<");
+        html.ShouldContain(">Revenue<");
+        html.ShouldContain("<line");
+        html.ShouldContain("<text");
+    }
+
+    [Fact]
+    public async Task ExportAsync_WithPieChart_RendersSliceLabels()
+    {
+        var chart = ContentBlockFactory.CreateChart(
+            id: "pie-labels-1",
+            style: DefaultStyle,
+            chartType: ChartTypeName.Pie,
+            chartData: new ChartSeriesData
+            {
+                Points =
+                [
+                    new ChartDataPoint { Label = "Enterprise", Value = 44 },
+                    new ChartDataPoint { Label = "Mid-Market", Value = 31 },
+                    new ChartDataPoint { Label = "SMB", Value = 25 }
+                ],
+                Options = new ChartOptions
+                {
+                    ShowTickLabels = true,
+                    LabelFontSize = 9f
+                }
+            });
+
+        chart.Arrange(new Rect(20, 40, 220, 140));
+
+        var page = MakePage(1, [chart]);
+        var tree = new ReportDocument { Pages = [page] };
+
+        var exporter = CreateExporter();
+        using var output = new MemoryStream();
+        await exporter.ExportAsync(tree, output);
+
+        var html = Encoding.UTF8.GetString(output.ToArray());
+        html.ShouldContain("Enterprise (44");
+        html.ShouldContain("Mid-Market (31");
+        html.ShouldContain("SMB (25");
+    }
+
+    [Fact]
+    public async Task ExportAsync_WithPieLegendAndLabelStyle_RendersLegendAndWeightedLabels()
+    {
+        var chart = ContentBlockFactory.CreateChart(
+            id: "pie-style-legend-1",
+            style: DefaultStyle,
+            chartType: ChartTypeName.Pie,
+            chartData: new ChartSeriesData
+            {
+                Points =
+                [
+                    new ChartDataPoint { Label = "Enterprise", Value = 44 },
+                    new ChartDataPoint { Label = "Mid-Market", Value = 31 },
+                    new ChartDataPoint { Label = "SMB", Value = 25 }
+                ],
+                Options = new ChartOptions
+                {
+                    ShowPieLabels = true,
+                    PieLabelColor = Color.FromRgb(31, 41, 55),
+                    PieLabelFontWeight = FontWeight.Bold,
+                    ShowLegend = true,
+                    LegendPosition = PieLegendPosition.Right,
+                    LegendTextColor = Color.FromRgb(17, 24, 39)
+                }
+            });
+
+        chart.Arrange(new Rect(20, 40, 280, 160));
+
+        var page = MakePage(1, [chart]);
+        var tree = new ReportDocument { Pages = [page] };
+
+        var exporter = CreateExporter();
+        using var output = new MemoryStream();
+        await exporter.ExportAsync(tree, output);
+
+        var html = Encoding.UTF8.GetString(output.ToArray());
+        html.ShouldContain("font-weight=\"700\"");
+        html.ShouldContain("fill=\"rgba(31,41,55,1.00)\"");
+        html.ShouldContain(">Enterprise<");
+        html.ShouldContain(">Mid-Market<");
+        html.ShouldContain(">SMB<");
+    }
+
+    [Fact]
+    public async Task ExportAsync_WithManyPieLegendItems_UsesCompactLegendWithoutTruncation()
+    {
+        var points = Enumerable.Range(1, 12)
+            .Select(i => new ChartDataPoint { Label = $"Segment {i}", Value = 10 + i })
+            .ToList();
+
+        var chart = ContentBlockFactory.CreateChart(
+            id: "pie-legend-compact-1",
+            style: DefaultStyle,
+            chartType: ChartTypeName.Pie,
+            chartData: new ChartSeriesData
+            {
+                Points = points,
+                Options = new ChartOptions
+                {
+                    ShowLegend = true,
+                    LegendPosition = PieLegendPosition.Right,
+                    LegendFontSize = 9f,
+                    LegendMarkerSize = 10f
+                }
+            });
+
+        chart.Arrange(new Rect(20, 40, 300, 170));
+
+        var page = MakePage(1, [chart]);
+        var tree = new ReportDocument { Pages = [page] };
+
+        var exporter = CreateExporter();
+        using var output = new MemoryStream();
+        await exporter.ExportAsync(tree, output);
+
+        var html = Encoding.UTF8.GetString(output.ToArray());
+        for (var i = 1; i <= 12; i++)
+        {
+            html.ShouldContain($">Segment {i}<");
+        }
+    }
+
+    [Fact]
+    public async Task ExportAsync_WithManyLineLegendItems_UsesCompactLegendWithoutTruncation()
+    {
+        var points = Enumerable.Range(1, 12)
+            .Select(i => new ChartDataPoint { Label = $"Series {i}", Value = 10 + i })
+            .ToList();
+
+        var chart = ContentBlockFactory.CreateChart(
+            id: "line-legend-compact-1",
+            style: DefaultStyle,
+            chartType: ChartTypeName.Line,
+            chartData: new ChartSeriesData
+            {
+                Points = points,
+                Options = new ChartOptions
+                {
+                    ShowLegend = true,
+                    LegendPosition = PieLegendPosition.Right,
+                    LegendFontSize = 9f,
+                    LegendMarkerSize = 10f,
+                    ShowTickLabels = false,
+                    ShowTicks = false,
+                    ShowGridLines = false,
+                    ShowAxes = false
+                }
+            });
+
+        chart.Arrange(new Rect(20, 40, 300, 170));
+
+        var page = MakePage(1, [chart]);
+        var tree = new ReportDocument { Pages = [page] };
+
+        var exporter = CreateExporter();
+        using var output = new MemoryStream();
+        await exporter.ExportAsync(tree, output);
+
+        var html = Encoding.UTF8.GetString(output.ToArray());
+        for (var i = 1; i <= 12; i++)
+        {
+            html.ShouldContain($">Series {i}<");
+        }
+    }
+
     [Fact]
     public async Task ExportAsync_WithNull_ThrowsArgumentNullException()
     {

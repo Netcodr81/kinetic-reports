@@ -316,6 +316,22 @@ public class ContentBlockTests
     }
 
     [Fact]
+    public void ChartBlock_StoresStronglyTypedChartType()
+    {
+        var block = new ContentBlock
+        {
+            Id = "chart-typed",
+            Style = CreateDefaultStyle(),
+            ContentType = BlockContentType.Chart,
+            ChartTypeValue = ChartTypeName.Pie,
+            ChartType = ChartTypeNames.ToIdentifier(ChartTypeName.Pie)
+        };
+
+        block.ChartTypeValue.ShouldBe(ChartTypeName.Pie);
+        block.ChartType.ShouldBe("PIE");
+    }
+
+    [Fact]
     public void ChartBlock_StoresChartData()
     {
         var data = new { Series = new[] { "A", "B" }, Values = new[] { 10, 20 } };
@@ -328,6 +344,23 @@ public class ContentBlockTests
         };
 
         block.ChartData.ShouldBe(data);
+    }
+
+    [Fact]
+    public void ContentBlockFactory_CreatePieChart_UsesTypedChartConfiguration()
+    {
+        var points = new[]
+        {
+            new ChartDataPoint { Label = "A", Value = 30 },
+            new ChartDataPoint { Label = "B", Value = 70 }
+        };
+
+        var chart = ContentBlockFactory.CreatePieChart("pie-1", CreateDefaultStyle(), points);
+
+        chart.ContentType.ShouldBe(BlockContentType.Chart);
+        chart.ChartTypeValue.ShouldBe(ChartTypeName.Pie);
+        chart.ChartType.ShouldBe("PIE");
+        chart.ChartData.ShouldBeOfType<ChartSeriesData>();
     }
 
     // ===== Barcode Block Type Tests =====

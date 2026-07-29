@@ -489,6 +489,78 @@
         "value": "A40156B",
         "showText": true,
         "barcodeStyleId": "text-body"
+      },
+      {
+        "id": "qbr-page-break-charts",
+        "kind": "PageBreak"
+      },
+      {
+        "id": "qbr-charts-title",
+        "kind": "Text",
+        "text": "Chart Catalog",
+        "textStyleId": "text-section-title"
+      },
+      {
+        "id": "qbr-charts-copy",
+        "kind": "Text",
+        "text": "Built-in chart types are shown below with sample datasets.",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-charts-bar_vertical-label",
+        "kind": "Text",
+        "text": "Vertical Bar Chart (BAR_VERTICAL)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-charts-bar_vertical",
+        "kind": "Chart",
+        "chartTypeValue": "BarVertical",
+        "chartType": "BAR_VERTICAL",
+        "chartDataJson": "{\"points\":[{\"label\":\"North\",\"value\":46},{\"label\":\"South\",\"value\":38},{\"label\":\"East\",\"value\":57},{\"label\":\"West\",\"value\":42}],\"options\":{\"xAxisLabel\":\"Region\",\"yAxisLabel\":\"Revenue (USD M)\",\"showAxes\":true,\"showGridLines\":true,\"showTicks\":true,\"showTickLabels\":true,\"yAxisTickCount\":6,\"axisLineWidth\":1.2,\"gridLineWidth\":0.8,\"labelFontSize\":9,\"barGapRatio\":0.22,\"showLegend\":true,\"legendPosition\":\"Right\",\"legendFontSize\":9,\"legendMarkerSize\":10}}",
+        "chartStyleId": "text-body"
+      },
+      {
+        "id": "qbr-charts-bar_horizontal-label",
+        "kind": "Text",
+        "text": "Horizontal Bar Chart (BAR_HORIZONTAL)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-charts-bar_horizontal",
+        "kind": "Chart",
+        "chartTypeValue": "BarHorizontal",
+        "chartType": "BAR_HORIZONTAL",
+        "chartDataJson": "{\"points\":[{\"label\":\"Support\",\"value\":72},{\"label\":\"Delivery\",\"value\":61},{\"label\":\"Sales\",\"value\":88},{\"label\":\"Finance\",\"value\":54}],\"options\":{\"xAxisLabel\":\"SLA Compliance (%)\",\"yAxisLabel\":\"Team\",\"showAxes\":true,\"showGridLines\":true,\"showTicks\":true,\"showTickLabels\":true,\"xAxisTickCount\":6,\"yAxisTickCount\":6,\"labelFontSize\":9,\"barGapRatio\":0.25,\"minValue\":0,\"maxValue\":100,\"showLegend\":true,\"legendPosition\":\"Right\",\"legendFontSize\":9,\"legendMarkerSize\":10}}",
+        "chartStyleId": "text-body"
+      },
+      {
+        "id": "qbr-charts-line-label",
+        "kind": "Text",
+        "text": "Line Chart (LINE)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-charts-line",
+        "kind": "Chart",
+        "chartTypeValue": "Line",
+        "chartType": "LINE",
+        "chartDataJson": "{\"points\":[{\"label\":\"Jan\",\"value\":18},{\"label\":\"Feb\",\"value\":22},{\"label\":\"Mar\",\"value\":27},{\"label\":\"Apr\",\"value\":25},{\"label\":\"May\",\"value\":31},{\"label\":\"Jun\",\"value\":36}],\"options\":{\"xAxisLabel\":\"Month\",\"yAxisLabel\":\"Pipeline ($M)\",\"showAxes\":true,\"showGridLines\":true,\"showTicks\":true,\"showTickLabels\":true,\"yAxisTickCount\":5,\"lineWidth\":2.4,\"showMarkers\":true,\"labelFontSize\":9,\"lineColor\":\"#2563EB\",\"showLegend\":true,\"legendPosition\":\"Right\",\"legendFontSize\":9,\"legendMarkerSize\":10}}",
+        "chartStyleId": "text-body"
+      },
+      {
+        "id": "qbr-charts-pie-label",
+        "kind": "Text",
+        "text": "Pie Chart (PIE)",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-charts-pie",
+        "kind": "Chart",
+        "chartTypeValue": "Pie",
+        "chartType": "PIE",
+        "chartDataJson": "{\"points\":[{\"label\":\"Enterprise\",\"value\":44},{\"label\":\"Mid-Market\",\"value\":31},{\"label\":\"SMB\",\"value\":25}],\"options\":{\"showAxes\":false,\"showGridLines\":false,\"showTicks\":false,\"showTickLabels\":true,\"showPieLabels\":true,\"pieLabelColor\":\"#1F2937\",\"pieLabelFontWeight\":\"SemiBold\",\"labelFontSize\":9,\"showLegend\":true,\"legendPosition\":\"Right\",\"legendFontSize\":9,\"legendMarkerSize\":10,\"legendTextColor\":\"#111827\"}}",
+        "chartStyleId": "text-body"
       }
     ],
     "pageFooter": [

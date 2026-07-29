@@ -897,8 +897,17 @@ var container = ContentBlockFactory.CreateContainer(
 
 // Chart
 var chartBlock = ContentBlockFactory.CreateChart(
-    chartType: "BarChart",
-    chartData: chartDataObject,
+    chartType: ChartTypeName.BarVertical,
+    chartData: new ChartSeriesData
+    {
+        Points =
+        [
+            new ChartDataPoint { Label = "North", Value = 46 },
+            new ChartDataPoint { Label = "South", Value = 38 },
+            new ChartDataPoint { Label = "East", Value = 57 },
+            new ChartDataPoint { Label = "West", Value = 42 }
+        ]
+    },
     style: defaultStyle);
 ```
 
@@ -932,6 +941,171 @@ var builder = DefaultReportBuilder.Create()
         value: "https://example.com/t/1001",
         showText: false,
         blockStyle: compactBlockStyle);
+```
+
+### 7.1.2 Advanced Chart Options (Axes, Labels, Legends)
+
+Built-in chart rendering supports user-facing customization for cartesian charts (vertical bar, horizontal bar, line) and pie charts:
+
+1. Axis visibility and styling (`showAxes`, `axisColor`, `axisLineWidth`)
+2. Grid visibility and styling (`showGridLines`, `gridLineColor`, `gridLineWidth`)
+3. Tick marks and labels (`showTicks`, `showTickLabels`, `xAxisTickCount`, `yAxisTickCount`, `tickLength`, `labelFontSize`, `labelColor`)
+4. Axis titles (`xAxisLabel`, `yAxisLabel`)
+5. Value scale bounds (`minValue`, `maxValue`)
+6. Series styling (`barGapRatio`, `lineColor`, `lineWidth`, `showMarkers`)
+7. Pie labels (`showPieLabels`, `pieLabelColor`, `pieLabelFontWeight`)
+8. Legends for pie/bar/line (`showLegend`, `legendPosition`, `legendMarkerSize`, `legendFontSize`, `legendTextColor`)
+
+Legend layout behavior:
+
+1. `Left` and `Right` legends flow into multiple columns when vertical space is limited.
+2. `Top` and `Bottom` legends wrap across rows.
+3. Plot area automatically reserves space for legends to avoid overlap with bars/lines/pie slices.
+
+JSON payload example (`chartDataJson`):
+
+```json
+{
+    "points": [
+        { "label": "Jan", "value": 18 },
+        { "label": "Feb", "value": 22 },
+        { "label": "Mar", "value": 27 },
+        { "label": "Apr", "value": 25 },
+        { "label": "May", "value": 31 },
+        { "label": "Jun", "value": 36 }
+    ],
+    "options": {
+        "xAxisLabel": "Month",
+        "yAxisLabel": "Pipeline ($M)",
+        "showAxes": true,
+        "showGridLines": true,
+        "showTicks": true,
+        "showTickLabels": true,
+        "xAxisTickCount": 6,
+        "yAxisTickCount": 5,
+        "minValue": 0,
+        "maxValue": 40,
+        "axisColor": "#1F2937",
+        "gridLineColor": "#D1D5DB",
+        "labelColor": "#374151",
+        "axisLineWidth": 1.2,
+        "gridLineWidth": 0.8,
+        "tickLength": 4,
+        "labelFontSize": 9,
+        "lineColor": "#2563EB",
+        "lineWidth": 2.4,
+        "showMarkers": true,
+        "showLegend": true,
+        "legendPosition": "Right",
+        "legendFontSize": 9,
+        "legendMarkerSize": 10,
+        "legendTextColor": "#111827"
+    }
+}
+```
+
+Pie example with centered labels and styled legend:
+
+```json
+{
+    "points": [
+        { "label": "Enterprise", "value": 44 },
+        { "label": "Mid-Market", "value": 31 },
+        { "label": "SMB", "value": 25 }
+    ],
+    "options": {
+        "showPieLabels": true,
+        "pieLabelColor": "#1F2937",
+        "pieLabelFontWeight": "SemiBold",
+        "showLegend": true,
+        "legendPosition": "Bottom",
+        "legendFontSize": 9,
+        "legendMarkerSize": 10,
+        "legendTextColor": "#111827"
+    }
+}
+```
+
+Fluent builder example:
+
+```csharp
+var chartData = new ChartSeriesData
+{
+        Points =
+        [
+                new ChartDataPoint { Label = "Jan", Value = 18 },
+                new ChartDataPoint { Label = "Feb", Value = 22 },
+                new ChartDataPoint { Label = "Mar", Value = 27 },
+                new ChartDataPoint { Label = "Apr", Value = 25 },
+                new ChartDataPoint { Label = "May", Value = 31 },
+                new ChartDataPoint { Label = "Jun", Value = 36 }
+        ],
+        Options = new ChartOptions
+        {
+                XAxisLabel = "Month",
+                YAxisLabel = "Pipeline ($M)",
+                ShowAxes = true,
+                ShowGridLines = true,
+                ShowTicks = true,
+                ShowTickLabels = true,
+                XAxisTickCount = 6,
+                YAxisTickCount = 5,
+                MinValue = 0,
+                MaxValue = 40,
+                AxisLineWidth = 1.2f,
+                GridLineWidth = 0.8f,
+                TickLength = 4f,
+                LabelFontSize = 9f,
+                LineColor = new Color(255, 37, 99, 235),
+                LineWidth = 2.4f,
+                ShowMarkers = true,
+                ShowLegend = true,
+                LegendPosition = PieLegendPosition.Right,
+                LegendFontSize = 9f,
+                LegendMarkerSize = 10f,
+                LegendTextColor = new Color(255, 17, 24, 39)
+        }
+};
+
+var report = DefaultReportBuilder.Create()
+        .AddChartRegion(
+                id: "pipeline-trend",
+                chartType: ChartTypeName.Line,
+                chartData: chartData,
+                blockType: BlockType.Detail)
+        .BuildDefinition();
+```
+
+Pie chart fluent example:
+
+```csharp
+var pieData = new ChartSeriesData
+{
+    Points =
+    [
+        new ChartDataPoint { Label = "Enterprise", Value = 44 },
+        new ChartDataPoint { Label = "Mid-Market", Value = 31 },
+        new ChartDataPoint { Label = "SMB", Value = 25 }
+    ],
+    Options = new ChartOptions
+    {
+        ShowPieLabels = true,
+        PieLabelColor = new Color(255, 31, 41, 55),
+        PieLabelFontWeight = FontWeight.SemiBold,
+        ShowLegend = true,
+        LegendPosition = PieLegendPosition.Bottom,
+        LegendFontSize = 9f,
+        LegendMarkerSize = 10f
+    }
+};
+
+var reportWithPie = DefaultReportBuilder.Create()
+    .AddChartRegion(
+        id: "segment-mix",
+        chartType: ChartTypeName.Pie,
+        chartData: pieData,
+        blockType: BlockType.Detail)
+    .BuildDefinition();
 ```
 
 ### 7.2 Using ReportLayoutBuilder (Fluent API)

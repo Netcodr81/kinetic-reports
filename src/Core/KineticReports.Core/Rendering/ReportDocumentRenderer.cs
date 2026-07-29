@@ -81,6 +81,10 @@ public sealed class ReportDocumentRenderer
                 RenderShape(shape, context);
                 break;
 
+            case ChartBlock chart:
+                RenderChart(chart.ChartTypeValue, chart.ChartType, chart.ChartData, chart.Bounds, chart.Style, context);
+                break;
+
             case BarcodeBlock barcode:
                 RenderBarcodeBlock(barcode, context, pageNumber);
                 break;
@@ -143,7 +147,7 @@ public sealed class ReportDocumentRenderer
                 break;
 
             case BlockContentType.Chart:
-                // Chart rendering is renderer-specific; this is a placeholder
+                RenderChart(content.ChartTypeValue, content.ChartType, content.ChartData, content.Bounds, content.Style, context);
                 break;
 
             case BlockContentType.Barcode:
@@ -229,6 +233,581 @@ public sealed class ReportDocumentRenderer
                 }
                 break;
         }
+    }
+
+    private static void RenderChart(
+        ChartTypeName? chartTypeValue,
+        string? chartType,
+        object? chartData,
+        Rect bounds,
+        AppliedStyle style,
+        IGraphicsContext context)
+    {
+        if (!ChartRenderModelFactory.TryCreate(chartTypeValue, chartType, chartData, out var resolvedType, out var points, out var options))
+        {
+            context.StrokeRectangle(bounds, Color.FromRgb(156, 163, 175), 1f);
+            return;
+        }
+
+        var chartBounds = GetChartPlotBounds(bounds, options, resolvedType, points);
+        if (chartBounds.Width <= 1f || chartBounds.Height <= 1f)
+            return;
+
+        if (resolvedType is ResolvedChartType.BarVertical or ResolvedChartType.BarHorizontal or ResolvedChartType.Line)
+            RenderCartesianGuides(points, chartBounds, bounds, style, options, resolvedType, context);
+
+        switch (resolvedType)
+        {
+            case ResolvedChartType.BarVertical:
+                RenderVerticalBarChart(points, chartBounds, options, context);
+                break;
+            case ResolvedChartType.BarHorizontal:
+                RenderHorizontalBarChart(points, chartBounds, options, context);
+                break;
+            case ResolvedChartType.Line:
+                RenderLineChart(points, chartBounds, style, options, context);
+                break;
+            case ResolvedChartType.Pie:
+                RenderPieChart(points, chartBounds, style, options, context);
+                break;
+        }
+
+        if (options.ShowLegend)
+            RenderSeriesLegend(points, bounds, style, options, context);
+
+        RenderAxisTitles(bounds, style, options, context);
+    }
+
+    private static Rect GetChartPlotBounds(Rect bounds, ChartRenderOptions options, ResolvedChartType chartType, IReadOnlyList<ChartPointModel> points)
+    {
+        if (chartType == ResolvedChartType.Pie)
+        {
+            const float pieInset = 8f;
+            var legendReserve = options.ShowLegend ? GetPieLegendReserve(bounds, options, points) : 0f;
+
+            return options.LegendPosition switch
+            {
+                PieLegendPosition.Right => new Rect(
+                    bounds.X + pieInset,
+                    bounds.Y + pieInset,
+                    Math.Max(1f, bounds.Width - (pieInset * 2f) - legendReserve),
+                    Math.Max(1f, bounds.Height - (pieInset * 2f))),
+                PieLegendPosition.Left => new Rect(
+                    bounds.X + pieInset + legendReserve,
+                    bounds.Y + pieInset,
+                    Math.Max(1f, bounds.Width - (pieInset * 2f) - legendReserve),
+                    Math.Max(1f, bounds.Height - (pieInset * 2f))),
+                PieLegendPosition.Bottom => new Rect(
+                    bounds.X + pieInset,
+                    bounds.Y + pieInset,
+                    Math.Max(1f, bounds.Width - (pieInset * 2f)),
+                    Math.Max(1f, bounds.Height - (pieInset * 2f) - legendReserve)),
+                PieLegendPosition.Top => new Rect(
+                    bounds.X + pieInset,
+                    bounds.Y + pieInset + legendReserve,
+                    Math.Max(1f, bounds.Width - (pieInset * 2f)),
+                    Math.Max(1f, bounds.Height - (pieInset * 2f) - legendReserve)),
+                _ => new Rect(bounds.X + pieInset, bounds.Y + pieInset, Math.Max(1f, bounds.Width - (pieInset * 2f)), Math.Max(1f, bounds.Height - (pieInset * 2f)))
+            };
+        }
+
+        var left = 12f + (options.ShowTickLabels ? 40f : 0f) + (!string.IsNullOrWhiteSpace(options.YAxisLabel) ? 22f : 0f);
+        var right = 10f;
+        var top = 10f;
+        var bottom = 12f + (options.ShowTickLabels ? 16f : 0f) + (!string.IsNullOrWhiteSpace(options.XAxisLabel) ? 16f : 0f);
+
+        var width = Math.Max(1f, bounds.Width - left - right);
+        var height = Math.Max(1f, bounds.Height - top - bottom);
+        var plot = new Rect(bounds.X + left, bounds.Y + top, width, height);
+
+        if (!options.ShowLegend)
+            return plot;
+
+        var cartesianLegendReserve = GetPieLegendReserve(bounds, options, points);
+        return options.LegendPosition switch
+        {
+            PieLegendPosition.Right => new Rect(plot.X, plot.Y, Math.Max(1f, plot.Width - cartesianLegendReserve), plot.Height),
+            PieLegendPosition.Left => new Rect(plot.X + cartesianLegendReserve, plot.Y, Math.Max(1f, plot.Width - cartesianLegendReserve), plot.Height),
+            PieLegendPosition.Bottom => new Rect(plot.X, plot.Y, plot.Width, Math.Max(1f, plot.Height - cartesianLegendReserve)),
+            PieLegendPosition.Top => new Rect(plot.X, plot.Y + cartesianLegendReserve, plot.Width, Math.Max(1f, plot.Height - cartesianLegendReserve)),
+            _ => plot
+        };
+    }
+
+    private static float GetPieLegendReserve(Rect bounds, ChartRenderOptions options, IReadOnlyList<ChartPointModel> points)
+    {
+        var marker = Math.Max(6f, options.LegendMarkerSize);
+        var fontSize = Math.Max(8f, options.LegendFontSize);
+        var lineHeight = Math.Max(fontSize + 2f, marker + 2f);
+        const float inset = 8f;
+
+        if (points.Count == 0)
+            return options.LegendPosition is PieLegendPosition.Top or PieLegendPosition.Bottom
+                ? Math.Max(28f, lineHeight + 8f)
+                : Math.Max(90f, Math.Min(bounds.Width * 0.35f, marker + 10f + 96f));
+
+        return options.LegendPosition switch
+        {
+            PieLegendPosition.Right or PieLegendPosition.Left => Math.Max(90f, Math.Min(bounds.Width * 0.35f, marker + 10f + 96f)),
+            PieLegendPosition.Top or PieLegendPosition.Bottom => GetTopBottomLegendReserve(bounds, points, marker, fontSize, lineHeight, inset),
+            _ => 0f
+        };
+    }
+
+    private static float GetTopBottomLegendReserve(
+        Rect bounds,
+        IReadOnlyList<ChartPointModel> points,
+        float marker,
+        float fontSize,
+        float lineHeight,
+        float inset)
+    {
+        if (points.Count == 0)
+            return Math.Max(28f, lineHeight + 8f);
+
+        var availableWidth = Math.Max(40f, bounds.Width - (inset * 2f));
+        var averageLabelLength = points.Average(p => Math.Max(4, p.Label.Length));
+        var estimatedItemWidth = Math.Max(marker + 20f, marker + 10f + (float)averageLabelLength * fontSize * 0.55f);
+        var itemsPerRow = Math.Max(1, (int)MathF.Floor(availableWidth / estimatedItemWidth));
+        var rows = (int)Math.Ceiling(points.Count / (double)itemsPerRow);
+        var compactRows = Math.Min(4, Math.Max(1, rows));
+
+        return Math.Max(28f, compactRows * lineHeight + 8f);
+    }
+
+    private static void RenderVerticalBarChart(IReadOnlyList<ChartPointModel> points, Rect bounds, ChartRenderOptions options, IGraphicsContext context)
+    {
+        var scale = BuildScale(points, options);
+        if (scale.Range <= 0d)
+            return;
+
+        var gapRatio = Math.Clamp(options.BarGapRatio, 0f, 0.9f);
+        var gap = Math.Max(2f, bounds.Width * gapRatio / Math.Max(1, points.Count));
+        var barWidth = Math.Max(1f, (bounds.Width - gap * (points.Count + 1)) / points.Count);
+
+        for (var i = 0; i < points.Count; i++)
+        {
+            var point = points[i];
+            var normalized = (Math.Max(scale.Min, point.Value) - scale.Min) / scale.Range;
+            var barHeight = (float)(bounds.Height * normalized);
+            var x = bounds.X + gap + i * (barWidth + gap);
+            var y = bounds.Bottom - barHeight;
+
+            context.FillRectangle(new Rect(x, y, barWidth, barHeight), point.Color);
+        }
+    }
+
+    private static void RenderHorizontalBarChart(IReadOnlyList<ChartPointModel> points, Rect bounds, ChartRenderOptions options, IGraphicsContext context)
+    {
+        var scale = BuildScale(points, options);
+        if (scale.Range <= 0d)
+            return;
+
+        var gapRatio = Math.Clamp(options.BarGapRatio, 0f, 0.9f);
+        var gap = Math.Max(2f, bounds.Height * gapRatio / Math.Max(1, points.Count));
+        var barHeight = Math.Max(1f, (bounds.Height - gap * (points.Count + 1)) / points.Count);
+
+        for (var i = 0; i < points.Count; i++)
+        {
+            var point = points[i];
+            var normalized = (Math.Max(scale.Min, point.Value) - scale.Min) / scale.Range;
+            var barWidth = (float)(bounds.Width * normalized);
+            var x = bounds.X;
+            var y = bounds.Y + gap + i * (barHeight + gap);
+
+            context.FillRectangle(new Rect(x, y, barWidth, barHeight), point.Color);
+        }
+    }
+
+    private static void RenderLineChart(IReadOnlyList<ChartPointModel> points, Rect bounds, AppliedStyle style, ChartRenderOptions options, IGraphicsContext context)
+    {
+        var scale = BuildScale(points, options);
+        if (scale.Range <= 0d)
+            return;
+
+        var stepX = points.Count > 1
+            ? bounds.Width / (points.Count - 1)
+            : 0f;
+
+        var lineColor = options.LineColor ?? style.TextColor;
+        var markerSize = 4f;
+
+        var plotPoints = new List<Point>(points.Count);
+        for (var i = 0; i < points.Count; i++)
+        {
+            var point = points[i];
+            var normalized = (Math.Max(scale.Min, point.Value) - scale.Min) / scale.Range;
+            var x = bounds.X + i * stepX;
+            var y = bounds.Bottom - (float)(bounds.Height * normalized);
+            plotPoints.Add(new Point(x, y));
+        }
+
+        for (var i = 1; i < plotPoints.Count; i++)
+        {
+            context.DrawLine(plotPoints[i - 1], plotPoints[i], lineColor, Math.Max(1f, options.LineWidth));
+        }
+
+        if (!options.ShowMarkers)
+            return;
+
+        for (var i = 0; i < plotPoints.Count; i++)
+        {
+            var marker = new Rect(
+                plotPoints[i].X - markerSize / 2f,
+                plotPoints[i].Y - markerSize / 2f,
+                markerSize,
+                markerSize);
+
+            context.FillEllipse(marker, points[i].Color);
+        }
+    }
+
+    private static void RenderCartesianGuides(
+        IReadOnlyList<ChartPointModel> points,
+        Rect plot,
+        Rect bounds,
+        AppliedStyle style,
+        ChartRenderOptions options,
+        ResolvedChartType chartType,
+        IGraphicsContext context)
+    {
+        var scale = BuildScale(points, options);
+        var tickCount = Math.Max(2, options.YAxisTickCount);
+
+        for (var i = 0; i < tickCount; i++)
+        {
+            var frac = tickCount == 1 ? 0f : (float)i / (tickCount - 1);
+            var y = plot.Bottom - frac * plot.Height;
+
+            if (options.ShowGridLines)
+                context.DrawLine(new Point(plot.X, y), new Point(plot.Right, y), options.GridLineColor, Math.Max(0.5f, options.GridLineWidth));
+
+            if (options.ShowTicks)
+                context.DrawLine(new Point(plot.X - options.TickLength, y), new Point(plot.X, y), options.AxisColor, Math.Max(0.5f, options.AxisLineWidth));
+
+            if (options.ShowTickLabels)
+            {
+                var value = scale.Min + scale.Range * frac;
+                DrawChartText(context, style, options.LabelColor, options.LabelFontSize, value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture), plot.X - 38f, y - options.LabelFontSize * 0.2f, 34f);
+            }
+        }
+
+        if (chartType == ResolvedChartType.BarVertical || chartType == ResolvedChartType.Line)
+        {
+            var count = points.Count;
+            var stepX = count > 1 ? plot.Width / (count - 1) : plot.Width;
+
+            for (var i = 0; i < count; i++)
+            {
+                var x = count == 1 ? plot.X + plot.Width / 2f : plot.X + i * stepX;
+                if (options.ShowTicks)
+                    context.DrawLine(new Point(x, plot.Bottom), new Point(x, plot.Bottom + options.TickLength), options.AxisColor, Math.Max(0.5f, options.AxisLineWidth));
+
+                if (options.ShowTickLabels)
+                    DrawChartText(context, style, options.LabelColor, options.LabelFontSize, points[i].Label, x - 18f, plot.Bottom + options.LabelFontSize + 3f, 36f);
+            }
+        }
+        else if (chartType == ResolvedChartType.BarHorizontal)
+        {
+            var count = points.Count;
+            var gap = Math.Max(2f, plot.Height * Math.Clamp(options.BarGapRatio, 0f, 0.9f) / Math.Max(1, count));
+            var barHeight = Math.Max(1f, (plot.Height - gap * (count + 1)) / count);
+
+            for (var i = 0; i < count; i++)
+            {
+                var y = plot.Y + gap + i * (barHeight + gap) + barHeight / 2f;
+                if (options.ShowTickLabels)
+                    DrawChartText(context, style, options.LabelColor, options.LabelFontSize, points[i].Label, plot.X - 44f, y + options.LabelFontSize * 0.25f, 40f);
+            }
+
+            var xTickCount = Math.Max(2, options.XAxisTickCount > 0 ? options.XAxisTickCount : options.YAxisTickCount);
+            for (var i = 0; i < xTickCount; i++)
+            {
+                var frac = xTickCount == 1 ? 0f : (float)i / (xTickCount - 1);
+                var x = plot.X + frac * plot.Width;
+                if (options.ShowGridLines)
+                    context.DrawLine(new Point(x, plot.Y), new Point(x, plot.Bottom), options.GridLineColor, Math.Max(0.5f, options.GridLineWidth));
+
+                if (options.ShowTicks)
+                    context.DrawLine(new Point(x, plot.Bottom), new Point(x, plot.Bottom + options.TickLength), options.AxisColor, Math.Max(0.5f, options.AxisLineWidth));
+
+                if (options.ShowTickLabels)
+                {
+                    var value = scale.Min + scale.Range * frac;
+                    DrawChartText(context, style, options.LabelColor, options.LabelFontSize, value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture), x - 16f, plot.Bottom + options.LabelFontSize + 3f, 32f);
+                }
+            }
+        }
+
+        if (options.ShowAxes)
+        {
+            context.DrawLine(new Point(plot.X, plot.Y), new Point(plot.X, plot.Bottom), options.AxisColor, Math.Max(0.5f, options.AxisLineWidth));
+            context.DrawLine(new Point(plot.X, plot.Bottom), new Point(plot.Right, plot.Bottom), options.AxisColor, Math.Max(0.5f, options.AxisLineWidth));
+        }
+    }
+
+    private static void RenderAxisTitles(Rect bounds, AppliedStyle style, ChartRenderOptions options, IGraphicsContext context)
+    {
+        if (!string.IsNullOrWhiteSpace(options.XAxisLabel))
+            DrawChartText(context, style, options.LabelColor, Math.Max(9f, options.LabelFontSize + 0.5f), options.XAxisLabel!, bounds.X + bounds.Width / 2f - 60f, bounds.Bottom - 4f, 120f);
+
+        if (!string.IsNullOrWhiteSpace(options.YAxisLabel))
+            DrawChartText(context, style, options.LabelColor, Math.Max(9f, options.LabelFontSize + 0.5f), options.YAxisLabel!, bounds.X + 4f, bounds.Y + 12f, 120f);
+    }
+
+    private static void DrawChartText(IGraphicsContext context, AppliedStyle baseStyle, Color color, float fontSize, string text, float baselineX, float baselineY, float width)
+    {
+        var runStyle = baseStyle with
+        {
+            FontSize = fontSize,
+            TextColor = color
+        };
+
+        context.DrawText(new TextRun
+        {
+            Text = text,
+            BaselineOrigin = new Point(baselineX, baselineY),
+            Bounds = new Rect(baselineX, baselineY - fontSize, width, fontSize + 2f),
+            Style = runStyle,
+            IsRightToLeft = false
+        });
+    }
+
+    private static void DrawChartText(IGraphicsContext context, AppliedStyle baseStyle, Color color, float fontSize, FontWeight? fontWeight, string text, float baselineX, float baselineY, float width)
+    {
+        var runStyle = baseStyle with
+        {
+            FontSize = fontSize,
+            TextColor = color,
+            FontWeight = fontWeight ?? baseStyle.FontWeight
+        };
+
+        context.DrawText(new TextRun
+        {
+            Text = text,
+            BaselineOrigin = new Point(baselineX, baselineY),
+            Bounds = new Rect(baselineX, baselineY - fontSize, width, fontSize + 2f),
+            Style = runStyle,
+            IsRightToLeft = false
+        });
+    }
+
+    private static (double Min, double Max, double Range) BuildScale(IReadOnlyList<ChartPointModel> points, ChartRenderOptions options)
+    {
+        var dataMin = points.Min(point => point.Value);
+        var dataMax = points.Max(point => point.Value);
+
+        var min = options.MinValue ?? Math.Min(0d, dataMin);
+        var max = options.MaxValue ?? Math.Max(dataMax, min + 1d);
+        if (max <= min)
+            max = min + 1d;
+
+        return (min, max, max - min);
+    }
+
+    private static void RenderPieChart(IReadOnlyList<ChartPointModel> points, Rect bounds, AppliedStyle style, ChartRenderOptions options, IGraphicsContext context)
+    {
+        var total = points.Sum(point => Math.Max(0d, point.Value));
+        if (total <= 0d)
+            return;
+
+        var radius = Math.Max(1f, MathF.Min(bounds.Width, bounds.Height) / 2f);
+        var centerX = bounds.X + bounds.Width / 2f;
+        var centerY = bounds.Y + bounds.Height / 2f;
+
+        var startAngle = -MathF.PI / 2f;
+
+        foreach (var point in points)
+        {
+            var proportion = (float)(Math.Max(0d, point.Value) / total);
+            if (proportion <= 0f)
+                continue;
+
+            var sweepAngle = proportion * MathF.PI * 2f;
+            var endAngle = startAngle + sweepAngle;
+
+            var slice = CreatePieSlicePath(centerX, centerY, radius, startAngle, endAngle, point.Color);
+            context.DrawPath(slice);
+
+            if (options.ShowPieLabels && !string.IsNullOrWhiteSpace(point.Label))
+            {
+                var midAngle = startAngle + (sweepAngle / 2f);
+                var labelRadius = SectorCentroidRadius(radius, sweepAngle);
+                var labelCenter = PointOnCircle(centerX, centerY, labelRadius, midAngle);
+                var labelText = $"{point.Label} ({proportion * 100f:0.#}%)";
+                var fontSize = Math.Max(8f, options.LabelFontSize);
+                var approxWidth = Math.Max(70f, labelText.Length * fontSize * 0.55f);
+                DrawChartText(
+                    context,
+                    style,
+                    options.PieLabelColor ?? options.LabelColor,
+                    fontSize,
+                    options.PieLabelFontWeight,
+                    labelText,
+                    labelCenter.X - (approxWidth / 2f),
+                    labelCenter.Y,
+                    approxWidth);
+            }
+
+            startAngle = endAngle;
+        }
+    }
+
+    private static void RenderSeriesLegend(IReadOnlyList<ChartPointModel> points, Rect bounds, AppliedStyle style, ChartRenderOptions options, IGraphicsContext context)
+    {
+        if (points.Count == 0)
+            return;
+
+        var marker = Math.Max(6f, options.LegendMarkerSize);
+        var fontSize = Math.Max(8f, options.LegendFontSize);
+        var textColor = options.LegendTextColor ?? options.PieLabelColor ?? options.LabelColor;
+        var lineHeight = Math.Max(marker + 2f, fontSize + 2f);
+        var reserve = GetPieLegendReserve(bounds, options, points);
+        const float inset = 8f;
+
+        float startX;
+        float startY;
+        float availableWidth;
+
+        switch (options.LegendPosition)
+        {
+            case PieLegendPosition.Left:
+                startX = bounds.X + inset;
+                startY = bounds.Y + inset;
+                availableWidth = Math.Max(40f, reserve - (inset * 2f));
+                break;
+            case PieLegendPosition.Bottom:
+                startX = bounds.X + inset;
+                startY = bounds.Bottom - reserve + 4f;
+                availableWidth = Math.Max(40f, bounds.Width - (inset * 2f));
+                break;
+            case PieLegendPosition.Top:
+                startX = bounds.X + inset;
+                startY = bounds.Y + 4f;
+                availableWidth = Math.Max(40f, bounds.Width - (inset * 2f));
+                break;
+            default:
+                startX = bounds.Right - reserve + inset;
+                startY = bounds.Y + inset;
+                availableWidth = Math.Max(40f, reserve - (inset * 2f));
+                break;
+        }
+
+        var availableHeight = Math.Max(20f, bounds.Height - (inset * 2f));
+        if (options.LegendPosition is PieLegendPosition.Left or PieLegendPosition.Right)
+        {
+            var rowCapacity = Math.Max(1, (int)MathF.Floor(availableHeight / lineHeight));
+            var columnCount = Math.Max(1, (int)Math.Ceiling(points.Count / (double)rowCapacity));
+            const float columnGap = 8f;
+            var columnWidth = Math.Max(24f, (availableWidth - (columnCount - 1) * columnGap) / columnCount);
+
+            for (var i = 0; i < points.Count; i++)
+            {
+                var col = i / rowCapacity;
+                var row = i % rowCapacity;
+                if (col >= columnCount)
+                    break;
+
+                var x = startX + col * (columnWidth + columnGap);
+                var y = startY + row * lineHeight;
+
+                context.FillRectangle(new Rect(x, y, marker, marker), points[i].Color);
+                DrawChartText(
+                    context,
+                    style,
+                    textColor,
+                    fontSize,
+                    options.PieLabelFontWeight,
+                    points[i].Label,
+                    x + marker + 6f,
+                    y + marker,
+                    Math.Max(12f, columnWidth - marker - 6f));
+            }
+
+            return;
+        }
+
+        var rowLimit = Math.Max(1, (int)MathF.Floor(Math.Max(20f, reserve - 8f) / lineHeight));
+        var cursorX = startX;
+        var cursorY = startY;
+        var currentRow = 0;
+        const float itemGap = 10f;
+
+        for (var i = 0; i < points.Count; i++)
+        {
+            var textWidth = Math.Max(24f, points[i].Label.Length * fontSize * 0.55f);
+            var itemWidth = marker + 6f + textWidth;
+
+            if (cursorX > startX && cursorX + itemWidth > startX + availableWidth)
+            {
+                currentRow++;
+                if (currentRow >= rowLimit)
+                    break;
+
+                cursorX = startX;
+                cursorY += lineHeight;
+            }
+
+            context.FillRectangle(new Rect(cursorX, cursorY, marker, marker), points[i].Color);
+            DrawChartText(
+                context,
+                style,
+                textColor,
+                fontSize,
+                options.PieLabelFontWeight,
+                points[i].Label,
+                cursorX + marker + 6f,
+                cursorY + marker,
+                textWidth);
+
+            cursorX += itemWidth + itemGap;
+        }
+    }
+
+    private static float SectorCentroidRadius(float radius, float sweepAngle)
+    {
+        var theta = MathF.Abs(sweepAngle);
+        if (theta <= 0.0001f)
+            return radius * 0.62f;
+
+        var centroid = (4f * radius * MathF.Sin(theta / 2f)) / (3f * theta);
+        return Math.Clamp(centroid, radius * 0.35f, radius * 0.72f);
+    }
+
+    private static PathGeometry CreatePieSlicePath(float centerX, float centerY, float radius, float startAngle, float endAngle, Color fill)
+    {
+        var commands = new List<PathCommand>
+        {
+            new(PathCommandKind.MoveTo, [new Point(centerX, centerY)]),
+            new(PathCommandKind.LineTo, [PointOnCircle(centerX, centerY, radius, startAngle)])
+        };
+
+        var sweep = MathF.Abs(endAngle - startAngle);
+        var segmentCount = Math.Max(3, (int)MathF.Ceiling(sweep / (MathF.PI / 18f)));
+
+        for (var i = 1; i <= segmentCount; i++)
+        {
+            var t = (float)i / segmentCount;
+            var angle = startAngle + (endAngle - startAngle) * t;
+            commands.Add(new PathCommand(PathCommandKind.LineTo, [PointOnCircle(centerX, centerY, radius, angle)]));
+        }
+
+        commands.Add(new PathCommand(PathCommandKind.Close, []));
+
+        return new PathGeometry
+        {
+            Commands = commands,
+            Fill = fill,
+            Stroke = Color.White,
+            StrokeWidth = 1f
+        };
+    }
+
+    private static Point PointOnCircle(float centerX, float centerY, float radius, float angle)
+    {
+        return new Point(
+            centerX + MathF.Cos(angle) * radius,
+            centerY + MathF.Sin(angle) * radius);
     }
 
     // -------------------------------------------------------------------------

@@ -5,6 +5,7 @@ using KineticReports.Core.Layout;
 using KineticReports.Core.Rendering;
 using KineticReports.Core.Styling;
 using Microsoft.Extensions.Options;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 
@@ -225,8 +226,8 @@ public sealed class HtmlExporter : IHtmlExporter
                     RenderElement(html, child, element.Bounds.X, element.Bounds.Y, pageNumber);
                 break;
 
-            case ChartBlock:
-                html.Text("[Chart Element]");
+            case ChartBlock chart:
+                RenderChartElement(html, chart);
                 break;
 
             case BarcodeBlock barcode:
@@ -302,7 +303,7 @@ public sealed class HtmlExporter : IHtmlExporter
                 break;
 
             case BlockContentType.Chart:
-                html.Text("[Chart Element]");
+                RenderContentBlockChart(html, content);
                 break;
 
             case BlockContentType.Barcode:
@@ -469,6 +470,555 @@ public sealed class HtmlExporter : IHtmlExporter
             ShapeKind.Line => $"<line x1=\"0\" y1=\"0\" x2=\"{shape.Bounds.Width:F1}\" y2=\"{shape.Bounds.Height:F1}\" {stroke} />",
             _ => string.Empty
         };
+    }
+
+    private static void RenderChartElement(HtmlBuilder html, ChartBlock chart)
+    {
+        RenderChartSvg(html, chart.Bounds, chart.ChartTypeValue, chart.ChartType, chart.ChartData, chart.Id);
+    }
+
+    private static void RenderContentBlockChart(HtmlBuilder html, ContentBlock chart)
+    {
+        RenderChartSvg(html, chart.Bounds, chart.ChartTypeValue, chart.ChartType, chart.ChartData, chart.Id);
+    }
+
+    private static void RenderChartSvg(
+        HtmlBuilder html,
+        Rect bounds,
+        ChartTypeName? chartTypeValue,
+        string? chartType,
+        object? chartData,
+        string id)
+    {
+        var width = Math.Max(1f, bounds.Width);
+        var height = Math.Max(1f, bounds.Height);
+
+        var svgStyle = $"width: {width:F1}px; height: {height:F1}px; display: block;";
+        html.OpenTag("svg", style: svgStyle, id: id)
+            .Raw($"viewBox=\"0 0 {width:F1} {height:F1}\" ");
+
+        if (!ChartRenderModelFactory.TryCreate(chartTypeValue, chartType, chartData, out var resolvedType, out var points, out var options))
+        {
+            html.Raw($"<rect x=\"0\" y=\"0\" width=\"{width:F1}\" height=\"{height:F1}\" fill=\"none\" stroke=\"#9CA3AF\" stroke-width=\"1\" />");
+            html.CloseTag("svg");
+            return;
+        }
+
+        var plot = GetChartPlotBounds(width, height, options, resolvedType, points);
+        html.Raw(RenderChartSvgContent(resolvedType, points, plot, width, height, options));
+        html.CloseTag("svg");
+    }
+
+    private static Rect GetChartPlotBounds(float width, float height, ChartRenderOptions options, ResolvedChartType chartType, IReadOnlyList<ChartPointModel> points)
+    {
+        if (chartType == ResolvedChartType.Pie)
+        {
+            const float pieInset = 8f;
+            var bounds = new Rect(0f, 0f, width, height);
+            var legendReserve = options.ShowLegend ? GetPieLegendReserve(bounds, options, points) : 0f;
+
+            return options.LegendPosition switch
+            {
+                PieLegendPosition.Right => new Rect(
+                    pieInset,
+                    pieInset,
+                    Math.Max(1f, width - (pieInset * 2f) - legendReserve),
+                    Math.Max(1f, height - (pieInset * 2f))),
+                PieLegendPosition.Left => new Rect(
+                    pieInset + legendReserve,
+                    pieInset,
+                    Math.Max(1f, width - (pieInset * 2f) - legendReserve),
+                    Math.Max(1f, height - (pieInset * 2f))),
+                PieLegendPosition.Bottom => new Rect(
+                    pieInset,
+                    pieInset,
+                    Math.Max(1f, width - (pieInset * 2f)),
+                    Math.Max(1f, height - (pieInset * 2f) - legendReserve)),
+                PieLegendPosition.Top => new Rect(
+                    pieInset,
+                    pieInset + legendReserve,
+                    Math.Max(1f, width - (pieInset * 2f)),
+                    Math.Max(1f, height - (pieInset * 2f) - legendReserve)),
+                _ => new Rect(pieInset, pieInset, Math.Max(1f, width - pieInset * 2f), Math.Max(1f, height - pieInset * 2f))
+            };
+        }
+
+        var left = 12f + (options.ShowTickLabels ? 40f : 0f) + (!string.IsNullOrWhiteSpace(options.YAxisLabel) ? 22f : 0f);
+        var right = 10f;
+        var top = 10f;
+        var bottom = 12f + (options.ShowTickLabels ? 16f : 0f) + (!string.IsNullOrWhiteSpace(options.XAxisLabel) ? 16f : 0f);
+
+        var plotWidth = Math.Max(1f, width - left - right);
+        var plotHeight = Math.Max(1f, height - top - bottom);
+        var plot = new Rect(left, top, plotWidth, plotHeight);
+
+        if (!options.ShowLegend)
+            return plot;
+
+        var cartesianLegendReserve = GetPieLegendReserve(new Rect(0f, 0f, width, height), options, points);
+        return options.LegendPosition switch
+        {
+            PieLegendPosition.Right => new Rect(plot.X, plot.Y, Math.Max(1f, plot.Width - cartesianLegendReserve), plot.Height),
+            PieLegendPosition.Left => new Rect(plot.X + cartesianLegendReserve, plot.Y, Math.Max(1f, plot.Width - cartesianLegendReserve), plot.Height),
+            PieLegendPosition.Bottom => new Rect(plot.X, plot.Y, plot.Width, Math.Max(1f, plot.Height - cartesianLegendReserve)),
+            PieLegendPosition.Top => new Rect(plot.X, plot.Y + cartesianLegendReserve, plot.Width, Math.Max(1f, plot.Height - cartesianLegendReserve)),
+            _ => plot
+        };
+    }
+
+    private static float GetPieLegendReserve(Rect bounds, ChartRenderOptions options, IReadOnlyList<ChartPointModel> points)
+    {
+        var marker = Math.Max(6f, options.LegendMarkerSize);
+        var fontSize = Math.Max(8f, options.LegendFontSize);
+        var lineHeight = Math.Max(fontSize + 2f, marker + 2f);
+        const float inset = 8f;
+
+        if (points.Count == 0)
+            return options.LegendPosition is PieLegendPosition.Top or PieLegendPosition.Bottom
+                ? Math.Max(28f, lineHeight + 8f)
+                : Math.Max(90f, Math.Min(bounds.Width * 0.35f, marker + 10f + 96f));
+
+        return options.LegendPosition switch
+        {
+            PieLegendPosition.Right or PieLegendPosition.Left => Math.Max(90f, Math.Min(bounds.Width * 0.35f, marker + 10f + 96f)),
+            PieLegendPosition.Top or PieLegendPosition.Bottom => GetTopBottomLegendReserve(bounds, points, marker, fontSize, lineHeight, inset),
+            _ => 0f
+        };
+    }
+
+    private static float GetTopBottomLegendReserve(
+        Rect bounds,
+        IReadOnlyList<ChartPointModel> points,
+        float marker,
+        float fontSize,
+        float lineHeight,
+        float inset)
+    {
+        if (points.Count == 0)
+            return Math.Max(28f, lineHeight + 8f);
+
+        var availableWidth = Math.Max(40f, bounds.Width - (inset * 2f));
+        var averageLabelLength = points.Average(p => Math.Max(4, p.Label.Length));
+        var estimatedItemWidth = Math.Max(marker + 20f, marker + 10f + (float)averageLabelLength * fontSize * 0.55f);
+        var itemsPerRow = Math.Max(1, (int)MathF.Floor(availableWidth / estimatedItemWidth));
+        var rows = (int)Math.Ceiling(points.Count / (double)itemsPerRow);
+        var compactRows = Math.Min(4, Math.Max(1, rows));
+
+        return Math.Max(28f, compactRows * lineHeight + 8f);
+    }
+
+    private static string RenderChartSvgContent(
+        ResolvedChartType chartType,
+        IReadOnlyList<ChartPointModel> points,
+        Rect plot,
+        float totalWidth,
+        float totalHeight,
+        ChartRenderOptions options)
+    {
+        var svg = new StringBuilder();
+
+        if (chartType is ResolvedChartType.BarVertical or ResolvedChartType.BarHorizontal or ResolvedChartType.Line)
+            svg.Append(RenderCartesianGuidesSvg(chartType, points, plot, options));
+
+        var content = chartType switch
+        {
+            ResolvedChartType.BarVertical => svg.Append(RenderVerticalBarsSvg(points, plot, options)).Append(RenderAxisTitleSvg(totalWidth, totalHeight, options)).ToString(),
+            ResolvedChartType.BarHorizontal => svg.Append(RenderHorizontalBarsSvg(points, plot, options)).Append(RenderAxisTitleSvg(totalWidth, totalHeight, options)).ToString(),
+            ResolvedChartType.Line => svg.Append(RenderLineSvg(points, plot, options)).Append(RenderAxisTitleSvg(totalWidth, totalHeight, options)).ToString(),
+            ResolvedChartType.Pie => RenderPieSvg(points, plot, options, totalWidth, totalHeight),
+            _ => svg.ToString()
+        };
+
+        if (!options.ShowLegend || chartType == ResolvedChartType.Pie)
+            return content;
+
+        return content + RenderSeriesLegendSvg(points, totalWidth, totalHeight, options);
+    }
+
+    private static string RenderVerticalBarsSvg(IReadOnlyList<ChartPointModel> points, Rect plot, ChartRenderOptions options)
+    {
+        var scale = BuildScale(points, options);
+        if (scale.Range <= 0d)
+            return string.Empty;
+
+        var gapRatio = Math.Clamp(options.BarGapRatio, 0f, 0.9f);
+        var gap = Math.Max(2f, plot.Width * gapRatio / Math.Max(1, points.Count));
+        var barWidth = Math.Max(1f, (plot.Width - gap * (points.Count + 1)) / points.Count);
+        var svg = new StringBuilder();
+
+        for (var i = 0; i < points.Count; i++)
+        {
+            var point = points[i];
+            var normalized = (Math.Max(scale.Min, point.Value) - scale.Min) / scale.Range;
+            var barHeight = (float)(plot.Height * normalized);
+            var x = plot.X + gap + i * (barWidth + gap);
+            var y = plot.Bottom - barHeight;
+
+            svg.Append($"<rect x=\"{x:F1}\" y=\"{y:F1}\" width=\"{barWidth:F1}\" height=\"{barHeight:F1}\" fill=\"{CssColorToSvg(point.Color)}\" />");
+        }
+
+        return svg.ToString();
+    }
+
+    private static string RenderHorizontalBarsSvg(IReadOnlyList<ChartPointModel> points, Rect plot, ChartRenderOptions options)
+    {
+        var scale = BuildScale(points, options);
+        if (scale.Range <= 0d)
+            return string.Empty;
+
+        var gapRatio = Math.Clamp(options.BarGapRatio, 0f, 0.9f);
+        var gap = Math.Max(2f, plot.Height * gapRatio / Math.Max(1, points.Count));
+        var barHeight = Math.Max(1f, (plot.Height - gap * (points.Count + 1)) / points.Count);
+        var svg = new StringBuilder();
+
+        for (var i = 0; i < points.Count; i++)
+        {
+            var point = points[i];
+            var normalized = (Math.Max(scale.Min, point.Value) - scale.Min) / scale.Range;
+            var barWidth = (float)(plot.Width * normalized);
+            var x = plot.X;
+            var y = plot.Y + gap + i * (barHeight + gap);
+
+            svg.Append($"<rect x=\"{x:F1}\" y=\"{y:F1}\" width=\"{barWidth:F1}\" height=\"{barHeight:F1}\" fill=\"{CssColorToSvg(point.Color)}\" />");
+        }
+
+        return svg.ToString();
+    }
+
+    private static string RenderLineSvg(IReadOnlyList<ChartPointModel> points, Rect plot, ChartRenderOptions options)
+    {
+        var scale = BuildScale(points, options);
+        if (scale.Range <= 0d)
+            return string.Empty;
+
+        var stepX = points.Count > 1
+            ? plot.Width / (points.Count - 1)
+            : 0f;
+
+        var polylinePoints = new List<Point>(points.Count);
+        for (var i = 0; i < points.Count; i++)
+        {
+            var normalized = (Math.Max(scale.Min, points[i].Value) - scale.Min) / scale.Range;
+            var x = plot.X + i * stepX;
+            var y = plot.Bottom - (float)(plot.Height * normalized);
+            polylinePoints.Add(new Point(x, y));
+        }
+
+        var svg = new StringBuilder();
+        var lineColor = options.LineColor ?? new Color(255, 31, 41, 55);
+        svg.Append($"<polyline fill=\"none\" stroke=\"{CssColorToSvg(lineColor)}\" stroke-width=\"{Math.Max(1f, options.LineWidth):F1}\" points=\"");
+        foreach (var point in polylinePoints)
+        {
+            svg.Append($"{point.X:F1},{point.Y:F1} ");
+        }
+        svg.Append("\" />");
+
+        if (!options.ShowMarkers)
+            return svg.ToString();
+
+        for (var i = 0; i < polylinePoints.Count; i++)
+        {
+            svg.Append($"<circle cx=\"{polylinePoints[i].X:F1}\" cy=\"{polylinePoints[i].Y:F1}\" r=\"2.5\" fill=\"{CssColorToSvg(points[i].Color)}\" />");
+        }
+
+        return svg.ToString();
+    }
+
+    private static string RenderCartesianGuidesSvg(ResolvedChartType chartType, IReadOnlyList<ChartPointModel> points, Rect plot, ChartRenderOptions options)
+    {
+        var svg = new StringBuilder();
+        var scale = BuildScale(points, options);
+        var yTickCount = Math.Max(2, options.YAxisTickCount);
+
+        for (var i = 0; i < yTickCount; i++)
+        {
+            var frac = yTickCount == 1 ? 0f : (float)i / (yTickCount - 1);
+            var y = plot.Bottom - frac * plot.Height;
+
+            if (options.ShowGridLines)
+                svg.Append($"<line x1=\"{plot.X:F1}\" y1=\"{y:F1}\" x2=\"{plot.Right:F1}\" y2=\"{y:F1}\" stroke=\"{CssColorToSvg(options.GridLineColor)}\" stroke-width=\"{Math.Max(0.5f, options.GridLineWidth):F1}\" />");
+
+            if (options.ShowTicks)
+                svg.Append($"<line x1=\"{plot.X - options.TickLength:F1}\" y1=\"{y:F1}\" x2=\"{plot.X:F1}\" y2=\"{y:F1}\" stroke=\"{CssColorToSvg(options.AxisColor)}\" stroke-width=\"{Math.Max(0.5f, options.AxisLineWidth):F1}\" />");
+
+            if (options.ShowTickLabels)
+            {
+                var value = scale.Min + scale.Range * frac;
+                svg.Append($"<text x=\"{plot.X - 6f:F1}\" y=\"{y + 3f:F1}\" text-anchor=\"end\" font-size=\"{Math.Max(8f, options.LabelFontSize):F1}\" fill=\"{CssColorToSvg(options.LabelColor)}\">{value:0.##}</text>");
+            }
+        }
+
+        if (chartType == ResolvedChartType.BarVertical || chartType == ResolvedChartType.Line)
+        {
+            var count = points.Count;
+            var stepX = count > 1 ? plot.Width / (count - 1) : plot.Width;
+            for (var i = 0; i < count; i++)
+            {
+                var x = count == 1 ? plot.X + plot.Width / 2f : plot.X + i * stepX;
+                if (options.ShowTicks)
+                    svg.Append($"<line x1=\"{x:F1}\" y1=\"{plot.Bottom:F1}\" x2=\"{x:F1}\" y2=\"{plot.Bottom + options.TickLength:F1}\" stroke=\"{CssColorToSvg(options.AxisColor)}\" stroke-width=\"{Math.Max(0.5f, options.AxisLineWidth):F1}\" />");
+
+                if (options.ShowTickLabels)
+                    svg.Append($"<text x=\"{x:F1}\" y=\"{plot.Bottom + Math.Max(8f, options.LabelFontSize) + 4f:F1}\" text-anchor=\"middle\" font-size=\"{Math.Max(8f, options.LabelFontSize):F1}\" fill=\"{CssColorToSvg(options.LabelColor)}\">{EscapeText(points[i].Label)}</text>");
+            }
+        }
+        else if (chartType == ResolvedChartType.BarHorizontal)
+        {
+            var count = points.Count;
+            var gap = Math.Max(2f, plot.Height * Math.Clamp(options.BarGapRatio, 0f, 0.9f) / Math.Max(1, count));
+            var barHeight = Math.Max(1f, (plot.Height - gap * (count + 1)) / count);
+            for (var i = 0; i < count; i++)
+            {
+                var y = plot.Y + gap + i * (barHeight + gap) + barHeight / 2f;
+                if (options.ShowTickLabels)
+                    svg.Append($"<text x=\"{plot.X - 6f:F1}\" y=\"{y + 3f:F1}\" text-anchor=\"end\" font-size=\"{Math.Max(8f, options.LabelFontSize):F1}\" fill=\"{CssColorToSvg(options.LabelColor)}\">{EscapeText(points[i].Label)}</text>");
+            }
+
+            var xTicks = Math.Max(2, options.XAxisTickCount > 0 ? options.XAxisTickCount : options.YAxisTickCount);
+            for (var i = 0; i < xTicks; i++)
+            {
+                var frac = xTicks == 1 ? 0f : (float)i / (xTicks - 1);
+                var x = plot.X + frac * plot.Width;
+
+                if (options.ShowGridLines)
+                    svg.Append($"<line x1=\"{x:F1}\" y1=\"{plot.Y:F1}\" x2=\"{x:F1}\" y2=\"{plot.Bottom:F1}\" stroke=\"{CssColorToSvg(options.GridLineColor)}\" stroke-width=\"{Math.Max(0.5f, options.GridLineWidth):F1}\" />");
+
+                if (options.ShowTicks)
+                    svg.Append($"<line x1=\"{x:F1}\" y1=\"{plot.Bottom:F1}\" x2=\"{x:F1}\" y2=\"{plot.Bottom + options.TickLength:F1}\" stroke=\"{CssColorToSvg(options.AxisColor)}\" stroke-width=\"{Math.Max(0.5f, options.AxisLineWidth):F1}\" />");
+
+                if (options.ShowTickLabels)
+                {
+                    var value = scale.Min + scale.Range * frac;
+                    svg.Append($"<text x=\"{x:F1}\" y=\"{plot.Bottom + Math.Max(8f, options.LabelFontSize) + 4f:F1}\" text-anchor=\"middle\" font-size=\"{Math.Max(8f, options.LabelFontSize):F1}\" fill=\"{CssColorToSvg(options.LabelColor)}\">{value:0.##}</text>");
+                }
+            }
+        }
+
+        if (options.ShowAxes)
+        {
+            svg.Append($"<line x1=\"{plot.X:F1}\" y1=\"{plot.Y:F1}\" x2=\"{plot.X:F1}\" y2=\"{plot.Bottom:F1}\" stroke=\"{CssColorToSvg(options.AxisColor)}\" stroke-width=\"{Math.Max(0.5f, options.AxisLineWidth):F1}\" />");
+            svg.Append($"<line x1=\"{plot.X:F1}\" y1=\"{plot.Bottom:F1}\" x2=\"{plot.Right:F1}\" y2=\"{plot.Bottom:F1}\" stroke=\"{CssColorToSvg(options.AxisColor)}\" stroke-width=\"{Math.Max(0.5f, options.AxisLineWidth):F1}\" />");
+        }
+
+        return svg.ToString();
+    }
+
+    private static string RenderAxisTitleSvg(float width, float height, ChartRenderOptions options)
+    {
+        var svg = new StringBuilder();
+        var size = Math.Max(8.5f, options.LabelFontSize + 0.5f);
+
+        if (!string.IsNullOrWhiteSpace(options.XAxisLabel))
+            svg.Append($"<text x=\"{width / 2f:F1}\" y=\"{height - 2f:F1}\" text-anchor=\"middle\" font-size=\"{size:F1}\" fill=\"{CssColorToSvg(options.LabelColor)}\">{EscapeText(options.XAxisLabel)}</text>");
+
+        if (!string.IsNullOrWhiteSpace(options.YAxisLabel))
+            svg.Append($"<text x=\"4\" y=\"14\" text-anchor=\"start\" font-size=\"{size:F1}\" fill=\"{CssColorToSvg(options.LabelColor)}\">{EscapeText(options.YAxisLabel)}</text>");
+
+        return svg.ToString();
+    }
+
+    private static string RenderPieSvg(IReadOnlyList<ChartPointModel> points, Rect plot, ChartRenderOptions options, float totalWidth, float totalHeight)
+    {
+        var total = points.Sum(point => Math.Max(0d, point.Value));
+        if (total <= 0d)
+            return string.Empty;
+
+        var radius = Math.Max(1f, MathF.Min(plot.Width, plot.Height) / 2f);
+        var centerX = plot.X + plot.Width / 2f;
+        var centerY = plot.Y + plot.Height / 2f;
+        var startAngle = -MathF.PI / 2f;
+        var svg = new StringBuilder();
+
+        foreach (var point in points)
+        {
+            var proportion = (float)(Math.Max(0d, point.Value) / total);
+            if (proportion <= 0f)
+                continue;
+
+            var sweep = proportion * MathF.PI * 2f;
+            var endAngle = startAngle + sweep;
+
+            svg.Append(RenderPieSliceSvg(centerX, centerY, radius, startAngle, endAngle, point.Color));
+
+            if (options.ShowPieLabels && !string.IsNullOrWhiteSpace(point.Label))
+            {
+                var midAngle = startAngle + (sweep / 2f);
+                var labelRadius = SectorCentroidRadius(radius, sweep);
+                var label = PointOnCircle(centerX, centerY, labelRadius, midAngle);
+                var labelText = EscapeText($"{point.Label} ({proportion * 100f:0.#}%)");
+                var size = Math.Max(8f, options.LabelFontSize);
+                var weight = ((int)(options.PieLabelFontWeight ?? FontWeight.Normal)).ToString(CultureInfo.InvariantCulture);
+                svg.Append($"<text x=\"{label.X:F1}\" y=\"{label.Y:F1}\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"{size:F1}\" font-weight=\"{weight}\" fill=\"{CssColorToSvg(options.PieLabelColor ?? options.LabelColor)}\">{labelText}</text>");
+            }
+
+            startAngle = endAngle;
+        }
+
+        if (options.ShowLegend)
+            svg.Append(RenderSeriesLegendSvg(points, totalWidth, totalHeight, options));
+
+        return svg.ToString();
+    }
+
+    private static string RenderSeriesLegendSvg(IReadOnlyList<ChartPointModel> points, float totalWidth, float totalHeight, ChartRenderOptions options)
+    {
+        if (points.Count == 0)
+            return string.Empty;
+
+        var marker = Math.Max(6f, options.LegendMarkerSize);
+        var fontSize = Math.Max(8f, options.LegendFontSize);
+        var lineHeight = Math.Max(marker + 2f, fontSize + 2f);
+        var reserve = GetPieLegendReserve(new Rect(0f, 0f, totalWidth, totalHeight), options, points);
+        var textColor = CssColorToSvg(options.LegendTextColor ?? options.PieLabelColor ?? options.LabelColor);
+        var weight = ((int)(options.PieLabelFontWeight ?? FontWeight.Normal)).ToString(CultureInfo.InvariantCulture);
+        const float inset = 8f;
+
+        float startX;
+        float startY;
+        float availableWidth;
+
+        switch (options.LegendPosition)
+        {
+            case PieLegendPosition.Left:
+                startX = inset;
+                startY = inset;
+                availableWidth = Math.Max(40f, reserve - (inset * 2f));
+                break;
+            case PieLegendPosition.Bottom:
+                startX = inset;
+                startY = totalHeight - reserve + 4f;
+                availableWidth = Math.Max(40f, totalWidth - (inset * 2f));
+                break;
+            case PieLegendPosition.Top:
+                startX = inset;
+                startY = 4f;
+                availableWidth = Math.Max(40f, totalWidth - (inset * 2f));
+                break;
+            default:
+                startX = totalWidth - reserve + inset;
+                startY = inset;
+                availableWidth = Math.Max(40f, reserve - (inset * 2f));
+                break;
+        }
+
+        var svg = new StringBuilder();
+        var availableHeight = Math.Max(20f, totalHeight - (inset * 2f));
+
+        if (options.LegendPosition is PieLegendPosition.Left or PieLegendPosition.Right)
+        {
+            var rowCapacity = Math.Max(1, (int)MathF.Floor(availableHeight / lineHeight));
+            var columnCount = Math.Max(1, (int)Math.Ceiling(points.Count / (double)rowCapacity));
+            const float columnGap = 8f;
+            var columnWidth = Math.Max(24f, (availableWidth - (columnCount - 1) * columnGap) / columnCount);
+
+            for (var i = 0; i < points.Count; i++)
+            {
+                var col = i / rowCapacity;
+                var row = i % rowCapacity;
+                if (col >= columnCount)
+                    break;
+
+                var x = startX + col * (columnWidth + columnGap);
+                var y = startY + row * lineHeight;
+
+                svg.Append($"<rect x=\"{x:F1}\" y=\"{y:F1}\" width=\"{marker:F1}\" height=\"{marker:F1}\" fill=\"{CssColorToSvg(points[i].Color)}\" />");
+                svg.Append($"<text x=\"{x + marker + 6f:F1}\" y=\"{y + marker - 1f:F1}\" text-anchor=\"start\" font-size=\"{fontSize:F1}\" font-weight=\"{weight}\" fill=\"{textColor}\">{EscapeText(points[i].Label)}</text>");
+            }
+
+            return svg.ToString();
+        }
+
+        var rowLimit = Math.Max(1, (int)MathF.Floor(Math.Max(20f, reserve - 8f) / lineHeight));
+        var cursorX = startX;
+        var cursorY = startY;
+        var currentRow = 0;
+        const float itemGap = 10f;
+
+        for (var i = 0; i < points.Count; i++)
+        {
+            var textWidth = Math.Max(24f, points[i].Label.Length * fontSize * 0.55f);
+            var itemWidth = marker + 6f + textWidth;
+
+            if (cursorX > startX && cursorX + itemWidth > startX + availableWidth)
+            {
+                currentRow++;
+                if (currentRow >= rowLimit)
+                    break;
+
+                cursorX = startX;
+                cursorY += lineHeight;
+            }
+
+            svg.Append($"<rect x=\"{cursorX:F1}\" y=\"{cursorY:F1}\" width=\"{marker:F1}\" height=\"{marker:F1}\" fill=\"{CssColorToSvg(points[i].Color)}\" />");
+            svg.Append($"<text x=\"{cursorX + marker + 6f:F1}\" y=\"{cursorY + marker - 1f:F1}\" text-anchor=\"start\" font-size=\"{fontSize:F1}\" font-weight=\"{weight}\" fill=\"{textColor}\">{EscapeText(points[i].Label)}</text>");
+
+            cursorX += itemWidth + itemGap;
+        }
+
+        return svg.ToString();
+    }
+
+    private static float SectorCentroidRadius(float radius, float sweepAngle)
+    {
+        var theta = MathF.Abs(sweepAngle);
+        if (theta <= 0.0001f)
+            return radius * 0.62f;
+
+        var centroid = (4f * radius * MathF.Sin(theta / 2f)) / (3f * theta);
+        return Math.Clamp(centroid, radius * 0.35f, radius * 0.72f);
+    }
+
+    private static string RenderPieSliceSvg(float centerX, float centerY, float radius, float startAngle, float endAngle, Color color)
+    {
+        var sweep = MathF.Abs(endAngle - startAngle);
+        var segmentCount = Math.Max(3, (int)MathF.Ceiling(sweep / (MathF.PI / 18f)));
+
+        var path = new StringBuilder();
+        path.Append($"M {centerX:F1} {centerY:F1} ");
+
+        var start = PointOnCircle(centerX, centerY, radius, startAngle);
+        path.Append($"L {start.X:F1} {start.Y:F1} ");
+
+        for (var i = 1; i <= segmentCount; i++)
+        {
+            var t = (float)i / segmentCount;
+            var angle = startAngle + (endAngle - startAngle) * t;
+            var point = PointOnCircle(centerX, centerY, radius, angle);
+            path.Append($"L {point.X:F1} {point.Y:F1} ");
+        }
+
+        path.Append("Z");
+        return $"<path d=\"{path}\" fill=\"{CssColorToSvg(color)}\" stroke=\"#FFFFFF\" stroke-width=\"1\" />";
+    }
+
+    private static Point PointOnCircle(float centerX, float centerY, float radius, float angle)
+    {
+        return new Point(
+            centerX + MathF.Cos(angle) * radius,
+            centerY + MathF.Sin(angle) * radius);
+    }
+
+    private static (double Min, double Max, double Range) BuildScale(IReadOnlyList<ChartPointModel> points, ChartRenderOptions options)
+    {
+        var dataMin = points.Min(point => point.Value);
+        var dataMax = points.Max(point => point.Value);
+
+        var min = options.MinValue ?? Math.Min(0d, dataMin);
+        var max = options.MaxValue ?? Math.Max(dataMax, min + 1d);
+        if (max <= min)
+            max = min + 1d;
+
+        return (min, max, max - min);
+    }
+
+    private static string EscapeText(string value)
+    {
+        return value
+            .Replace("&", "&amp;", StringComparison.Ordinal)
+            .Replace("<", "&lt;", StringComparison.Ordinal)
+            .Replace(">", "&gt;", StringComparison.Ordinal)
+            .Replace("\"", "&quot;", StringComparison.Ordinal)
+            .Replace("'", "&#39;", StringComparison.Ordinal);
     }
 
     private static void RenderImageElement(HtmlBuilder html, ImageBlock imgElem)

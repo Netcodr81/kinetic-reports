@@ -13,6 +13,11 @@ public sealed class ChartBlock : LayoutBlock
     public override LayoutBlockType LayoutBlockType => LayoutBlockType.Chart;
 
     /// <summary>
+    /// Gets the strongly typed chart type.
+    /// </summary>
+    public ChartTypeName? ChartTypeValue { get; init; }
+
+    /// <summary>
     /// Gets the chart type identifier (e.g. "Bar", "Line", "Pie", "Area").
     /// The renderer uses this to select the appropriate drawing strategy.
     /// </summary>

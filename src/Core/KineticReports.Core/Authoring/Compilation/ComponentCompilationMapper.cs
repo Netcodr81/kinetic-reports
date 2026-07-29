@@ -236,6 +236,32 @@ internal static class ComponentCompilationMapper
             }
         }
 
+        if (string.Equals(component.CanonicalType, "Chart", StringComparison.OrdinalIgnoreCase))
+        {
+            var chartTypeRaw = TryGetBinding(component, "ChartType")
+                ?? TryGetProperty(component, "ChartType")
+                ?? TryGetProperty(component, "Type")
+                ?? TryGetProperty(component, "ChartTypeValue")
+                ?? "BAR_VERTICAL";
+
+            ChartTypeName? parsedChartType = ChartTypeNames.TryParse(chartTypeRaw, out var typedChartType)
+                ? typedChartType
+                : null;
+
+            target.Add(new ReportLayoutItemDefinition
+            {
+                Id = component.Id,
+                Kind = ReportLayoutItemKind.Chart,
+                ChartType = chartTypeRaw,
+                ChartTypeValue = parsedChartType,
+                ChartDataJson = TryGetProperty(component, "ChartDataJson"),
+                BlockStyleId = TryGetProperty(component, "BlockStyleId"),
+                ChartStyleId = TryGetProperty(component, "ChartStyleId")
+            });
+
+            return;
+        }
+
         if (string.Equals(component.CanonicalType, "Table", StringComparison.OrdinalIgnoreCase)
             && !string.IsNullOrWhiteSpace(component.DataSourceId))
         {

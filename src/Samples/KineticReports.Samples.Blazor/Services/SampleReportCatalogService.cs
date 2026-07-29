@@ -81,6 +81,137 @@ internal sealed class SampleReportCatalogService : ISampleReportCatalogService
         new(BarcodeSymbology.Codabar, "Codabar", "A40156B")
     ];
 
+    private static readonly IReadOnlyList<ChartCatalogEntry> ChartCatalogEntries =
+    [
+        new(
+            ChartTypeName.BarVertical,
+            "Vertical Bar Chart",
+            "BAR_VERTICAL",
+            new ChartSeriesData
+            {
+                Points =
+                [
+                    new ChartDataPoint { Label = "North", Value = 46 },
+                    new ChartDataPoint { Label = "South", Value = 38 },
+                    new ChartDataPoint { Label = "East", Value = 57 },
+                    new ChartDataPoint { Label = "West", Value = 42 }
+                ],
+                Options = new ChartOptions
+                {
+                    XAxisLabel = "Region",
+                    YAxisLabel = "Revenue (USD M)",
+                    ShowAxes = true,
+                    ShowGridLines = true,
+                    ShowTicks = true,
+                    ShowTickLabels = true,
+                    YAxisTickCount = 6,
+                    AxisLineWidth = 1.2f,
+                    GridLineWidth = 0.8f,
+                    LabelFontSize = 9f,
+                    BarGapRatio = 0.22f,
+                    ShowLegend = true,
+                    LegendPosition = PieLegendPosition.Right,
+                    LegendFontSize = 9f,
+                    LegendMarkerSize = 10f
+                }
+            }),
+        new(
+            ChartTypeName.BarHorizontal,
+            "Horizontal Bar Chart",
+            "BAR_HORIZONTAL",
+            new ChartSeriesData
+            {
+                Points =
+                [
+                    new ChartDataPoint { Label = "Support", Value = 72 },
+                    new ChartDataPoint { Label = "Delivery", Value = 61 },
+                    new ChartDataPoint { Label = "Sales", Value = 88 },
+                    new ChartDataPoint { Label = "Finance", Value = 54 }
+                ],
+                Options = new ChartOptions
+                {
+                    XAxisLabel = "SLA Compliance (%)",
+                    YAxisLabel = "Team",
+                    ShowAxes = true,
+                    ShowGridLines = true,
+                    ShowTicks = true,
+                    ShowTickLabels = true,
+                    XAxisTickCount = 6,
+                    YAxisTickCount = 6,
+                    LabelFontSize = 9f,
+                    BarGapRatio = 0.25f,
+                    MinValue = 0,
+                    MaxValue = 100,
+                    ShowLegend = true,
+                    LegendPosition = PieLegendPosition.Right,
+                    LegendFontSize = 9f,
+                    LegendMarkerSize = 10f
+                }
+            }),
+        new(
+            ChartTypeName.Line,
+            "Line Chart",
+            "LINE",
+            new ChartSeriesData
+            {
+                Points =
+                [
+                    new ChartDataPoint { Label = "Jan", Value = 18 },
+                    new ChartDataPoint { Label = "Feb", Value = 22 },
+                    new ChartDataPoint { Label = "Mar", Value = 27 },
+                    new ChartDataPoint { Label = "Apr", Value = 25 },
+                    new ChartDataPoint { Label = "May", Value = 31 },
+                    new ChartDataPoint { Label = "Jun", Value = 36 }
+                ],
+                Options = new ChartOptions
+                {
+                    XAxisLabel = "Month",
+                    YAxisLabel = "Pipeline ($M)",
+                    ShowAxes = true,
+                    ShowGridLines = true,
+                    ShowTicks = true,
+                    ShowTickLabels = true,
+                    YAxisTickCount = 5,
+                    LineWidth = 2.4f,
+                    ShowMarkers = true,
+                    LabelFontSize = 9f,
+                    LineColor = new Color(255, 37, 99, 235),
+                    ShowLegend = true,
+                    LegendPosition = PieLegendPosition.Right,
+                    LegendFontSize = 9f,
+                    LegendMarkerSize = 10f
+                }
+            }),
+        new(
+            ChartTypeName.Pie,
+            "Pie Chart",
+            "PIE",
+            new ChartSeriesData
+            {
+                Points =
+                [
+                    new ChartDataPoint { Label = "Enterprise", Value = 44 },
+                    new ChartDataPoint { Label = "Mid-Market", Value = 31 },
+                    new ChartDataPoint { Label = "SMB", Value = 25 }
+                ],
+                Options = new ChartOptions
+                {
+                    ShowAxes = false,
+                    ShowGridLines = false,
+                    ShowTicks = false,
+                    ShowTickLabels = true,
+                    LabelFontSize = 9f,
+                    PieLabelColor = new Color(255, 31, 41, 55),
+                    PieLabelFontWeight = FontWeight.SemiBold,
+                    ShowLegend = true,
+                    LegendPosition = PieLegendPosition.Right,
+                    LegendFontSize = 9f,
+                    LegendMarkerSize = 10f,
+                    LegendTextColor = new Color(255, 17, 24, 39)
+                }
+            })
+    ];
+
     private readonly IWebHostEnvironment _environment;
     private readonly IReportDefinitionSerializer _reportDefinitionSerializer;
 
@@ -231,7 +362,8 @@ internal sealed class SampleReportCatalogService : ISampleReportCatalogService
                         Kind = ReportLayoutItemKind.Image,
                         SourceKey = embeddedDemoImageSource
                     },
-                    .. BuildBarcodeCatalogLayoutItems("ops")
+                    .. BuildBarcodeCatalogLayoutItems("ops"),
+                    .. BuildChartCatalogLayoutItems("ops")
                 ],
                 PageFooter =
                 [
@@ -351,6 +483,30 @@ internal sealed class SampleReportCatalogService : ISampleReportCatalogService
                         .WithProperty("Symbology", BarcodeSymbologyName.ToIdentifier(entry.Symbology))
                         .WithProperty("ShowText", entry.ShowText ? "true" : "false")
                         .WithProperty("BarcodeStyleId", "text-body"));
+        }
+
+        documentBuilder
+            .AddComponent("ops-chart-page-break", ReportComponentType.PageBreak)
+            .AddComponent("ops-charts-title", ReportComponentType.Text, text =>
+                text.WithBinding("Text", "Chart Catalog")
+                    .WithProperty("TextStyleId", "text-section-title"))
+            .AddComponent("ops-charts-copy", ReportComponentType.Text, text =>
+                text.WithBinding("Text", "Built-in chart types are shown below with sample datasets.")
+                    .WithProperty("TextStyleId", "text-body"));
+
+        foreach (var entry in ChartCatalogEntries)
+        {
+            var slug = entry.Identifier.ToLowerInvariant();
+
+            documentBuilder
+                .AddComponent($"ops-charts-{slug}-label", ReportComponentType.Text, text =>
+                    text.WithBinding("Text", $"{entry.Label} ({entry.Identifier})")
+                        .WithProperty("TextStyleId", "text-body"))
+                .AddComponent($"ops-charts-{slug}", ReportComponentType.Chart, chart =>
+                    chart.WithProperty("ChartType", entry.Identifier)
+                        .WithProperty("ChartTypeValue", entry.ChartType.ToString())
+                        .WithProperty("ChartDataJson", JsonSerializer.Serialize(entry.Data))
+                        .WithProperty("ChartStyleId", "text-body"));
         }
 
         documentBuilder
@@ -688,5 +844,43 @@ internal sealed class SampleReportCatalogService : ISampleReportCatalogService
         return items;
     }
 
+    private static IReadOnlyList<ReportLayoutItemDefinition> BuildChartCatalogLayoutItems(string prefix)
+    {
+        var items = new List<ReportLayoutItemDefinition>
+        {
+            new()
+            {
+                Id = $"{prefix}-chart-page-break",
+                Kind = ReportLayoutItemKind.PageBreak
+            },
+            TextItem($"{prefix}-charts-title", "Chart Catalog", textStyleId: "text-section-title"),
+            TextItem($"{prefix}-charts-copy", "Built-in chart types are shown below with sample datasets.", textStyleId: "text-body")
+        };
+
+        foreach (var entry in ChartCatalogEntries)
+        {
+            var slug = entry.Identifier.ToLowerInvariant();
+
+            items.Add(TextItem(
+                id: $"{prefix}-charts-{slug}-label",
+                text: $"{entry.Label} ({entry.Identifier})",
+                textStyleId: "text-body"));
+
+            items.Add(new ReportLayoutItemDefinition
+            {
+                Id = $"{prefix}-charts-{slug}",
+                Kind = ReportLayoutItemKind.Chart,
+                ChartTypeValue = entry.ChartType,
+                ChartType = entry.Identifier,
+                ChartDataJson = JsonSerializer.Serialize(entry.Data),
+                ChartStyleId = "text-body"
+            });
+        }
+
+        return items;
+    }
+
     private sealed record BarcodeCatalogEntry(BarcodeSymbology Symbology, string Label, string Value, bool ShowText = true);
+
+    private sealed record ChartCatalogEntry(ChartTypeName ChartType, string Label, string Identifier, ChartSeriesData Data);
 }

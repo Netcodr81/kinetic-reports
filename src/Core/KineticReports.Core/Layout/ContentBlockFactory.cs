@@ -237,9 +237,82 @@ public static class ContentBlockFactory
             Id = id,
             Style = style,
             ContentType = BlockContentType.Chart,
+            ChartTypeValue = ChartTypeNames.TryParse(chartType, out var parsed) ? parsed : null,
             ChartType = chartType,
             ChartData = chartData
         };
+    }
+
+    /// <summary>
+    /// Creates a chart <see cref="ContentBlock"/> using a strongly typed chart type.
+    /// </summary>
+    /// <param name="id">Stable block id.</param>
+    /// <param name="style">Resolved block style.</param>
+    /// <param name="chartType">Strongly typed chart kind.</param>
+    /// <param name="chartData">Optional renderer-specific chart payload.</param>
+    /// <returns>A configured chart <see cref="ContentBlock"/>.</returns>
+    public static ContentBlock CreateChart(
+        string id,
+        AppliedStyle style,
+        ChartTypeName chartType,
+        object? chartData = null)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+        ArgumentNullException.ThrowIfNull(style);
+
+        return new ContentBlock
+        {
+            Id = id,
+            Style = style,
+            ContentType = BlockContentType.Chart,
+            ChartTypeValue = chartType,
+            ChartType = ChartTypeNames.ToIdentifier(chartType),
+            ChartData = chartData
+        };
+    }
+
+    /// <summary>
+    /// Creates a vertical bar chart <see cref="ContentBlock"/>.
+    /// </summary>
+    public static ContentBlock CreateVerticalBarChart(
+        string id,
+        AppliedStyle style,
+        IReadOnlyList<ChartDataPoint> points)
+    {
+        return CreateChart(id, style, ChartTypeName.BarVertical, new ChartSeriesData { Points = points });
+    }
+
+    /// <summary>
+    /// Creates a horizontal bar chart <see cref="ContentBlock"/>.
+    /// </summary>
+    public static ContentBlock CreateHorizontalBarChart(
+        string id,
+        AppliedStyle style,
+        IReadOnlyList<ChartDataPoint> points)
+    {
+        return CreateChart(id, style, ChartTypeName.BarHorizontal, new ChartSeriesData { Points = points });
+    }
+
+    /// <summary>
+    /// Creates a line chart <see cref="ContentBlock"/>.
+    /// </summary>
+    public static ContentBlock CreateLineChart(
+        string id,
+        AppliedStyle style,
+        IReadOnlyList<ChartDataPoint> points)
+    {
+        return CreateChart(id, style, ChartTypeName.Line, new ChartSeriesData { Points = points });
+    }
+
+    /// <summary>
+    /// Creates a pie chart <see cref="ContentBlock"/>.
+    /// </summary>
+    public static ContentBlock CreatePieChart(
+        string id,
+        AppliedStyle style,
+        IReadOnlyList<ChartDataPoint> points)
+    {
+        return CreateChart(id, style, ChartTypeName.Pie, new ChartSeriesData { Points = points });
     }
 
     private static ContentBlock CreateShape(

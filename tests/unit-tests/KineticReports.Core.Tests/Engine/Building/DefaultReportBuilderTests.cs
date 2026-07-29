@@ -73,6 +73,48 @@ public class DefaultReportBuilderTests
     }
 
     [Fact]
+    public void AddChartRegion_WithTypedChartType_StoresTypedAndStringValues()
+    {
+        var points = new[]
+        {
+            new ChartDataPoint { Label = "Jan", Value = 10 },
+            new ChartDataPoint { Label = "Feb", Value = 20 }
+        };
+
+        var sut = new DefaultReportBuilder()
+            .AddChartRegion("chart-typed", ChartTypeName.Line, new ChartSeriesData { Points = points });
+
+        var result = sut.Build(CreateDataContext(), new LiteralEvaluator());
+
+        var block = result.ShouldHaveSingleItem();
+        var chart = block.Children.ShouldHaveSingleItem().ShouldBeOfType<ContentBlock>();
+        chart.ContentType.ShouldBe(BlockContentType.Chart);
+        chart.ChartTypeValue.ShouldBe(ChartTypeName.Line);
+        chart.ChartType.ShouldBe("LINE");
+        chart.ChartData.ShouldBeOfType<ChartSeriesData>();
+    }
+
+    [Fact]
+    public void AddVerticalBarChartRegion_CreatesBarVerticalChartPayload()
+    {
+        var points = new[]
+        {
+            new ChartDataPoint { Label = "Q1", Value = 25 },
+            new ChartDataPoint { Label = "Q2", Value = 40 }
+        };
+
+        var sut = new DefaultReportBuilder()
+            .AddVerticalBarChartRegion("chart-vbar", points);
+
+        var result = sut.Build(CreateDataContext(), new LiteralEvaluator());
+
+        var block = result.ShouldHaveSingleItem();
+        var chart = block.Children.ShouldHaveSingleItem().ShouldBeOfType<ContentBlock>();
+        chart.ChartTypeValue.ShouldBe(ChartTypeName.BarVertical);
+        chart.ChartType.ShouldBe("BAR_VERTICAL");
+    }
+
+    [Fact]
     public void ForEachRowText_WithFieldExpression_BindsRowValues()
     {
         var sut = new DefaultReportBuilder()
