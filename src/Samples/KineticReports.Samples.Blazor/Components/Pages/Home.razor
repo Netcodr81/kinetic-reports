@@ -188,7 +188,7 @@
                     }
                     else
                     {
-                        <ReportViewer ReportDocument="@_activeReportDocument" AutoRender="true"
+                        <ReportViewer ReportDocument="@_activeReportDocument" ReportDefinition="@_activeDefinition" AutoRender="true"
                                       OnExecutionComplete="OnViewerExecutionComplete"
                                       @rendermode="InteractiveServer" />
                     }

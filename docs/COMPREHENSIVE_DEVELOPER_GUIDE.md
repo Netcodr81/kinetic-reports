@@ -1,27 +1,27 @@
 # KineticReports: Complete Developer Guide
 
-**Version:** 1.0.0  
-**Target Framework:** .NET 10.0  
-**Audience:** Junior to mid-level developers  
+**Version:** 1.0.0
+**Target Framework:** .NET 10.0
+**Audience:** Junior to mid-level developers
 **Status:** Initial Release
 
 ---
 
 ## Table of Contents
 
-1. [Introduction & Overview](#1-introduction--overview)
+1. [Introduction &amp; Overview](#1-introduction--overview)
 2. [Core Concepts](#2-core-concepts)
 3. [Project Architecture](#3-project-architecture)
 4. [Report Generation Pipeline](#4-report-generation-pipeline)
-5. [Core APIs & Types](#5-core-apis--types)
+5. [Core APIs &amp; Types](#5-core-apis--types)
 6. [Getting Started: Code Examples](#6-getting-started-code-examples)
 7. [Building Reports Programmatically](#7-building-reports-programmatically)
-8. [Styling & Appearance](#8-styling--appearance)
-9. [Data Binding & Parameters](#9-data-binding--parameters)
+8. [Styling &amp; Appearance](#8-styling--appearance)
+9. [Data Binding &amp; Parameters](#9-data-binding--parameters)
 10. [Extending KineticReports](#10-extending-kinetic-reports)
-11. [Common Patterns & Best Practices](#11-common-patterns--best-practices)
-12. [Troubleshooting & Debugging](#12-troubleshooting--debugging)
-13. [Future Compatibility & Design Decisions](#13-future-compatibility--design-decisions)
+11. [Common Patterns &amp; Best Practices](#11-common-patterns--best-practices)
+12. [Troubleshooting &amp; Debugging](#12-troubleshooting--debugging)
+13. [Future Compatibility &amp; Design Decisions](#13-future-compatibility--design-decisions)
 14. [Glossary](#14-glossary)
 
 ---
@@ -31,8 +31,9 @@
 ### What is KineticReports?
 
 KineticReports is a **deterministic reporting engine for .NET 10**. It transforms report definitions and data into beautifully formatted documents that can be:
+
 - Viewed in Blazor web applications
-- Exported to HTML, PDF, Excel, and other formats
+- Exported to HTML, PDF, and other formats
 - Searched and analyzed programmatically
 - Extended with custom plugins and providers
 
@@ -57,7 +58,7 @@ Layout & Pagination (compute positions and split pages)
     ↓
 ReportDocument (immutable final model)
     ↓
-Export/Render (HTML, PDF, Excel, etc.)
+Export/Render (HTML, PDF, etc.)
 ```
 
 ### Minimal Code Example
@@ -105,6 +106,7 @@ var definition = new ReportDefinition
 ```
 
 **Key Properties:**
+
 - `Id` - Unique identifier
 - `Name` - Display name
 - `Parameters` - Input parameters (filters, dates, etc.)
@@ -113,9 +115,10 @@ var definition = new ReportDefinition
 
 ### 2.2 DataContext
 
-The **runtime resolved data** for a specific report execution. 
+The **runtime resolved data** for a specific report execution.
 
 After data resolution, you have:
+
 ```csharp
 var dataContext = new DataContext
 {
@@ -131,6 +134,7 @@ This is passed to the report builder so block creation can iterate through data 
 The **single unified layout element** type. All report content is represented as `ContentBlock` instances, differentiated by the `BlockContentType` enum.
 
 **Example:**
+
 ```csharp
 // Text block
 var textBlock = new ContentBlock
@@ -167,20 +171,20 @@ var table = new ContentBlock
 
 **All 12 Block Types (now unified as ContentBlock):**
 
-| BlockContentType | Purpose | Typical Usage |
-|---|---|---|
-| `Text` | Text content | Paragraphs, labels, dynamic text |
-| `Image` | Raster/vector images | Photos, logos, backgrounds |
-| `Shape` | Vector shapes (rectangle, circle, line) | Dividers, decorative elements |
-| `Chart` | Data visualizations | Bar/pie/line charts |
-| `Barcode` | Machine-readable codes | QR codes, barcodes |
-| `Container` | Generic children container | Layout sections |
-| `Table` | Tabular data container | Data tables |
-| `Row` | Table row | Row within table |
-| `Cell` | Table cell | Cell content with merge support |
-| `ReportSection` | Logical report region (pre-pagination) | Headers, detail, footers |
-| `PageSection` | Physical page structure (post-pagination) | Page headers/footers |
-| `Page` | One final page | Output page |
+| BlockContentType  | Purpose                                   | Typical Usage                    |
+| ----------------- | ----------------------------------------- | -------------------------------- |
+| `Text`          | Text content                              | Paragraphs, labels, dynamic text |
+| `Image`         | Raster/vector images                      | Photos, logos, backgrounds       |
+| `Shape`         | Vector shapes (rectangle, circle, line)   | Dividers, decorative elements    |
+| `Chart`         | Data visualizations                       | Bar/pie/line charts              |
+| `Barcode`       | Machine-readable codes                    | QR codes, barcodes               |
+| `Container`     | Generic children container                | Layout sections                  |
+| `Table`         | Tabular data container                    | Data tables                      |
+| `Row`           | Table row                                 | Row within table                 |
+| `Cell`          | Table cell                                | Cell content with merge support  |
+| `ReportSection` | Logical report region (pre-pagination)    | Headers, detail, footers         |
+| `PageSection`   | Physical page structure (post-pagination) | Page headers/footers             |
+| `Page`          | One final page                            | Output page                      |
 
 ### 2.4 ReportDocument
 
@@ -215,6 +219,7 @@ All coordinates and sizes in KineticReports are in **Device Independent Pixels (
 ### 2.6 AppliedStyle
 
 The **final computed style** for an element after:
+
 1. Default theme styles applied
 2. Named styles inherited
 3. Parent styles cascaded down
@@ -259,9 +264,6 @@ KineticReports.slnx
 │   ├── KineticReports.Viewer.Web/      - ASP.NET Core viewer host
 │   └── KineticReports.Viewer.Mvc/      - MVC viewer package
 │
-├── src/Export/
-│   └── KineticReports.Export.Excel/    - Example: Excel exporter
-│
 ├── src/Plugins/
 │   └── KineticReports.Samples.Plugins/ - Example plugins
 │
@@ -292,8 +294,8 @@ KineticReports.slnx
 ```
 
 **Optional add-ons:**
+
 - `KineticReports.Viewer.Blazor` - For web viewers
-- `KineticReports.Export.Excel` - For Excel export
 
 ### 3.3 Typical Application Structure
 
@@ -365,6 +367,7 @@ foreach (var source in dataSources)
 ```
 
 **What happens:**
+
 - Each `DataSourceDefinition` is mapped to a data provider
 - Parameters are passed (filters, dates, etc.)
 - Rows are returned and stored by source ID
@@ -380,6 +383,7 @@ var blocks = await reportBuilder.Build(dataContext, expressionEvaluator);
 ```
 
 **What happens:**
+
 - Iterate through resolved data rows
 - For each row, create layout blocks (text, images, containers)
 - Handle expressions (formulas, filters, aggregates)
@@ -402,17 +406,20 @@ Output: ReportDocument (immutable pages)
 ```
 
 **LayoutSizing Phase:**
+
 - Each block reports its `DesiredSize`
 - Container blocks calculate size from children
 - Text blocks use `ITextLayout` to measure
 - Image blocks report their natural size
 
 **Arrange Phase:**
+
 - Each block receives final `Bounds` (position + size)
 - Container blocks arrange children within their bounds
 - Layout is now immutable
 
 **Pagination Phase:**
+
 - Content is split into pages based on page height
 - Page headers/footers are added to each page
 - Orphan/widow handling (if configured)
@@ -433,6 +440,7 @@ await renderer.RenderAsync(document, pdfStream, renderOptions);
 ```
 
 **Important Rules:**
+
 - Exporter/renderer receives **immutable** `ReportDocument`
 - No layout changes are allowed
 - Only presentation/format conversion happens
@@ -541,20 +549,20 @@ public sealed class ContentBlock : LayoutBlock
 {
     // Identity
     public string Id { get; init; } = "";
-    
+  
     // Type discriminator
     public BlockContentType ContentType { get; init; }
-    
+  
     // Styling
     public required AppliedStyle Style { get; init; }
-    
+  
     // Layout
     public Rect Bounds { get; set; }
     public Size DesiredSize { get; set; }
-    
+  
     // Hierarchy
     public IReadOnlyList<ContentBlock> Children { get; init; } = [];
-    
+  
     // Type-specific properties
     public string? Text { get; init; }
     public IReadOnlyList<TextRun>? TextRuns { get; init; }
@@ -602,12 +610,12 @@ public record ReportDefinition
     public string SchemaVersion { get; init; } = "1.0";
     public string Id { get; init; } = "";
     public string Name { get; init; } = "";
-    
+  
     public IReadOnlyList<ParameterDefinition> Parameters { get; init; } = [];
     public IReadOnlyList<DataSourceDefinition> DataSources { get; init; } = [];
     public IReadOnlyList<StyleDefinition> Styles { get; init; } = [];
     public IReadOnlyList<ReportPluginToggleDefinition> Plugins { get; init; } = [];
-    
+  
     // Blocks or JSON source
     public IReadOnlyList<object>? Blocks { get; init; }
     public string? Source { get; init; }
@@ -621,17 +629,17 @@ public sealed record AppliedStyle
 {
     public required string FontFamily { get; init; }
     public required float FontSize { get; init; }
-    
+  
     public FontWeight FontWeight { get; init; } = FontWeight.Normal;
     public TextDecoration TextDecoration { get; init; } = TextDecoration.None;
     public TextAlignment TextAlignment { get; init; } = TextAlignment.Left;
-    
+  
     public Color TextColor { get; init; } = Color.Black;
     public Color? Background { get; init; }
-    
+  
     public Thickness Padding { get; init; } = Thickness.Zero;
     public Thickness Margin { get; init; } = Thickness.Zero;
-    
+  
     public float LineHeight { get; init; } = 1.2f;
     public float? LetterSpacing { get; init; }
 }
@@ -922,12 +930,12 @@ var blocks = builder.Build();
 public class SalesReportBuilder : IReportBuilder
 {
     private readonly IExpressionEvaluator _evaluator;
-    
+  
     public SalesReportBuilder(IExpressionEvaluator evaluator)
     {
         _evaluator = evaluator;
     }
-    
+  
     public async Task<IReadOnlyList<ContentBlock>> BuildAsync(
         ReportDefinition definition,
         DataContext dataContext,
@@ -935,26 +943,26 @@ public class SalesReportBuilder : IReportBuilder
         CancellationToken cancellationToken = default)
     {
         var blocks = new List<ContentBlock>();
-        
+      
         // Add title
         blocks.Add(ContentBlockFactory.CreateText(
             definition.Name,
             titleStyle));
-        
+      
         // Add table from data
         if (dataContext.TryGetValue("sales", out var salesRows))
         {
             var tableBlock = BuildSalesTable(salesRows);
             blocks.Add(tableBlock);
         }
-        
+      
         return blocks;
     }
-    
+  
     private ContentBlock BuildSalesTable(IReadOnlyList<Dictionary<string, object>> rows)
     {
         var rowBlocks = new List<ContentBlock>();
-        
+      
         // Header
         rowBlocks.Add(new ContentBlock
         {
@@ -965,7 +973,7 @@ public class SalesReportBuilder : IReportBuilder
                 CreateCell("Amount", headerStyle)
             }
         });
-        
+      
         // Data rows
         foreach (var row in rows)
         {
@@ -979,7 +987,7 @@ public class SalesReportBuilder : IReportBuilder
                 }
             });
         }
-        
+      
         return new ContentBlock
         {
             Id = "sales-table",
@@ -987,7 +995,7 @@ public class SalesReportBuilder : IReportBuilder
             Children = rowBlocks
         };
     }
-    
+  
     private ContentBlock CreateCell(string text, AppliedStyle style) =>
         new ContentBlock
         {
@@ -1055,23 +1063,27 @@ var dataRowStyle = new AppliedStyle
 ### 8.2 Style Properties
 
 **Font Properties:**
+
 - `FontFamily` - Font name (e.g., "Arial", "Times New Roman")
 - `FontSize` - Size in DIPs
 - `FontWeight` - Normal, Bold, etc.
 - `TextDecoration` - Underline, Strikethrough, etc.
 
 **Text Properties:**
+
 - `TextColor` - Foreground color
 - `TextAlignment` - Left, Center, Right, Justify
 - `LineHeight` - Line spacing multiplier
 
 **Box Model:**
+
 - `Padding` - Internal spacing (top, right, bottom, left)
 - `Margin` - External spacing
 - `Background` - Background fill color
 - `Border` - Border styling (width, color, style)
 
 **Layout:**
+
 - `Width`, `Height` - Fixed dimensions
 - `MinWidth`, `MaxWidth` - Constraints
 - `VerticalAlignment` - Top, Center, Bottom
@@ -1121,7 +1133,7 @@ var definition = new ReportDefinition
                 ["CommandType"] = "Text"  // or "StoredProcedure"
             }
         },
-        
+      
         // REST API data source
         new DataSourceDefinition
         {
@@ -1206,18 +1218,18 @@ var averageAmount = "${Avg(sales.Amount)}";
 
 KineticReports is designed to be extended at various points:
 
-| Extension Point | Implementation | Use Case |
-|---|---|---|
-| **Data Provider** | `IDataProvider` | Pull data from new backend (REST, GraphQL, etc.) |
-| **Data Resolver** | `IDataResolver` | Map data source definitions to providers |
-| **Report Builder** | `IReportBuilder` | Transform data into custom report blocks |
-| **Expression Language** | `IExpressionEvaluator` | Add custom formulas/functions |
-| **Block Post-Processor** | `IReportBlocksPostProcessorPlugin` | Modify blocks after building |
-| **Layout Engine** | `ILayoutEngine` | Custom sizing/arrangement behavior |
-| **Renderer** | `IRenderer` | Add new output format (PNG, PDF, etc.) |
-| **Exporter** | `IReportDocumentExporter` | Add new export format (Excel, CSV, etc.) |
-| **Export Negotiation** | `IExportNegotiationPlugin` | Map export requests to formats |
-| **HTML Post-Processor** | `IHtmlReportPostProcessorPlugin` | Transform HTML after export |
+| Extension Point                | Implementation                       | Use Case                                         |
+| ------------------------------ | ------------------------------------ | ------------------------------------------------ |
+| **Data Provider**        | `IDataProvider`                    | Pull data from new backend (REST, GraphQL, etc.) |
+| **Data Resolver**        | `IDataResolver`                    | Map data source definitions to providers         |
+| **Report Builder**       | `IReportBuilder`                   | Transform data into custom report blocks         |
+| **Expression Language**  | `IExpressionEvaluator`             | Add custom formulas/functions                    |
+| **Block Post-Processor** | `IReportBlocksPostProcessorPlugin` | Modify blocks after building                     |
+| **Layout Engine**        | `ILayoutEngine`                    | Custom sizing/arrangement behavior               |
+| **Renderer**             | `IRenderer`                        | Add new output format (PNG, PDF, etc.)           |
+| **Exporter**             | `IReportDocumentExporter`          | Add new export format (Excel, CSV, etc.)         |
+| **Export Negotiation**   | `IExportNegotiationPlugin`         | Map export requests to formats                   |
+| **HTML Post-Processor**  | `IHtmlReportPostProcessorPlugin`   | Transform HTML after export                      |
 
 ### 10.2 Creating a Custom Data Provider
 
@@ -1225,12 +1237,12 @@ KineticReports is designed to be extended at various points:
 public class RestApiDataProvider : IDataProvider
 {
     private readonly HttpClient _httpClient;
-    
+  
     public RestApiDataProvider(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }
-    
+  
     public async Task<IReadOnlyList<Dictionary<string, object>>> ExecuteAsync(
         QueryRequest request,
         CancellationToken cancellationToken = default)
@@ -1238,12 +1250,12 @@ public class RestApiDataProvider : IDataProvider
         var response = await _httpClient.GetAsync(
             request.SourceName,
             cancellationToken);
-        
+      
         response.EnsureSuccessStatusCode();
-        
+      
         var json = await response.Content.ReadAsStringAsync(cancellationToken);
         var data = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(json);
-        
+      
         return data ?? new List<Dictionary<string, object>>();
     }
 }
@@ -1258,14 +1270,14 @@ services.AddScoped<IDataProvider, RestApiDataProvider>();
 public class CsvExporter : IReportDocumentExporter
 {
     public string FormatId => "csv";
-    
+  
     public async Task ExportAsync(
         ReportDocument document,
         Stream output,
         CancellationToken cancellationToken = default)
     {
         using var writer = new StreamWriter(output);
-        
+      
         // Convert ReportDocument to CSV format
         foreach (var page in document.Pages)
         {
@@ -1274,10 +1286,10 @@ public class CsvExporter : IReportDocumentExporter
                 await ExportTable(page, writer);
             }
         }
-        
+      
         await writer.FlushAsync();
     }
-    
+  
     private async Task ExportTable(ContentBlock table, StreamWriter writer)
     {
         foreach (var row in table.Children)
@@ -1288,12 +1300,12 @@ public class CsvExporter : IReportDocumentExporter
                     .Where(c => c.ContentType == BlockContentType.Cell)
                     .Select(c => ExtractCellText(c))
                     .ToArray();
-                
+              
                 await writer.WriteLineAsync(string.Join(",", cells));
             }
         }
     }
-    
+  
     private string ExtractCellText(ContentBlock cell)
     {
         // Recursively extract text from cell content
@@ -1302,7 +1314,7 @@ public class CsvExporter : IReportDocumentExporter
             cell.Children
                 .Where(c => c.ContentType == BlockContentType.Text)
                 .Select(c => c.Text ?? ""));
-        
+      
         return $"\"{text}\"";  // CSV escape
     }
 }
@@ -1321,12 +1333,12 @@ public class WatermarkPlugin : PluginBase
     public override string Id => "com.example.watermark";
     public override string Name => "Watermark Plugin";
     public override string Version => "1.0.0";
-    
+  
     public WatermarkPlugin()
     {
         Order = 100;  // Execution order
     }
-    
+  
     public override async Task OnInitializeAsync(
         IServiceProvider serviceProvider,
         CancellationToken cancellationToken = default)
@@ -1335,7 +1347,7 @@ public class WatermarkPlugin : PluginBase
         // Register any services needed
         await Task.CompletedTask;
     }
-    
+  
     public override async Task<IReadOnlyList<ContentBlock>> OnBlocksPostProcessAsync(
         IReadOnlyList<ContentBlock> blocks,
         ReportDefinition definition,
@@ -1355,7 +1367,7 @@ public class WatermarkPlugin : PluginBase
                 TextAlignment = TextAlignment.Center
             }
         };
-        
+      
         return new List<ContentBlock>(blocks) { watermarkBlock };
     }
 }
@@ -1384,10 +1396,10 @@ public class LargeReportBuilder : IReportBuilder
         CancellationToken cancellationToken = default)
     {
         var blocks = new List<ContentBlock>();
-        
+      
         // Process data in batches to avoid memory issues
         const int batchSize = 1000;
-        
+      
         if (dataContext.TryGetValue("sales", out var allRows))
         {
             for (int i = 0; i < allRows.Count; i += batchSize)
@@ -1395,27 +1407,27 @@ public class LargeReportBuilder : IReportBuilder
                 var batch = allRows.Skip(i).Take(batchSize);
                 var batchBlocks = await CreateBlocksFromBatch(batch, cancellationToken);
                 blocks.AddRange(batchBlocks);
-                
+              
                 // Yield control to allow cancellation
                 cancellationToken.ThrowIfCancellationRequested();
             }
         }
-        
+      
         return blocks;
     }
-    
+  
     private async Task<List<ContentBlock>> CreateBlocksFromBatch(
         IEnumerable<Dictionary<string, object>> batch,
         CancellationToken cancellationToken)
     {
         var blocks = new List<ContentBlock>();
-        
+      
         foreach (var row in batch)
         {
             var rowBlock = CreateRowBlock(row);
             blocks.Add(rowBlock);
         }
-        
+      
         return await Task.FromResult(blocks);
     }
 }
@@ -1436,7 +1448,7 @@ public static class ReportStyles
         TextAlignment = TextAlignment.Center,
         Margin = new Thickness(0f, 0f, 0f, 16f)
     };
-    
+  
     public static readonly AppliedStyle HeaderStyle = new()
     {
         FontFamily = "Arial",
@@ -1446,7 +1458,7 @@ public static class ReportStyles
         Background = Color.FromRgb(31, 58, 111),
         Padding = new Thickness(8f, 4f, 8f, 4f)
     };
-    
+  
     public static readonly AppliedStyle DataStyle = new()
     {
         FontFamily = "Arial",
@@ -1473,16 +1485,16 @@ public class ConditionalReportBuilder : IReportBuilder
         CancellationToken cancellationToken = default)
     {
         var blocks = new List<ContentBlock>();
-        
+      
         // Add title
         blocks.Add(CreateTitle());
-        
+      
         // Add summary section only if data exists
         if (dataContext.TryGetValue("summary", out var summary) && summary.Any())
         {
             blocks.Add(CreateSummarySection(summary));
         }
-        
+      
         // Add details table
         if (dataContext.TryGetValue("details", out var details) && details.Any())
         {
@@ -1494,7 +1506,7 @@ public class ConditionalReportBuilder : IReportBuilder
                 "No data available",
                 warningStyle));
         }
-        
+      
         return blocks;
     }
 }
@@ -1536,14 +1548,15 @@ cancellationToken.ThrowIfCancellationRequested();
 **Debug checklist:**
 
 1. **Data Resolution**
+
    ```csharp
    // Log resolved rows
    var rows = await dataResolver.ResolveAsync(source, parameters);
    Console.WriteLine($"Resolved {rows.Count} rows from {source.Id}");
    if (rows.Count == 0) Console.WriteLine("ERROR: No data!");
    ```
-
 2. **Block Creation**
+
    ```csharp
    var blocks = await reportBuilder.BuildAsync(definition, dataContext, evaluator);
    Console.WriteLine($"Created {blocks.Count} blocks");
@@ -1552,8 +1565,8 @@ cancellationToken.ThrowIfCancellationRequested();
        Console.WriteLine($"  - {block.Id}: {block.ContentType}");
    }
    ```
-
 3. **Layout**
+
    ```csharp
    var document = await layoutEngine.LayoutAsync(blocks, context);
    Console.WriteLine($"Generated {document.Pages.Count} pages");
@@ -1563,8 +1576,8 @@ cancellationToken.ThrowIfCancellationRequested();
        Console.WriteLine($"  Page children: {page.Children.Count}");
    }
    ```
-
 4. **Export**
+
    ```csharp
    using var stream = new MemoryStream();
    await exporter.ExportAsync(document, stream);
@@ -1577,12 +1590,14 @@ cancellationToken.ThrowIfCancellationRequested();
 **Problem:** Elements overlap or are positioned incorrectly.
 
 **Likely causes:**
+
 - Font measurement mismatch between layout and rendering
 - Line-height differences
 - Unit conversion errors (DIPs vs pixels)
 - Coordinate origin misunderstanding
 
 **Fix:**
+
 ```csharp
 // Ensure consistent units
 public const float DipsPerInch = 96f;
@@ -1608,11 +1623,13 @@ foreach (var block in blocks)
 **Problem:** Text is cut off, wrapping incorrectly, or misaligned.
 
 **Likely causes:**
+
 - Font not installed on rendering system
 - Text measurement doesn't account for padding/margin
 - Incorrect line-height or letter-spacing
 
 **Fix:**
+
 ```csharp
 // Use standard fonts (Arial, Times New Roman, Courier New)
 var style = new AppliedStyle
@@ -1632,6 +1649,7 @@ Console.WriteLine($"Text size: {measurement.Width} x {measurement.Height}");
 **Problem:** Report generation is slow.
 
 **Debug:**
+
 ```csharp
 var sw = Stopwatch.StartNew();
 
@@ -1667,6 +1685,7 @@ Console.WriteLine($"Export: {sw.ElapsedMilliseconds}ms");
 KineticReports 1.0.0 introduces a unified **`ContentBlock`** sealed class with a **`BlockContentType`** enum discriminator, consolidating what might have been 12 separate classes into a single, performant type.
 
 This design decision prioritizes:
+
 - **Performance:** Enum-based dispatch is faster than virtual method calls
 - **Simplicity:** Single type to learn and implement
 - **Maintainability:** Reduced code duplication across block types
@@ -1675,12 +1694,14 @@ This design decision prioritizes:
 ### 13.2 v1.0.0 Stability
 
 This initial release (v1.0.0) provides:
+
 - ✅ Stable API surface for all core types
 - ✅ Deterministic document generation
 - ✅ Comprehensive extension points
 - ✅ Production-ready performance
 
 Future versions may introduce:
+
 - Additional block types via `BlockContentType` enum expansion
 - New rendering formats
 - Performance optimizations
@@ -1689,6 +1710,7 @@ Future versions may introduce:
 ### 13.3 API Stability Guarantees
 
 **Guaranteed Stable (v1.x):**
+
 - `ContentBlock` structure and properties
 - `BlockContentType` enum values (existing ones)
 - Core pipeline interfaces (`IReportEngine`, `ILayoutEngine`, etc.)
@@ -1696,6 +1718,7 @@ Future versions may introduce:
 - Plugin architecture
 
 **May Change (v2+):**
+
 - New `BlockContentType` enum values (additive only)
 - Expression language syntax
 - Built-in export formats
@@ -1705,38 +1728,39 @@ Future versions may introduce:
 
 ## 14. Glossary
 
-| Term | Definition |
-|---|---|
-| **ReportDefinition** | The input specification for a report, defining data sources, parameters, styles, and structure |
-| **DataContext** | Runtime data resolved from all configured data sources, keyed by source ID |
-| **ContentBlock** | The single unified layout element type, differentiated by `BlockContentType` enum |
-| **BlockContentType** | Enum discriminator for `ContentBlock` (12 values: Text, Image, Shape, Chart, Barcode, Container, Table, Row, Cell, ReportSection, PageSection, Page) |
-| **ReportDocument** | Immutable output of layout/pagination, containing positioned blocks across pages, ready for export/render |
-| **DIP (Device Independent Pixel)** | Standard unit for all coordinates/sizes in KineticReports (1 DIP = 1/96 inch) |
-| **AppliedStyle** | Final computed style for an element after cascading theme → report → named → inherited → local |
-| **IReportEngine** | Orchestrates entire pipeline: data → blocks → layout → document |
-| **IReportBuilder** | Transforms data and definitions into ordered report blocks |
-| **ILayoutEngine** | Computes positions (Measure/Arrange) and splits content into pages (Pagination) |
-| **IDataResolver** | Maps data source definitions to concrete data via providers |
-| **IDataProvider** | Backend query executor (SQL, REST API, etc.) |
-| **IRenderer** | Renders `ReportDocument` to graphics format (PDF, PNG, etc.) |
-| **IReportDocumentExporter** | Exports `ReportDocument` to text format (HTML, XLSX, CSV, etc.) |
-| **ITextLayout** | Shared text measurement and shaping service for consistent typography |
-| **IExpressionEvaluator** | Evaluates expressions/formulas in report definitions |
-| **IPlugin** | Optional runtime extension for report processing |
-| **Plugin** | Loadable extension module that participates in deterministic pipeline seams |
-| **Export Format** | Supported output format (HTML, PDF, XLSX, CSV, etc.) |
-| **Watermark** | Visual overlay text/image (often "DRAFT") added via plugin or renderer |
-| **LayoutSizing** | First layout pass: each block reports desired size |
-| **Arrange** | Second layout pass: each block receives final bounds |
-| **Pagination** | Third layout pass: content split into pages |
-| **Deterministic** | Same input always produces identical output |
+| Term                                     | Definition                                                                                                                                            |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ReportDefinition**               | The input specification for a report, defining data sources, parameters, styles, and structure                                                        |
+| **DataContext**                    | Runtime data resolved from all configured data sources, keyed by source ID                                                                            |
+| **ContentBlock**                   | The single unified layout element type, differentiated by`BlockContentType` enum                                                                    |
+| **BlockContentType**               | Enum discriminator for`ContentBlock` (12 values: Text, Image, Shape, Chart, Barcode, Container, Table, Row, Cell, ReportSection, PageSection, Page) |
+| **ReportDocument**                 | Immutable output of layout/pagination, containing positioned blocks across pages, ready for export/render                                             |
+| **DIP (Device Independent Pixel)** | Standard unit for all coordinates/sizes in KineticReports (1 DIP = 1/96 inch)                                                                         |
+| **AppliedStyle**                   | Final computed style for an element after cascading theme → report → named → inherited → local                                                    |
+| **IReportEngine**                  | Orchestrates entire pipeline: data → blocks → layout → document                                                                                    |
+| **IReportBuilder**                 | Transforms data and definitions into ordered report blocks                                                                                            |
+| **ILayoutEngine**                  | Computes positions (Measure/Arrange) and splits content into pages (Pagination)                                                                       |
+| **IDataResolver**                  | Maps data source definitions to concrete data via providers                                                                                           |
+| **IDataProvider**                  | Backend query executor (SQL, REST API, etc.)                                                                                                          |
+| **IRenderer**                      | Renders`ReportDocument` to graphics format (PDF, PNG, etc.)                                                                                         |
+| **IReportDocumentExporter**        | Exports`ReportDocument` to text format (HTML, XLSX, CSV, etc.)                                                                                      |
+| **ITextLayout**                    | Shared text measurement and shaping service for consistent typography                                                                                 |
+| **IExpressionEvaluator**           | Evaluates expressions/formulas in report definitions                                                                                                  |
+| **IPlugin**                        | Optional runtime extension for report processing                                                                                                      |
+| **Plugin**                         | Loadable extension module that participates in deterministic pipeline seams                                                                           |
+| **Export Format**                  | Supported output format (HTML, PDF, XLSX, CSV, etc.)                                                                                                  |
+| **Watermark**                      | Visual overlay text/image (often "DRAFT") added via plugin or renderer                                                                                |
+| **LayoutSizing**                   | First layout pass: each block reports desired size                                                                                                    |
+| **Arrange**                        | Second layout pass: each block receives final bounds                                                                                                  |
+| **Pagination**                     | Third layout pass: content split into pages                                                                                                           |
+| **Deterministic**                  | Same input always produces identical output                                                                                                           |
 
 ---
 
 ## Quick Reference: Creating Your First Report
 
 ### Step 1: Set Up DI
+
 ```csharp
 var services = new ServiceCollection();
 services.AddKineticReports();
@@ -1744,6 +1768,7 @@ var provider = services.BuildServiceProvider();
 ```
 
 ### Step 2: Define Your Report
+
 ```csharp
 var definition = new ReportDefinition
 {
@@ -1762,12 +1787,14 @@ var definition = new ReportDefinition
 ```
 
 ### Step 3: Execute the Report
+
 ```csharp
 var engine = provider.GetRequiredService<IReportEngine>();
 var document = await engine.RunAsync(definition);
 ```
 
 ### Step 4: Export the Report
+
 ```csharp
 var exporter = provider.GetRequiredService<IReportDocumentExporter>();
 using var stream = new MemoryStream();
@@ -1788,6 +1815,6 @@ System.IO.File.WriteAllText("report.html", html);
 
 ---
 
-**KineticReports v1.0.0 Documentation**  
-*Last Updated: July 2026*  
+**KineticReports v1.0.0 Documentation**
+*Last Updated: July 2026*
 *For junior to mid-level .NET developers*

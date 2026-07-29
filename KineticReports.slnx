@@ -2,7 +2,6 @@
   <Folder Name="/src/" />
   <Folder Name="/src/Core/">
     <Project Path="src/Core/KineticReports.Core/KineticReports.Core.csproj" />
-    <Project Path="src/Export/KineticReports.Export.Excel/KineticReports.Export.Excel.csproj" />
   </Folder>
   <Folder Name="/src/Plugins/">
     <Project Path="src/Plugins/KineticReports.Samples.Plugins/KineticReports.Samples.Plugins.csproj" />
@@ -23,7 +22,6 @@
     <Project Path="tests/unit-tests/KineticReports.Core.Tests/KineticReports.Core.Tests.csproj" />
     <Project Path="tests/unit-tests/KineticReports.Data.SqlServer.Tests/KineticReports.Data.SqlServer.Tests.csproj" />
     <Project Path="tests/unit-tests/KineticReports.Engine.Tests/KineticReports.Engine.Tests.csproj" />
-    <Project Path="tests/unit-tests/KineticReports.Export.Excel.Tests/KineticReports.Export.Excel.Tests.csproj" />
     <Project Path="tests/unit-tests/KineticReports.Export.Html.Tests/KineticReports.Export.Html.Tests.csproj" />
     <Project Path="tests/unit-tests/KineticReports.Layout.Tests/KineticReports.Layout.Tests.csproj" />
     <Project Path="tests/unit-tests/KineticReports.Plugins.Tests/KineticReports.Plugins.Tests.csproj" />

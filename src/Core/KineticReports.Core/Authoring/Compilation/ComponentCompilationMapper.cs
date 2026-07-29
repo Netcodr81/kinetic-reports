@@ -148,7 +148,8 @@ internal static class ComponentCompilationMapper
             target.Add(new ReportLayoutItemDefinition
             {
                 Id = component.Id,
-                Kind = ReportLayoutItemKind.PageBreak
+                Kind = ReportLayoutItemKind.PageBreak,
+                BlockStyleId = TryGetProperty(component, "BlockStyleId")
             });
 
             return;
@@ -165,7 +166,9 @@ internal static class ComponentCompilationMapper
             {
                 Id = component.Id,
                 Kind = ReportLayoutItemKind.Text,
-                Text = NormalizeTokens(text)
+                Text = NormalizeTokens(text),
+                BlockStyleId = TryGetProperty(component, "BlockStyleId"),
+                TextStyleId = TryGetProperty(component, "TextStyleId")
             });
 
             return;
@@ -190,7 +193,9 @@ internal static class ComponentCompilationMapper
                     Id = component.Id,
                     Kind = ReportLayoutItemKind.Image,
                     SourceKey = sourceKey,
-                    Stretch = stretch
+                    Stretch = stretch,
+                    BlockStyleId = TryGetProperty(component, "BlockStyleId"),
+                    ImageStyleId = TryGetProperty(component, "ImageStyleId")
                 });
 
                 return;
@@ -217,6 +222,17 @@ internal static class ComponentCompilationMapper
                         Id = component.Id,
                         Kind = ReportLayoutItemKind.Table,
                         DataSourceId = component.DataSourceId,
+                        BlockStyleId = TryGetProperty(component, "BlockStyleId"),
+                        RegionStyleId = TryGetProperty(component, "RegionStyleId"),
+                        TableStyleId = TryGetProperty(component, "TableStyleId"),
+                        HeaderRowStyleId = TryGetProperty(component, "HeaderRowStyleId"),
+                        HeaderCellStyleId = TryGetProperty(component, "HeaderCellStyleId"),
+                        DataRowStyleId = TryGetProperty(component, "DataRowStyleId"),
+                        DataCellStyleId = TryGetProperty(component, "DataCellStyleId"),
+                        GroupHeaderRowStyleId = TryGetProperty(component, "GroupHeaderRowStyleId"),
+                        GroupHeaderCellStyleId = TryGetProperty(component, "GroupHeaderCellStyleId"),
+                        FooterRowStyleId = TryGetProperty(component, "FooterRowStyleId"),
+                        FooterCellStyleId = TryGetProperty(component, "FooterCellStyleId"),
                         Columns = columns,
                         FooterAggregates = footerAggregates,
                         FooterLabel = TryGetProperty(component, "FooterLabel") ?? "Total",

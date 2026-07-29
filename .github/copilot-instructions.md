@@ -14,7 +14,6 @@ It is UI-framework agnostic, data-source agnostic, and renderer agnostic.
 | `KineticReports.Rendering` | Abstract renderer base and shared rendering utilities |
 | `KineticReports.Rendering.Skia` | SkiaSharp-backed renderer implementation |
 | `KineticReports.Export.Html` | HTML exporter |
-| `KineticReports.Export.Excel` | Excel (XLSX) exporter |
 | `KineticReports.Data.SqlServer` | SQL Server data provider |
 | `KineticReports.Viewer.Web` | ASP.NET Core report viewer host |
 | `KineticReports.Viewer.Blazor` | Blazor report viewer component library |

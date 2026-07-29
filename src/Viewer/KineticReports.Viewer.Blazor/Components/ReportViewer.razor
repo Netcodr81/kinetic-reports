@@ -1,4 +1,5 @@
 @namespace KineticReports.Viewer.Blazor
+@using KineticReports.Core.Definition
 @using KineticReports.Core.Layout
 @using KineticReports.Core.Viewer.Services
 @using Microsoft.JSInterop
@@ -12,32 +13,39 @@
     <div class="kinetic-report-card">
         <div class="kinetic-report-card-header" role="toolbar" aria-label="Report actions">
             <div class="kinetic-report-toolbar-group">
-                <button type="button" class="kinetic-report-header-button" @onclick="PrintAsync" disabled="@string.IsNullOrEmpty(HtmlContent)" title="Print report" aria-label="Print report">
+                <button type="button" class="kinetic-report-header-button" @onclick="PrintAsync"
+                        disabled="@string.IsNullOrEmpty(HtmlContent)" title="Print report" aria-label="Print report">
                     <i class="fa-solid fa-print"></i>
                 </button>
             </div>
 
             <div class="kinetic-report-viewer-pager" aria-label="Report page navigation">
-                <button type="button" class="kinetic-report-header-button" @onclick="GoToFirstPage" disabled="@(!CanNavigateBackward)" title="First page" aria-label="First page">
+                <button type="button" class="kinetic-report-header-button" @onclick="GoToFirstPage"
+                        disabled="@(!CanNavigateBackward)" title="First page" aria-label="First page">
                     <i class="fa-solid fa-backward-fast"></i>
                 </button>
-                <button type="button" class="kinetic-report-header-button" @onclick="GoToPreviousPage" disabled="@(!CanNavigateBackward)" title="Previous page" aria-label="Previous page">
+                <button type="button" class="kinetic-report-header-button" @onclick="GoToPreviousPage"
+                        disabled="@(!CanNavigateBackward)" title="Previous page" aria-label="Previous page">
                     <i class="fa-solid fa-backward-step"></i>
                 </button>
                 <span>Page @(HasReportPages ? _currentPageNumber : 0) of @TotalPages</span>
-                <button type="button" class="kinetic-report-header-button" @onclick="GoToNextPage" disabled="@(!CanNavigateForward)" title="Next page" aria-label="Next page">
+                <button type="button" class="kinetic-report-header-button" @onclick="GoToNextPage"
+                        disabled="@(!CanNavigateForward)" title="Next page" aria-label="Next page">
                     <i class="fa-solid fa-forward-step"></i>
                 </button>
-                <button type="button" class="kinetic-report-header-button" @onclick="GoToLastPage" disabled="@(!CanNavigateForward)" title="Last page" aria-label="Last page">
+                <button type="button" class="kinetic-report-header-button" @onclick="GoToLastPage"
+                        disabled="@(!CanNavigateForward)" title="Last page" aria-label="Last page">
                     <i class="fa-solid fa-forward-fast"></i>
                 </button>
             </div>
 
             <div class="kinetic-report-toolbar-group">
-                <button type="button" class="kinetic-report-header-button" @onclick="PrintPdf" disabled="@(ReportDocument is null)" title="Download PDF" aria-label="Download PDF">
+                <button type="button" class="kinetic-report-header-button" @onclick="PrintPdf"
+                        disabled="@(ReportDocument is null)" title="Download PDF" aria-label="Download PDF">
                     <i class="fa-solid fa-file-pdf"></i>
                 </button>
-                <button type="button" class="kinetic-report-header-button" @onclick="PrintHtml" disabled="@(ReportDocument is null)" title="Download HTML" aria-label="Download HTML">
+                <button type="button" class="kinetic-report-header-button" @onclick="PrintHtml"
+                        disabled="@(ReportDocument is null)" title="Download HTML" aria-label="Download HTML">
                     <i class="fa-brands fa-html5"></i>
                 </button>
                 @if (ToolbarActions is not null)
@@ -81,6 +89,12 @@
     /// </summary>
     [Parameter]
     public ReportDocument? ReportDocument { get; set; }
+
+    /// <summary>
+    /// Optional report definition used for plugin toggles and metadata-driven export behavior.
+    /// </summary>
+    [Parameter]
+    public ReportDefinition? ReportDefinition { get; set; }
 
     /// <summary>
     /// Whether to render automatically when the report document changes.
@@ -142,6 +156,7 @@
     private readonly string _previewContainerId = $"kr-viewer-preview-{Guid.NewGuid():N}";
     private CancellationTokenSource? _renderCts;
     private ReportDocument? _lastRenderedReportDocument;
+    private ReportDefinition? _lastRenderedReportDefinition;
     private int _currentPageNumber = 1;
 
     private int TotalPages => ReportDocument?.PageCount ?? 0;
@@ -163,10 +178,12 @@
     {
         if (AutoRender
             && ReportDocument is not null
-            && !ReferenceEquals(_lastRenderedReportDocument, ReportDocument))
+            && (!ReferenceEquals(_lastRenderedReportDocument, ReportDocument)
+                || !ReferenceEquals(_lastRenderedReportDefinition, ReportDefinition)))
         {
             await RenderReportDocumentAsync();
             _lastRenderedReportDocument = ReportDocument;
+            _lastRenderedReportDefinition = ReportDefinition;
         }
     }
 
@@ -193,7 +210,7 @@
         {
             HtmlContent = await ReportService.RenderHtmlAsync(
                 ReportDocument,
-                definition: null,
+                ReportDefinition,
                 _renderCts.Token);
 
             if (string.IsNullOrEmpty(HtmlContent))
@@ -326,7 +343,7 @@
         try
         {
             ErrorMessage = string.Empty;
-            var exportResult = await ReportService.ExportAsync(ReportDocument, formatId);
+            var exportResult = await ReportService.ExportAsync(ReportDocument, ReportDefinition, formatId);
             var base64Content = Convert.ToBase64String(exportResult.Content);
 
             var fileNameStem = SanitizeFileNameStem(ReportDocument.Metadata.FileName)

@@ -27,21 +27,7 @@
 - **Repository:** https://github.com/michaeleckel/kinetic-reports
 - **Release Notes:** v1.0.0: Initial release with deterministic report generation, unified ContentBlock architecture, comprehensive plugin system, built-in HTML/PDF export, Skia rendering backend, and SQL Server data provider.
 
-### 2. KineticReports.Export.Excel.1.0.0.nupkg
-**Example Excel export implementation** (optional add-on).
-
-**Contents:**
-- `lib/net10.0/KineticReports.Export.Excel.dll` - Excel exporter implementation
-- `README.md` - Package documentation
-- `KineticReports.Export.Excel.nuspec` - Package metadata
-
-**Package Metadata:**
-- **ID:** KineticReports.Export.Excel
-- **Title:** KineticReports Excel Export Example
-- **Authors:** Mike Eckel
-- **Description:** Example Excel exporter package for KineticReports. Demonstrates the exporter extension pattern. Core built-in exporters are HTML and PDF.
-
-### 3. KineticReports.Viewer.Blazor.1.0.0.nupkg
+### 2. KineticReports.Viewer.Blazor.1.0.0.nupkg
 **Blazor viewer component library** for rendering KineticReports documents in web applications.
 
 **Contents:**
@@ -64,7 +50,6 @@
 
 **Individual Package Locations:**
 - Core: `src/Core/KineticReports.Core/bin/Release/KineticReports.Core.1.0.0.nupkg`
-- Excel: `src/Export/KineticReports.Export.Excel/bin/Release/KineticReports.Export.Excel.1.0.0.nupkg`
 - Blazor: `src/Viewer/KineticReports.Viewer.Blazor/bin/Release/KineticReports.Viewer.Blazor.1.0.0.nupkg`
 
 ## Validation Results
@@ -103,10 +88,6 @@
 - Microsoft.AspNetCore.Components >= 8.0.0
 - Microsoft.AspNetCore.Components.Web >= 8.0.0
 
-**KineticReports.Export.Excel** depends on:
-- KineticReports.Core >= 1.0.0
-- EPPlus >= 7.0.0 (for Excel export)
-
 **KineticReports.Core** depends on:
 - SkiaSharp >= 4.0.0
 - System.Text.Json >= 8.0.0
@@ -130,7 +111,7 @@
 
 ### Extension Points
 - Custom data providers (REST, GraphQL, etc.)
-- Custom exporters (Excel, CSV, etc.)
+- Custom exporters (CSV, etc.)
 - Custom renderers (PNG, custom formats)
 - Report block post-processors
 - Expression language extensions
@@ -151,9 +132,6 @@ Install-Package KineticReports.Core -Version 1.0.0
 
 # Blazor viewer (optional, if using in web app)
 Install-Package KineticReports.Viewer.Blazor -Version 1.0.0
-
-# Excel export (optional, if exporting to Excel)
-Install-Package KineticReports.Export.Excel -Version 1.0.0
 ```
 
 ### Via dotnet CLI (When Published)
@@ -163,16 +141,12 @@ dotnet add package KineticReports.Core --version 1.0.0
 
 # Blazor viewer
 dotnet add package KineticReports.Viewer.Blazor --version 1.0.0
-
-# Excel export
-dotnet add package KineticReports.Export.Excel --version 1.0.0
 ```
 
 ### Via NuGet.org (When Published)
 All packages will be available at https://www.nuget.org/packages/ with package IDs:
 - `KineticReports.Core`
 - `KineticReports.Viewer.Blazor`
-- `KineticReports.Export.Excel`
 
 ## Documentation
 

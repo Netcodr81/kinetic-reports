@@ -73,17 +73,12 @@ KineticReports v1.0.0 is the **initial release** of a deterministic reporting en
    - Responsive design
    - Multiple render modes supported
 
-3. **KineticReports.Export.Excel.1.0.0** (Example)
-   - Demonstrates exporter extension pattern
-   - Excel export implementation
-
 ### Source Code
 
 ```
 src/
 ├── Core/KineticReports.Core/
 ├── Viewer/KineticReports.Viewer.{Blazor,Mvc,Web}
-├── Export/KineticReports.Export.Excel
 ├── Plugins/KineticReports.Samples.Plugins
 └── Samples/KineticReports.Samples.Blazor
 ```
