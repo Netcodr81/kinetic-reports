@@ -169,13 +169,7 @@
                                             }
                                             else
                                             {
-                                                var viewerOptions = Model.BuildViewerOptions();
-                                                @await Component.InvokeAsync("KineticReportViewer", new
-                                                {
-                                                    reportDocument = Model.ActiveReportDocument,
-                                                    reportDefinition = Model.ActiveDefinition,
-                                                    options = viewerOptions
-                                                })
+                                                <iframe src="@Model.PreviewUrl" title="Report preview" class="w-100 border-0" style="min-height: 1200px;"></iframe>
                                             }
 
                                             <div class="card mt-3">

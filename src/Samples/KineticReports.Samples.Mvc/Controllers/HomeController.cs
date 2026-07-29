@@ -45,6 +45,13 @@ public sealed class HomeController : Controller
         return View(model);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Preview([FromQuery] HomeRequest request, CancellationToken cancellationToken)
+    {
+        var model = await BuildPageModelAsync(request, autoLoad: true, cancellationToken).ConfigureAwait(false);
+        return View(model);
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Index(HomePageViewModel form, CancellationToken cancellationToken)
@@ -164,6 +171,23 @@ public sealed class HomeController : Controller
     private void ApplyActionUrls(HomePageViewModel model, HomeRequest request)
     {
         model.DownloadJsonUrl = Url.Action(nameof(DownloadJson), new
+        {
+            request.SelectedTemplateId,
+            request.SelectedProviderType,
+            request.IncludePageHeader,
+            request.IncludePageFooter,
+            request.IncludePageNumbers,
+            request.WatermarkPluginEnabled,
+            request.WatermarkEnabled,
+            request.WatermarkMessage,
+            request.WatermarkImageUrl,
+            request.WatermarkOpacity,
+            request.WatermarkRotationDegrees,
+            request.WatermarkFontSizePx,
+            request.WatermarkTextColorHex
+        });
+
+        model.PreviewUrl = Url.Action(nameof(Preview), new
         {
             request.SelectedTemplateId,
             request.SelectedProviderType,

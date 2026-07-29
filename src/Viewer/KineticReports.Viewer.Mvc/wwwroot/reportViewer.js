@@ -101,6 +101,37 @@ window.kineticReportsMvcViewer = window.kineticReportsMvcViewer || {};
         const lastButton = root.querySelector("[data-action='last']");
         const printButton = root.querySelector("[data-action='print']");
 
+        function showPage(pageIndex) {
+            const page = pages[pageIndex - 1];
+            if (page) {
+                page.style.display = "block";
+            }
+        }
+
+        function hidePage(pageIndex) {
+            const page = pages[pageIndex - 1];
+            if (page) {
+                page.style.display = "none";
+            }
+        }
+
+        function setCurrentPage(nextPage) {
+            if (pages.length === 0) {
+                currentPage = 0;
+                updateButtons();
+                return;
+            }
+
+            const clampedPage = Math.min(Math.max(nextPage, 1), pages.length);
+            if (currentPage > 0 && currentPage !== clampedPage) {
+                hidePage(currentPage);
+            }
+
+            currentPage = clampedPage;
+            showPage(currentPage);
+            updateButtons();
+        }
+
         function updateButtons() {
             const hasPages = pages.length > 0;
             const canBack = hasPages && currentPage > 1;
@@ -118,48 +149,31 @@ window.kineticReportsMvcViewer = window.kineticReportsMvcViewer || {};
             }
         }
 
-        function renderPages() {
-            if (pages.length === 0) {
-                updateButtons();
-                return;
-            }
-
-            pages.forEach((page, index) => {
-                page.style.display = index === currentPage - 1 ? "block" : "none";
-            });
-
-            updateButtons();
-        }
-
         if (firstButton) {
             firstButton.addEventListener("click", () => {
                 if (pages.length === 0) return;
-                currentPage = 1;
-                renderPages();
+                setCurrentPage(1);
             });
         }
 
         if (prevButton) {
             prevButton.addEventListener("click", () => {
                 if (pages.length === 0 || currentPage <= 1) return;
-                currentPage -= 1;
-                renderPages();
+                setCurrentPage(currentPage - 1);
             });
         }
 
         if (nextButton) {
             nextButton.addEventListener("click", () => {
                 if (pages.length === 0 || currentPage >= pages.length) return;
-                currentPage += 1;
-                renderPages();
+                setCurrentPage(currentPage + 1);
             });
         }
 
         if (lastButton) {
             lastButton.addEventListener("click", () => {
                 if (pages.length === 0) return;
-                currentPage = pages.length;
-                renderPages();
+                setCurrentPage(pages.length);
             });
         }
 
@@ -171,7 +185,7 @@ window.kineticReportsMvcViewer = window.kineticReportsMvcViewer || {};
             });
         }
 
-        renderPages();
+        setCurrentPage(currentPage);
     }
 
     viewerApi.initialize = initialize;

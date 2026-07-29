@@ -7,32 +7,32 @@
             <div class="kinetic-report-card-header" role="toolbar" aria-label="Report actions">
                 <div class="kinetic-report-toolbar-group">
                     <button type="button" class="kinetic-report-header-button" data-action="print" title="Print report"
-                            aria-label="Print report">Print</button>
+                            aria-label="Print report"> <i class="fa-solid fa-print"></i></button>
                 </div>
 
                 <div class="kinetic-report-viewer-pager" aria-label="Report page navigation">
                     <button type="button" class="kinetic-report-header-button" data-action="first" title="First page"
-                            aria-label="First page">First</button>
+                            aria-label="First page"><i class="fa-solid fa-backward-fast"></i></button>
                     <button type="button" class="kinetic-report-header-button" data-action="prev" title="Previous page"
-                            aria-label="Previous page">Prev</button>
+                            aria-label="Previous page"> <i class="fa-solid fa-backward-step"></i></button>
                     <span data-role="page-indicator">Page 1 of @Math.Max(Model.PageCount, 1)</span>
                     <button type="button" class="kinetic-report-header-button" data-action="next" title="Next page"
-                            aria-label="Next page">Next</button>
+                            aria-label="Next page"><i class="fa-solid fa-forward-step"></i></button>
                     <button type="button" class="kinetic-report-header-button" data-action="last" title="Last page"
-                            aria-label="Last page">Last</button>
+                            aria-label="Last page"><i class="fa-solid fa-forward-fast"></i></button>
                 </div>
 
                 <div class="kinetic-report-toolbar-group">
                     @if (!string.IsNullOrWhiteSpace(Model.ExportPdfUrl))
                     {
                         <a class="kinetic-report-header-button kinetic-report-header-link" href="@Model.ExportPdfUrl"
-                           title="Download PDF" aria-label="Download PDF">PDF</a>
+                           title="Download PDF" aria-label="Download PDF"><i class="fa-solid fa-file-pdf"></i></a>
                     }
 
                     @if (!string.IsNullOrWhiteSpace(Model.ExportHtmlUrl))
                     {
                         <a class="kinetic-report-header-button kinetic-report-header-link" href="@Model.ExportHtmlUrl"
-                           title="Download HTML" aria-label="Download HTML">HTML</a>
+                           title="Download HTML" aria-label="Download HTML"> <i class="fa-brands fa-html5"></i></a>
                     }
                 </div>
             </div>

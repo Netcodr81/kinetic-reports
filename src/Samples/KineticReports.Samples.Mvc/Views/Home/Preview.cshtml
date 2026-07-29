@@ -1,0 +1,39 @@
+@model KineticReports.Samples.Mvc.Models.HomePageViewModel
+@using KineticReports.Viewer.Mvc
+@{
+    Layout = null;
+    var viewerOptions = Model.BuildViewerOptions();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report Preview</title>
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/_content/KineticReports.Viewer.Mvc/css/kinetic-report-viewer.css" />
+    <link rel="stylesheet" href="/_content/KineticReports.Viewer.Blazor/css/all.min.css" />
+</head>
+<body>
+    <div class="container-fluid py-3">
+        @if (!string.IsNullOrWhiteSpace(Model.Error))
+        {
+            <div class="alert alert-danger py-2 mb-3">@Model.Error</div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.Status))
+        {
+            <div class="alert alert-info py-2 mb-3">@Model.Status</div>
+        }
+
+        @await Component.InvokeAsync("KineticReportViewer", new
+        {
+            reportDocument = Model.ActiveReportDocument,
+            reportDefinition = Model.ActiveDefinition,
+            options = viewerOptions
+        })
+    </div>
+
+    <script src="/_content/KineticReports.Viewer.Mvc/reportViewer.js"></script>
+</body>
+</html>

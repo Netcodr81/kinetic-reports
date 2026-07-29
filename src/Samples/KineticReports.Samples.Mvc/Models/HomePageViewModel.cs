@@ -58,6 +58,8 @@ public sealed class HomePageViewModel
 
     public string? DownloadJsonUrl { get; set; }
 
+    public string? PreviewUrl { get; set; }
+
     public string? ExportHtmlUrl { get; set; }
 
     public string? ExportPdfUrl { get; set; }

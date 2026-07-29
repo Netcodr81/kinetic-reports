@@ -1,349 +1,357 @@
 ﻿/* KineticReports Blazor Report Viewer Styles */
 
 .kinetic-report-viewer {
-    --kr-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --kr-accent: #2563eb;
-    --kr-surface: #f8fafc;
-    --kr-surface-elevated: #ffffff;
-    --kr-text: #0f172a;
-    --kr-text-muted: #475569;
-    --kr-border: #dbe2ea;
-    --kr-page-bg: #ffffff;
-    --kr-page-border: #dcdfe4;
-    --kr-page-shadow: 0 10px 24px rgba(2, 6, 23, 0.12);
-    --kr-radius: 12px;
-    --kr-toolbar-min-height: 52px;
-    --kr-toolbar-gap: 0.75rem;
-    --kr-toolbar-padding-x: 1rem;
-    --kr-toolbar-padding-y: 0.625rem;
-    --kr-viewer-padding: 1rem;
-    --kr-card-body-padding: 1rem;
-    --kr-button-size: 2.125rem;
-    --kr-button-icon-size: 0.95rem;
-    --kr-page-meta-font-size: 0.9rem;
+  --kr-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --kr-accent: #2563eb;
+  --kr-surface: #f8fafc;
+  --kr-surface-elevated: #ffffff;
+  --kr-text: #0f172a;
+  --kr-text-muted: #475569;
+  --kr-border: #dbe2ea;
+  --kr-page-bg: #ffffff;
+  --kr-page-border: #dcdfe4;
+  --kr-page-shadow: 0 10px 24px rgba(2, 6, 23, 0.12);
+  --kr-radius: 12px;
+  --kr-toolbar-min-height: 52px;
+  --kr-toolbar-gap: 0.75rem;
+  --kr-toolbar-padding-x: 1rem;
+  --kr-toolbar-padding-y: 0.625rem;
+  --kr-viewer-padding: 1rem;
+  --kr-card-body-padding: 1rem;
+  --kr-button-size: 2.125rem;
+  --kr-button-icon-size: 0.95rem;
+  --kr-page-meta-font-size: 0.9rem;
 
-    font-family: var(--kr-font-family);
-    color: var(--kr-text);
-    background: var(--kr-surface);
-    border-radius: calc(var(--kr-radius) + 2px);
-    padding: var(--kr-viewer-padding);
+  font-family: var(--kr-font-family);
+  color: var(--kr-text);
+  background: var(--kr-surface);
+  border-radius: calc(var(--kr-radius) + 2px);
+  padding: var(--kr-viewer-padding);
 }
 
 .kinetic-report-viewer--compact {
-    --kr-toolbar-min-height: 44px;
-    --kr-toolbar-gap: 0.5rem;
-    --kr-toolbar-padding-x: 0.75rem;
-    --kr-toolbar-padding-y: 0.5rem;
-    --kr-viewer-padding: 0.75rem;
-    --kr-card-body-padding: 0.75rem;
-    --kr-button-size: 1.875rem;
-    --kr-button-icon-size: 0.875rem;
-    --kr-page-meta-font-size: 0.82rem;
+  --kr-toolbar-min-height: 44px;
+  --kr-toolbar-gap: 0.5rem;
+  --kr-toolbar-padding-x: 0.75rem;
+  --kr-toolbar-padding-y: 0.5rem;
+  --kr-viewer-padding: 0.75rem;
+  --kr-card-body-padding: 0.75rem;
+  --kr-button-size: 1.875rem;
+  --kr-button-icon-size: 0.875rem;
+  --kr-page-meta-font-size: 0.82rem;
 }
 
 .kinetic-report-viewer--comfortable {
-    --kr-toolbar-min-height: 52px;
-    --kr-toolbar-gap: 0.75rem;
-    --kr-toolbar-padding-x: 1rem;
-    --kr-toolbar-padding-y: 0.625rem;
-    --kr-viewer-padding: 1rem;
-    --kr-card-body-padding: 1rem;
-    --kr-button-size: 2.125rem;
-    --kr-button-icon-size: 0.95rem;
-    --kr-page-meta-font-size: 0.9rem;
+  --kr-toolbar-min-height: 52px;
+  --kr-toolbar-gap: 0.75rem;
+  --kr-toolbar-padding-x: 1rem;
+  --kr-toolbar-padding-y: 0.625rem;
+  --kr-viewer-padding: 1rem;
+  --kr-card-body-padding: 1rem;
+  --kr-button-size: 2.125rem;
+  --kr-button-icon-size: 0.95rem;
+  --kr-page-meta-font-size: 0.9rem;
 }
 
 .kinetic-report-viewer--spacious {
-    --kr-toolbar-min-height: 60px;
-    --kr-toolbar-gap: 1rem;
-    --kr-toolbar-padding-x: 1.25rem;
-    --kr-toolbar-padding-y: 0.75rem;
-    --kr-viewer-padding: 1.25rem;
-    --kr-card-body-padding: 1.25rem;
-    --kr-button-size: 2.35rem;
-    --kr-button-icon-size: 1.05rem;
-    --kr-page-meta-font-size: 1rem;
+  --kr-toolbar-min-height: 60px;
+  --kr-toolbar-gap: 1rem;
+  --kr-toolbar-padding-x: 1.25rem;
+  --kr-toolbar-padding-y: 0.75rem;
+  --kr-viewer-padding: 1.25rem;
+  --kr-card-body-padding: 1.25rem;
+  --kr-button-size: 2.35rem;
+  --kr-button-icon-size: 1.05rem;
+  --kr-page-meta-font-size: 1rem;
 }
 
 .kinetic-report-viewer--dark {
-    --kr-accent: #60a5fa;
-    --kr-surface: #0b1220;
-    --kr-surface-elevated: #111a2b;
-    --kr-text: #e2e8f0;
-    --kr-text-muted: #94a3b8;
-    --kr-border: #243247;
-    --kr-page-bg: #ffffff;
-    --kr-page-border: #334155;
-    --kr-page-shadow: 0 14px 32px rgba(2, 6, 23, 0.55);
+  --kr-accent: #60a5fa;
+  --kr-surface: #0b1220;
+  --kr-surface-elevated: #111a2b;
+  --kr-text: #e2e8f0;
+  --kr-text-muted: #94a3b8;
+  --kr-border: #243247;
+  --kr-page-bg: #ffffff;
+  --kr-page-border: #334155;
+  --kr-page-shadow: 0 14px 32px rgba(2, 6, 23, 0.55);
 }
 
 .kinetic-report-viewer--light {
-    --kr-accent: #2563eb;
-    --kr-surface: #f8fafc;
-    --kr-surface-elevated: #ffffff;
-    --kr-text: #0f172a;
-    --kr-text-muted: #475569;
-    --kr-border: #dbe2ea;
-    --kr-page-bg: #ffffff;
-    --kr-page-border: #dcdfe4;
-    --kr-page-shadow: 0 10px 24px rgba(2, 6, 23, 0.12);
+  --kr-accent: #2563eb;
+  --kr-surface: #f8fafc;
+  --kr-surface-elevated: #ffffff;
+  --kr-text: #0f172a;
+  --kr-text-muted: #475569;
+  --kr-border: #dbe2ea;
+  --kr-page-bg: #ffffff;
+  --kr-page-border: #dcdfe4;
+  --kr-page-shadow: 0 10px 24px rgba(2, 6, 23, 0.12);
 }
 
 .kinetic-report-card {
-    border: 1px solid var(--kr-border);
-    border-radius: var(--kr-radius);
-    background: var(--kr-surface-elevated);
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
-    margin-bottom: 0;
-    overflow: hidden;
+  border: 1px solid var(--kr-border);
+  border-radius: var(--kr-radius);
+  background: var(--kr-surface-elevated);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+  margin-bottom: 0;
+  overflow: hidden;
 }
 
 .kinetic-report-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: var(--kr-toolbar-min-height);
-    padding: var(--kr-toolbar-padding-y) var(--kr-toolbar-padding-x);
-    margin-bottom: 0;
-    gap: var(--kr-toolbar-gap);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
-    border-bottom: 1px solid var(--kr-border);
-    backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--kr-toolbar-min-height);
+  padding: var(--kr-toolbar-padding-y) var(--kr-toolbar-padding-x);
+  margin-bottom: 0;
+  gap: var(--kr-toolbar-gap);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  border-bottom: 1px solid var(--kr-border);
+  backdrop-filter: blur(6px);
 }
 
 .kinetic-report-viewer--dark .kinetic-report-card-header {
-    background: linear-gradient(180deg, rgba(17, 26, 43, 0.96) 0%, rgba(11, 18, 32, 0.96) 100%);
+  background: linear-gradient(180deg, rgba(17, 26, 43, 0.96) 0%, rgba(11, 18, 32, 0.96) 100%);
 }
 
 .kinetic-report-toolbar-group {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .kinetic-report-header-button {
-    width: var(--kr-button-size);
-    height: var(--kr-button-size);
-    border: 1px solid transparent;
-    border-radius: 9999px;
-    background: transparent;
-    color: var(--kr-text-muted);
-    font-size: var(--kr-button-icon-size);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, transform 0.12s ease;
+  width: var(--kr-button-size);
+  height: var(--kr-button-size);
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--kr-text-muted);
+  font-size: var(--kr-button-icon-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.12s ease;
 }
 
 .kinetic-report-header-button:hover:not(:disabled) {
-    color: var(--kr-accent);
-    border-color: color-mix(in srgb, var(--kr-accent) 28%, white 72%);
-    background: color-mix(in srgb, var(--kr-accent) 10%, white 90%);
+  color: var(--kr-accent);
+  border-color: color-mix(in srgb, var(--kr-accent) 28%, white 72%);
+  background: color-mix(in srgb, var(--kr-accent) 10%, white 90%);
 }
 
 .kinetic-report-header-button:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--kr-accent) 55%, white 45%);
-    outline-offset: 2px;
+  outline: 2px solid color-mix(in srgb, var(--kr-accent) 55%, white 45%);
+  outline-offset: 2px;
 }
 
 .kinetic-report-header-button:active:not(:disabled) {
-    transform: translateY(1px);
+  transform: translateY(1px);
 }
 
 .kinetic-report-header-button:disabled {
-    color: #9aa6b2;
-    opacity: 0.65;
-    cursor: not-allowed;
+  color: #9aa6b2;
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .kinetic-report-viewer-pager {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--kr-toolbar-gap);
-    padding: 0.15rem 0.35rem;
-    border-radius: 9999px;
-    border: 1px solid var(--kr-border);
-    background: rgba(255, 255, 255, 0.92);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--kr-toolbar-gap);
+  padding: 0.15rem 0.35rem;
+  border-radius: 9999px;
+  border: 1px solid var(--kr-border);
+  background: rgba(255, 255, 255, 0.92);
 }
 
 .kinetic-report-viewer--dark .kinetic-report-viewer-pager {
-    background: rgba(15, 23, 42, 0.85);
+  background: rgba(15, 23, 42, 0.85);
 }
 
 .kinetic-report-viewer-pager > span {
-    font-size: var(--kr-page-meta-font-size);
-    font-weight: 600;
-    color: var(--kr-text-muted);
-    letter-spacing: 0.01em;
+  font-size: var(--kr-page-meta-font-size);
+  font-weight: 600;
+  color: var(--kr-text-muted);
+  letter-spacing: 0.01em;
 }
 
 .kinetic-report-card-body {
-    padding: var(--kr-card-body-padding);
+  padding: var(--kr-card-body-padding);
 }
 
 .kinetic-report-viewer .alert {
-    padding: 0.75rem 1.25rem;
-    margin-bottom: 1rem;
-    border: 1px solid transparent;
-    border-radius: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
 }
 
 .kinetic-report-viewer .alert-danger {
-    background-color: #fff1f2;
-    border-color: #fecdd3;
-    color: #9f1239;
+  background-color: #fff1f2;
+  border-color: #fecdd3;
+  color: #9f1239;
 }
 
 .kinetic-report-viewer .alert-info {
-    background-color: #ecfeff;
-    border-color: #a5f3fc;
-    color: #0f766e;
+  background-color: #ecfeff;
+  border-color: #a5f3fc;
+  color: #0f766e;
 }
 
 .kinetic-report-viewer--dark .alert-danger {
-    background-color: #3f1a24;
-    border-color: #7f1d3a;
-    color: #fecdd3;
+  background-color: #3f1a24;
+  border-color: #7f1d3a;
+  color: #fecdd3;
 }
 
 .kinetic-report-viewer--dark .alert-info {
-    background-color: #0f2d3a;
-    border-color: #155e75;
-    color: #a5f3fc;
+  background-color: #0f2d3a;
+  border-color: #155e75;
+  color: #a5f3fc;
 }
 
 .kinetic-report-viewer .alert-dismissible {
-    padding-right: 4rem;
-    position: relative;
+  padding-right: 4rem;
+  position: relative;
 }
 
 .kinetic-report-viewer .alert-dismissible .btn-close {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    opacity: 0.55;
-    padding: 0;
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  opacity: 0.55;
+  padding: 0;
 }
 
 .kinetic-report-viewer .alert-dismissible .btn-close:hover {
-    opacity: 0.8;
+  opacity: 0.8;
 }
 
 .kinetic-report-viewer .report-output {
-    overflow-x: auto;
+  overflow-x: auto;
 }
 
 .kinetic-report-viewer .preview-content {
-    width: max-content;
-    min-width: 100%;
-    min-height: 960px;
+  width: max-content;
+  min-width: 100%;
+  min-height: 960px;
 }
 
 .kinetic-report-viewer .preview-content #report-document {
-    width: 100%;
+  width: 100%;
 }
 
 .kinetic-report-viewer .preview-content .kinetic-page {
-    background: var(--kr-page-bg);
-    border: 1px solid var(--kr-page-border);
-    box-shadow: var(--kr-page-shadow);
+  background: var(--kr-page-bg);
+  border: 1px solid var(--kr-page-border);
+  box-shadow: var(--kr-page-shadow);
+  display: none;
 }
 
+.kinetic-report-viewer .preview-content .kinetic-page:first-child {
+  display: block;
+}
 
 @page {
-    size: auto;
+  size: auto;
 }
 
 /* Print styles */
 @media print {
-    html,
-    body {
-        margin: 0;
-        padding: 0;
-        background: #fff !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 
-    .kinetic-report-viewer,
-    .kinetic-report-card,
-    .kinetic-report-card-body {
-        background: #fff !important;
-        box-shadow: none !important;
-        border: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
+  .kinetic-report-viewer,
+  .kinetic-report-card,
+  .kinetic-report-card-body {
+    background: #fff !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
 
-    .kinetic-report-card-header,
-    .kinetic-report-viewer .alert {
-        display: none !important;
-    }
+  .kinetic-report-card-header,
+  .kinetic-report-viewer .alert {
+    display: none !important;
+  }
 
-    .kinetic-report-viewer .report-output,
-    .kinetic-report-viewer .preview-content {
-        overflow: visible !important;
-        width: auto !important;
-        min-width: 0 !important;
-        min-height: 0 !important;
-    }
+  .kinetic-report-viewer .report-output,
+  .kinetic-report-viewer .preview-content {
+    overflow: visible !important;
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
 
-    .kinetic-page {
-        box-shadow: none !important;
-        border-color: #bbb !important;
-        margin: 0 0 8mm 0 !important;
-        break-after: page;
-        page-break-after: always;
-        overflow: hidden !important;
-    }
+  .kinetic-page {
+    box-shadow: none !important;
+    border-color: #bbb !important;
+    margin: 0 0 8mm 0 !important;
+    break-after: page;
+    page-break-after: always;
+    overflow: hidden !important;
+  }
 
-    .kinetic-page:last-child {
-        margin-bottom: 0 !important;
-        break-after: auto;
-        page-break-after: auto;
-    }
+  .kinetic-page:last-child {
+    margin-bottom: 0 !important;
+    break-after: auto;
+    page-break-after: auto;
+  }
 
-    .page-background {
-        overflow: hidden !important;
-    }
+  .page-background {
+    overflow: hidden !important;
+  }
 
-    .table-element {
-        overflow: hidden !important;
-    }
+  .table-element {
+    overflow: hidden !important;
+  }
 
-    .kinetic-table,
-    .table-element table {
-        border-collapse: collapse !important;
-        border-spacing: 0 !important;
-        table-layout: fixed;
-        width: 100% !important;
-    }
+  .kinetic-table,
+  .table-element table {
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    table-layout: fixed;
+    width: 100% !important;
+  }
 
-    .kinetic-table td,
-    .kinetic-table th,
-    .table-element td,
-    .table-element th {
-        vertical-align: top;
-        overflow-wrap: anywhere;
-        word-break: break-word;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-    }
+  .kinetic-table td,
+  .kinetic-table th,
+  .table-element td,
+  .table-element th {
+    vertical-align: top;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
 
-    .report-document {
-        font-size: 92% !important;
-    }
+  .report-document {
+    font-size: 92% !important;
+  }
 
-    .text-element,
-    .kinetic-table td,
-    .kinetic-table th,
-    .table-element td,
-    .table-element th {
-        font-size: 0.92em !important;
-        line-height: 1.15 !important;
-    }
+  .text-element,
+  .kinetic-table td,
+  .kinetic-table th,
+  .table-element td,
+  .table-element th {
+    font-size: 0.92em !important;
+    line-height: 1.15 !important;
+  }
 }
