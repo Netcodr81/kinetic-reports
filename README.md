@@ -10,6 +10,11 @@ The complete project documentation is in [docs/COMPREHENSIVE_DEVELOPER_GUIDE.md]
 Start with:
 - [Comprehensive Developer Guide](./docs/COMPREHENSIVE_DEVELOPER_GUIDE.md)
 
+Report authoring guides:
+- [Creating Reports with JSON](./docs/creating-reports-with-json.md)
+- [Creating Reports with Code-First Authoring](./docs/creating-reports-with-code-first.md)
+- [Creating Reports with the Fluent Builder](./docs/creating-reports-with-fluent-builder.md)
+
 ## Default Engine Registration
 
 `KineticReports.Core` provides a default DI registration path for the report pipeline:
