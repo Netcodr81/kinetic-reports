@@ -277,19 +277,20 @@ public sealed class HtmlExporter : IHtmlExporter
                 break;
 
             case BlockContentType.Image:
-                // Images in ContentBlock need similar rendering to ImageBlock
-                if (string.IsNullOrWhiteSpace(content.SourceKey))
+                if (TryGetImageSource(content.SourceKey, out var contentSource))
                 {
-                    html
-                        .OpenTag("div", classAttr: "visual-image-placeholder")
-                        .Text("[Image placeholder]")
-                        .CloseTag("div");
+                    html.VoidTag("img", attributes: new()
+                    {
+                        ["src"] = contentSource,
+                        ["alt"] = content.Id,
+                        ["style"] = $"width: {content.Bounds.Width:F1}px; height: {content.Bounds.Height:F1}px; object-fit: {GetObjectFit(content.Stretch)};"
+                    });
                 }
                 else
                 {
                     html
                         .OpenTag("div", classAttr: "visual-image-placeholder")
-                        .Text($"[Image: {content.SourceKey}]")
+                        .Text("[Image placeholder]")
                         .CloseTag("div");
                 }
                 break;
@@ -507,7 +508,17 @@ public sealed class HtmlExporter : IHtmlExporter
             return true;
         }
 
-        var key = image.SourceKey.Trim();
+        return TryGetImageSource(image.SourceKey, out source);
+    }
+
+    private static bool TryGetImageSource(string? sourceKey, out string source)
+    {
+        source = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(sourceKey))
+            return false;
+
+        var key = sourceKey.Trim();
         if (string.IsNullOrWhiteSpace(key))
             return false;
 

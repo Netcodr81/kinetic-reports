@@ -74,7 +74,7 @@ All `LayoutBlock` subclasses are now consolidated into `ContentBlock`:
 - `PageBlock` → `ContentBlock` with `BlockContentType.Page`
 
 ### Migration Path
-See [MIGRATION_GUIDE_v3.0.0.md](../docs/MIGRATION_GUIDE_v3.0.0.md) for detailed 8-step migration checklist with before/after code examples.
+See [COMPREHENSIVE_DEVELOPER_GUIDE.md](docs/COMPREHENSIVE_DEVELOPER_GUIDE.md) for migration and API guidance.
 
 ## File Changes
 
@@ -89,8 +89,7 @@ See [MIGRATION_GUIDE_v3.0.0.md](../docs/MIGRATION_GUIDE_v3.0.0.md) for detailed 
 - **KineticReports.Rendering.Skia/** - Updated for ContentBlock dispatch
 
 ### Documentation
-- **docs/04-api-core-and-definition.md** - API reference updated
-- **docs/MIGRATION_GUIDE_v3.0.0.md** - New comprehensive migration guide (400+ lines)
+- **docs/COMPREHENSIVE_DEVELOPER_GUIDE.md** - Main developer reference and migration guidance
 - **RELEASE-NOTES.md** - v3.0.0 release information
 
 ## Performance Impact
@@ -151,7 +150,7 @@ See [MIGRATION_GUIDE_v3.0.0.md](../docs/MIGRATION_GUIDE_v3.0.0.md) for detailed 
 
 ### For Users
 1. Update NuGet package to v3.0.0
-2. Follow [MIGRATION_GUIDE_v3.0.0.md](../docs/MIGRATION_GUIDE_v3.0.0.md) for code updates
+2. Follow [COMPREHENSIVE_DEVELOPER_GUIDE.md](docs/COMPREHENSIVE_DEVELOPER_GUIDE.md) for code updates
 3. Run test suite to validate migrations
 4. Deploy to production
 

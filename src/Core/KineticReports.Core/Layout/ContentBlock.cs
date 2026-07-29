@@ -219,18 +219,19 @@ public sealed class ContentBlock : LayoutBlock
 
     private void LayoutSizeImage(Size availableSize, ILayoutSizingContext context)
     {
-        var imageSize = context.ResolveImageSize(SourceKey ?? string.Empty);
-        if (imageSize is null)
-        {
-            DesiredSize = Size.Zero;
-            return;
-        }
-
         var horizontalInset = Style.Padding.Horizontal + GetBorderLeftWidth() + GetBorderRightWidth();
         var verticalInset = Style.Padding.Vertical + GetBorderTopWidth() + GetBorderBottomWidth();
 
-        var maxWidth = Math.Max(0f, availableSize.Width - horizontalInset);
-        var maxHeight = Math.Max(0f, availableSize.Height - verticalInset);
+        var maxWidth = NormalizeLayoutAxis(availableSize.Width - horizontalInset, 320f);
+        var maxHeight = NormalizeLayoutAxis(availableSize.Height - verticalInset, 180f);
+
+        var imageSize = context.ResolveImageSize(SourceKey ?? string.Empty);
+        if (imageSize is null)
+        {
+            // Fallback to available space when no intrinsic size resolver is configured.
+            DesiredSize = new Size(maxWidth + horizontalInset, maxHeight + verticalInset);
+            return;
+        }
 
         var scaledSize = ScaleImageSize(imageSize.Value, maxWidth, maxHeight);
         DesiredSize = new Size(scaledSize.Width + horizontalInset, scaledSize.Height + verticalInset);
@@ -316,16 +317,24 @@ public sealed class ContentBlock : LayoutBlock
 
     private Size ScaleImageSize(Size originalSize, float maxWidth, float maxHeight)
     {
+        maxWidth = NormalizeLayoutAxis(maxWidth, 320f);
+        maxHeight = NormalizeLayoutAxis(maxHeight, 180f);
+
+        var originalWidth = NormalizeLayoutAxis(originalSize.Width, maxWidth);
+        var originalHeight = NormalizeLayoutAxis(originalSize.Height, maxHeight);
+
         if (Stretch == ImageStretch.Fill)
         {
             return new Size(maxWidth, maxHeight);
         }
 
-        var aspectRatio = originalSize.Width / originalSize.Height;
+        var aspectRatio = originalWidth / originalHeight;
+        if (!float.IsFinite(aspectRatio) || aspectRatio <= 0f)
+            aspectRatio = maxWidth / maxHeight;
 
         if (Stretch == ImageStretch.UniformToFill)
         {
-            if (maxWidth / (float)maxHeight > aspectRatio)
+            if (maxWidth / maxHeight > aspectRatio)
             {
                 return new Size(maxHeight * aspectRatio, maxHeight);
             }
@@ -336,7 +345,7 @@ public sealed class ContentBlock : LayoutBlock
         }
 
         // Default: Uniform
-        if (maxWidth / (float)maxHeight < aspectRatio)
+        if (maxWidth / maxHeight < aspectRatio)
         {
             return new Size(maxWidth, maxWidth / aspectRatio);
         }
@@ -344,6 +353,14 @@ public sealed class ContentBlock : LayoutBlock
         {
             return new Size(maxHeight * aspectRatio, maxHeight);
         }
+    }
+
+    private static float NormalizeLayoutAxis(float value, float fallback)
+    {
+        if (!float.IsFinite(value) || value <= 0f)
+            return fallback;
+
+        return value;
     }
 
     private float GetBorderLeftWidth() => Style.Border?.Left.Width ?? 0f;

@@ -107,8 +107,7 @@ With 11+ extension points, you can:
 We've created comprehensive documentation to help you get started:
 
 - **[Comprehensive Developer Guide](./docs/COMPREHENSIVE_DEVELOPER_GUIDE.md)** - All-in-one learning resource with 30+ code examples
-- **[Quick Start](./docs/01-junior-quick-start.md)** - 5-minute introduction
-- **[Extension Points](./docs/07-extension-points.md)** - How to customize
+- **Comprehensive Developer Guide** - Includes quick start, architecture, extension points, and troubleshooting
 - **Sample Application** - Working Blazor example in source
 
 ### System Requirements
@@ -137,7 +136,7 @@ Install-Package KineticReports.Viewer.Blazor  # Optional
 
 ### Support & Feedback
 
-- 📖 **Documentation:** See `docs/` folder
+- 📖 **Documentation:** See [docs/COMPREHENSIVE_DEVELOPER_GUIDE.md](./docs/COMPREHENSIVE_DEVELOPER_GUIDE.md)
 - 🐛 **Issues:** GitHub Issues
 - 💬 **Discussions:** GitHub Discussions (coming soon)
 - 📧 **Contact:** See repository

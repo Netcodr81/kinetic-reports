@@ -96,7 +96,7 @@ public void RenderElement(LayoutBlock block, IGraphicsContext context)
   sourceKey: "logo.png"
 ```
 
-See [MIGRATION_GUIDE_v3.0.0.md](docs/MIGRATION_GUIDE_v3.0.0.md) for detailed migration instructions.
+See [COMPREHENSIVE_DEVELOPER_GUIDE.md](docs/COMPREHENSIVE_DEVELOPER_GUIDE.md) for migration and implementation guidance.
 
 #### Other Changes
 

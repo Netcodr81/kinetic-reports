@@ -328,12 +328,12 @@ public void Presets_WebScreen_ReturnsWebDimensions()
 ---
 
 ### Change 1.4: Create Getting Started Cookbook (Documentation)
-**File:** `docs/14-getting-started-cookbook.md` (NEW)  
+**File:** `docs/COMPREHENSIVE_DEVELOPER_GUIDE.md` (UPDATE)  
 **Breaking:** ❌ No  
 **Effort:** 1.5-2 hours
 
 **What to Do:**
-1. Create new markdown file `docs/14-getting-started-cookbook.md`
+1. Add a "Getting Started Cookbook" section to `docs/COMPREHENSIVE_DEVELOPER_GUIDE.md`
 2. Add 5 common patterns with full code examples:
    - Pattern 1: Simple report (title + text regions)
    - Pattern 2: Data table (table with data source)
@@ -375,7 +375,7 @@ public void Presets_WebScreen_ReturnsWebDimensions()
 - [ ] Create BlockTypeHierarchyGuide.cs marker class
 - [ ] Extend LayoutOptions with Presets static class
 - [ ] Add LayoutOptions.Presets unit tests
-- [ ] Create docs/14-getting-started-cookbook.md
+- [ ] Add cookbook section in docs/COMPREHENSIVE_DEVELOPER_GUIDE.md
 - [ ] Build solution (verify no breaks)
 - [ ] Test all examples in cookbook
 
@@ -737,14 +737,14 @@ Only if **YES** decision made for block consolidation.
 - `src/Core/KineticReports.Core/Engine/Expressions/ExpressionContext.cs` (modify)
 - `src/Core/KineticReports.Core/Layout/BlockTypeHierarchyGuide.cs` (new)
 - `src/Core/KineticReports.Core/LayoutEngine/LayoutOptions.cs` (modify)
-- `docs/14-getting-started-cookbook.md` (new)
+- `docs/COMPREHENSIVE_DEVELOPER_GUIDE.md` (update)
 - `tests/unit-tests/KineticReports.Engine.Tests/Expressions/ExpressionContextTests.cs` (new)
 - `tests/unit-tests/KineticReports.Core.Tests/LayoutEngine/LayoutOptionsPresetsTests.cs` (new)
 
 ### Phase 2
 - `src/Core/KineticReports.Core/Styling/StyleCascadeResolver.cs` (new)
 - `tests/unit-tests/KineticReports.Core.Tests/Styling/StyleCascadeResolverTests.cs` (new)
-- `docs/10-styling.md` or similar (modify to reference resolver)
+- `docs/COMPREHENSIVE_DEVELOPER_GUIDE.md` (modify styling section to reference resolver)
 
 ### Phase 3 (if approved)
 - ~20+ files across Layout namespace

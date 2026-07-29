@@ -6,12 +6,10 @@ Package layout:
 - `KineticReports.Export.Excel` remains an example exporter package.
 - `KineticReports.Samples.Blazor` consumes Core plus Viewer.Blazor.
 
-The complete project documentation is in [`/docs`](./docs/README.md).
+The complete project documentation is in [docs/COMPREHENSIVE_DEVELOPER_GUIDE.md](./docs/COMPREHENSIVE_DEVELOPER_GUIDE.md).
 
 Start with:
-- [Quick Start for Junior Developers](./docs/01-junior-quick-start.md)
-- [Report Generation Flow](./docs/02-report-generation-flow.md)
-- [Architecture and Project Map](./docs/03-architecture-project-map.md)
+- [Comprehensive Developer Guide](./docs/COMPREHENSIVE_DEVELOPER_GUIDE.md)
 
 ## Default Engine Registration
 

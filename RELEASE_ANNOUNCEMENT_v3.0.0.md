@@ -93,7 +93,7 @@ switch (element.ContentType)
 }
 ```
 
-**Full migration details:** See [MIGRATION_GUIDE_v3.0.0.md](docs/MIGRATION_GUIDE_v3.0.0.md) (400+ lines with 25+ code examples)
+**Full migration details:** See [COMPREHENSIVE_DEVELOPER_GUIDE.md](docs/COMPREHENSIVE_DEVELOPER_GUIDE.md).
 
 ## Breaking Changes
 
@@ -144,9 +144,9 @@ dotnet run --configuration Release
 
 ## Getting Help
 
-- **Migration Questions:** See [MIGRATION_GUIDE_v3.0.0.md](docs/MIGRATION_GUIDE_v3.0.0.md)
-- **API Reference:** See [04-api-core-and-definition.md](docs/04-api-core-and-definition.md)
-- **Troubleshooting:** See [11-troubleshooting-and-debugging.md](docs/11-troubleshooting-and-debugging.md)
+- **Migration Questions:** See [COMPREHENSIVE_DEVELOPER_GUIDE.md](docs/COMPREHENSIVE_DEVELOPER_GUIDE.md)
+- **API Reference:** See [COMPREHENSIVE_DEVELOPER_GUIDE.md](docs/COMPREHENSIVE_DEVELOPER_GUIDE.md)
+- **Troubleshooting:** See [COMPREHENSIVE_DEVELOPER_GUIDE.md](docs/COMPREHENSIVE_DEVELOPER_GUIDE.md)
 - **Issues:** Open a GitHub issue with details
 
 ## Architecture Changes

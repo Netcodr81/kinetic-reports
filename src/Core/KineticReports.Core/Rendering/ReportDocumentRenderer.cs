@@ -130,8 +130,8 @@ public sealed class ReportDocumentRenderer
                 break;
 
             case BlockContentType.Image:
-                // Note: ContentBlock for images doesn't have ImageReference set by layout engine yet
-                // This will be implemented in Phase 3.4+ when image resolution is handled
+                if (TryCreateImageReference(content, out var imageReference))
+                    context.DrawImage(content.Bounds, imageReference, content.Stretch);
                 break;
 
             case BlockContentType.Shape:
@@ -265,5 +265,190 @@ public sealed class ReportDocumentRenderer
             .Replace("{PageNumber}", pageNumber.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase)
             .Replace("{CurrentDate}", DateTime.UtcNow.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase)
             .Replace("{CurrentTime}", DateTime.UtcNow.ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool TryCreateImageReference(ContentBlock content, out ImageReference imageReference)
+    {
+        imageReference = null!;
+
+        if (!TryResolveImageBytes(content.SourceKey, out var bytes))
+            return false;
+
+        imageReference = new ImageReference
+        {
+            SourceKey = content.SourceKey ?? content.Id,
+            IntrinsicSize = new Size(
+                Math.Max(1f, content.Bounds.Width),
+                Math.Max(1f, content.Bounds.Height)),
+            PixelWidth = 1,
+            PixelHeight = 1,
+            PixelFormat = "PNG",
+            PixelData = bytes
+        };
+
+        return true;
+    }
+
+    private static bool TryResolveImageBytes(string? sourceKey, out byte[] bytes)
+    {
+        bytes = [];
+
+        if (string.IsNullOrWhiteSpace(sourceKey))
+            return false;
+
+        return TryDecodeDataUri(sourceKey, out bytes)
+            || TryReadFileSource(sourceKey, out bytes)
+            || TryReadWebRootRelativeSource(sourceKey, out bytes);
+    }
+
+    private static bool TryDecodeDataUri(string source, out byte[] bytes)
+    {
+        bytes = [];
+
+        if (!source.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        var commaIndex = source.IndexOf(',');
+        if (commaIndex <= 0 || commaIndex + 1 >= source.Length)
+            return false;
+
+        var metadata = source[..commaIndex];
+        if (!metadata.Contains(";base64", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        try
+        {
+            bytes = Convert.FromBase64String(source[(commaIndex + 1)..]);
+            return bytes.Length > 0;
+        }
+        catch
+        {
+            bytes = [];
+            return false;
+        }
+    }
+
+    private static bool TryReadFileSource(string source, out byte[] bytes)
+    {
+        bytes = [];
+
+        string? localPath = null;
+        if (Uri.TryCreate(source, UriKind.Absolute, out var uri) && uri.IsFile)
+        {
+            localPath = uri.LocalPath;
+        }
+        else if (Path.IsPathRooted(source))
+        {
+            localPath = source;
+        }
+
+        if (string.IsNullOrWhiteSpace(localPath) || !File.Exists(localPath))
+            return false;
+
+        try
+        {
+            bytes = File.ReadAllBytes(localPath);
+            return bytes.Length > 0;
+        }
+        catch
+        {
+            bytes = [];
+            return false;
+        }
+    }
+
+    private static bool TryReadWebRootRelativeSource(string source, out byte[] bytes)
+    {
+        bytes = [];
+
+        if (!source.StartsWith("/", StringComparison.Ordinal) && !source.StartsWith("\\", StringComparison.Ordinal))
+            return false;
+
+        var relative = source.TrimStart('/', '\\').Replace('/', Path.DirectorySeparatorChar);
+
+        foreach (var root in GetSearchRoots())
+        {
+            var directCandidate = Path.Combine(root, "wwwroot", relative);
+            if (TryReadBytes(directCandidate, out bytes))
+                return true;
+
+            if (Path.GetFileName(root).Equals("wwwroot", StringComparison.OrdinalIgnoreCase))
+            {
+                var nestedCandidate = Path.Combine(root, relative);
+                if (TryReadBytes(nestedCandidate, out bytes))
+                    return true;
+            }
+
+            foreach (var webRootDir in EnumerateWebRootDirectories(root))
+            {
+                var discoveredCandidate = Path.Combine(webRootDir, relative);
+                if (TryReadBytes(discoveredCandidate, out bytes))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static IEnumerable<string> GetSearchRoots()
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        static IEnumerable<string> EnumerateAncestors(string start)
+        {
+            var current = Path.GetFullPath(start);
+            while (!string.IsNullOrWhiteSpace(current))
+            {
+                yield return current;
+                var parent = Directory.GetParent(current);
+                if (parent is null)
+                    yield break;
+
+                current = parent.FullName;
+            }
+        }
+
+        foreach (var path in EnumerateAncestors(AppContext.BaseDirectory))
+        {
+            if (seen.Add(path))
+                yield return path;
+        }
+
+        foreach (var path in EnumerateAncestors(Directory.GetCurrentDirectory()))
+        {
+            if (seen.Add(path))
+                yield return path;
+        }
+    }
+
+    private static IEnumerable<string> EnumerateWebRootDirectories(string root)
+    {
+        try
+        {
+            return Directory.EnumerateDirectories(root, "wwwroot", SearchOption.AllDirectories);
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
+    private static bool TryReadBytes(string path, out byte[] bytes)
+    {
+        bytes = [];
+
+        if (!File.Exists(path))
+            return false;
+
+        try
+        {
+            bytes = File.ReadAllBytes(path);
+            return bytes.Length > 0;
+        }
+        catch
+        {
+            bytes = [];
+            return false;
+        }
     }
 }

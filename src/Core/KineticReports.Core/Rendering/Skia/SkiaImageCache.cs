@@ -39,10 +39,22 @@ internal sealed class SkiaImageCache : IDisposable
             return decoded;
 
         // Fallback: treat as raw RGBA8888 pixel data
-        var info = new SKImageInfo(image.PixelWidth, image.PixelHeight, SKColorType.Rgba8888);
+        var width = Math.Max(1, image.PixelWidth);
+        var height = Math.Max(1, image.PixelHeight);
+        var info = new SKImageInfo(width, height, SKColorType.Rgba8888);
         var bitmap = new SKBitmap(info);
+
+        var expectedByteCount = width * height * 4;
+        if (image.PixelData.Length < expectedByteCount)
+        {
+            // Source wasn't a decodable encoded image and isn't valid raw RGBA data.
+            // Return a transparent placeholder instead of throwing during rendering.
+            bitmap.Erase(SKColors.Transparent);
+            return bitmap;
+        }
+
         using var pixmap = bitmap.PeekPixels();
-        new ReadOnlySpan<byte>(image.PixelData).CopyTo(pixmap.GetPixelSpan());
+        new ReadOnlySpan<byte>(image.PixelData, 0, expectedByteCount).CopyTo(pixmap.GetPixelSpan());
         return bitmap;
     }
 

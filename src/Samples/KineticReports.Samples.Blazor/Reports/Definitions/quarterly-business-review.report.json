@@ -253,6 +253,46 @@
         ],
         "footerLabel": "Closed-book total",
         "footerLabelColumnIndex": 0
+      },
+      {
+        "id": "qbr-page-break-image",
+        "kind": "PageBreak"
+      },
+      {
+        "id": "qbr-image-title",
+        "kind": "Text",
+        "text": "Product Showcase Image",
+        "textStyleId": "text-section-title"
+      },
+      {
+        "id": "qbr-image-copy",
+        "kind": "Text",
+        "text": "This third page demonstrates image rendering using the sample asset bundled with the Blazor app.",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-demo-image",
+        "kind": "Image",
+        "sourceKey": "/images/demo-image.jpg",
+        "stretch": "Uniform"
+      },
+      {
+        "id": "qbr-image-embedded-title",
+        "kind": "Text",
+        "text": "Embedded Image (Data URI)",
+        "textStyleId": "text-section-title"
+      },
+      {
+        "id": "qbr-image-embedded-copy",
+        "kind": "Text",
+        "text": "This image demonstrates a helper-generated embedded source key loaded from the same demo image.",
+        "textStyleId": "text-body"
+      },
+      {
+        "id": "qbr-demo-image-embedded",
+        "kind": "Image",
+        "sourceKey": "__EMBED_DEMO_IMAGE__",
+        "stretch": "Uniform"
       }
     ],
     "pageFooter": [

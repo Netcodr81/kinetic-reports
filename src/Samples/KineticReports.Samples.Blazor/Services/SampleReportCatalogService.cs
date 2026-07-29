@@ -27,6 +27,8 @@ public sealed record SampleReportTemplateDescriptor(
 
 internal sealed class SampleReportCatalogService : ISampleReportCatalogService
 {
+    private const string EmbeddedDemoImagePlaceholder = "__EMBED_DEMO_IMAGE__";
+
     private const string InMemorySelection = "InMemory";
     private const string SqlLiteSelection = "SqlLite";
     private const string SqliteAliasSelection = "SQLite";
@@ -93,11 +95,14 @@ internal sealed class SampleReportCatalogService : ISampleReportCatalogService
             throw new FileNotFoundException($"Report JSON file was not found: {path}");
 
         var json = await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false);
-        return _reportDefinitionSerializer.Deserialize(json);
+        var definition = _reportDefinitionSerializer.Deserialize(json);
+        return ApplyEmbeddedImageSource(definition);
     }
 
-    private static ReportDefinition BuildOperationsExecutivePackDefinition()
+    private ReportDefinition BuildOperationsExecutivePackDefinition()
     {
+        var embeddedDemoImageSource = BuildEmbeddedDemoImageSourceKey();
+
         return new ReportDefinition
         {
             SchemaVersion = "1.0",
@@ -169,13 +174,64 @@ internal sealed class SampleReportCatalogService : ISampleReportCatalogService
                             Aggregate(2, "{ARR}"),
                             Aggregate(3, "{ExpansionPotential}")
                         ],
-                        footerLabel: "Pipeline total")
+                        footerLabel: "Pipeline total"),
+                    new ReportLayoutItemDefinition { Id = "ops-page-break-image", Kind = ReportLayoutItemKind.PageBreak },
+                    TextItem("ops-image-title", "Product Showcase Image"),
+                    TextItem("ops-image-copy", "This third page demonstrates image rendering using the sample asset bundled with the Blazor app."),
+                    new ReportLayoutItemDefinition
+                    {
+                        Id = "ops-demo-image",
+                        Kind = ReportLayoutItemKind.Image,
+                        SourceKey = "/images/demo-image.jpg"
+                    },
+                    TextItem("ops-image-embedded-title", "Embedded Image (Data URI)"),
+                    TextItem("ops-image-embedded-copy", "This second image uses ReportImageSourceKeyHelper to encode the file into a data URI before rendering."),
+                    new ReportLayoutItemDefinition
+                    {
+                        Id = "ops-demo-image-embedded",
+                        Kind = ReportLayoutItemKind.Image,
+                        SourceKey = embeddedDemoImageSource
+                    }
                 ],
                 PageFooter =
                 [
                     TextItem("ops-footer-page", "Page {PageNumber}"),
                     TextItem("ops-footer-generated", "Generated {CurrentDate}")
                 ]
+            }
+        };
+    }
+
+    private string BuildEmbeddedDemoImageSourceKey()
+    {
+        var webRoot = string.IsNullOrWhiteSpace(_environment.WebRootPath)
+            ? Path.Combine(_environment.ContentRootPath, "wwwroot")
+            : _environment.WebRootPath;
+
+        var demoImagePath = Path.Combine(webRoot, "images", "demo-image.jpg");
+        if (!File.Exists(demoImagePath))
+            return "/images/demo-image.jpg";
+
+        return ReportImageSourceKeyHelper.CreateEmbeddedSourceKeyFromFile(demoImagePath);
+    }
+
+    private ReportDefinition ApplyEmbeddedImageSource(ReportDefinition definition)
+    {
+        if (definition.Layout is null || definition.Layout.Body.Count == 0)
+            return definition;
+
+        var embeddedSource = BuildEmbeddedDemoImageSourceKey();
+        var body = definition.Layout.Body
+            .Select(item => item.SourceKey == EmbeddedDemoImagePlaceholder
+                ? item with { SourceKey = embeddedSource }
+                : item)
+            .ToList();
+
+        return definition with
+        {
+            Layout = definition.Layout with
+            {
+                Body = body
             }
         };
     }

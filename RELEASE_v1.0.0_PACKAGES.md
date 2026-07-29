@@ -178,14 +178,11 @@ All packages will be available at https://www.nuget.org/packages/ with package I
 
 Comprehensive documentation for v1.0.0:
 - **Comprehensive Developer Guide:** `docs/COMPREHENSIVE_DEVELOPER_GUIDE.md` (all-in-one guide)
-- **Architecture Overview:** `docs/02-report-generation-flow.md`
-- **Quick Start:** `docs/01-junior-quick-start.md`
-- **Extension Points:** `docs/07-extension-points.md`
 
 ## Support & Questions
 
 - **GitHub Issues:** https://github.com/michaeleckel/kinetic-reports/issues
-- **Documentation:** `docs/` folder
+- **Documentation:** `docs/COMPREHENSIVE_DEVELOPER_GUIDE.md`
 - **API Reference:** See comprehensive developer guide
 
 ## Sign-Off

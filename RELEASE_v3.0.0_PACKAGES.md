@@ -128,7 +128,7 @@
 
 ### Migration Path
 
-See `MIGRATION_GUIDE_v3.0.0.md` for detailed step-by-step migration instructions and code examples.
+See `docs/COMPREHENSIVE_DEVELOPER_GUIDE.md` for migration and API guidance.
 
 ## Performance Improvements
 
@@ -171,16 +171,14 @@ All packages will be available at https://www.nuget.org/packages/ with package I
 ## Documentation
 
 Comprehensive documentation for v3.0.0:
-- **API Reference:** `docs/04-api-core-and-definition.md`
-- **Migration Guide:** `MIGRATION_GUIDE_v3.0.0.md` (8 steps, 25+ code examples)
+- **Comprehensive Developer Guide:** `docs/COMPREHENSIVE_DEVELOPER_GUIDE.md`
 - **Release Notes:** `RELEASE-NOTES.md` (breaking changes, improvements, deprecations)
-- **Architecture Overview:** `docs/02-report-generation-flow.md`
 
 ## Support & Questions
 
 - **GitHub Issues:** https://github.com/michaeleckel/kinetic-reports/issues
-- **Migration Help:** Refer to `MIGRATION_GUIDE_v3.0.0.md`
-- **API Documentation:** `docs/`
+- **Migration Help:** Refer to `docs/COMPREHENSIVE_DEVELOPER_GUIDE.md`
+- **API Documentation:** `docs/COMPREHENSIVE_DEVELOPER_GUIDE.md`
 
 ## Sign-Off
 

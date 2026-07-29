@@ -1,0 +1,42 @@
+  Determining projects to restore...
+C:\Repositories\kinetic-reports\src\Core\KineticReports.Core\KineticReports.Core.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q [C:\Repositories\kinetic-reports\tests\unit-tests\KineticReports.Rendering.Skia.Tests\KineticReports.Rendering.Skia.Tests.csproj]
+C:\Repositories\kinetic-reports\src\Plugins\KineticReports.Samples.Plugins\KineticReports.Samples.Plugins.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q [C:\Repositories\kinetic-reports\tests\unit-tests\KineticReports.Rendering.Skia.Tests\KineticReports.Rendering.Skia.Tests.csproj]
+C:\Repositories\kinetic-reports\src\Samples\KineticReports.Samples.Blazor\KineticReports.Samples.Blazor.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q [C:\Repositories\kinetic-reports\tests\unit-tests\KineticReports.Rendering.Skia.Tests\KineticReports.Rendering.Skia.Tests.csproj]
+C:\Repositories\kinetic-reports\src\Viewer\KineticReports.Viewer.Blazor\KineticReports.Viewer.Blazor.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q [C:\Repositories\kinetic-reports\tests\unit-tests\KineticReports.Rendering.Skia.Tests\KineticReports.Rendering.Skia.Tests.csproj]
+C:\Repositories\kinetic-reports\tests\unit-tests\KineticReports.Rendering.Skia.Tests\KineticReports.Rendering.Skia.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
+  All projects are up-to-date for restore.
+C:\Repositories\kinetic-reports\tests\unit-tests\KineticReports.Rendering.Skia.Tests\KineticReports.Rendering.Skia.Tests.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
+C:\Repositories\kinetic-reports\src\Core\KineticReports.Core\KineticReports.Core.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
+C:\Repositories\kinetic-reports\src\Samples\KineticReports.Samples.Blazor\KineticReports.Samples.Blazor.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
+C:\Repositories\kinetic-reports\src\Plugins\KineticReports.Samples.Plugins\KineticReports.Samples.Plugins.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
+C:\Repositories\kinetic-reports\src\Viewer\KineticReports.Viewer.Blazor\KineticReports.Viewer.Blazor.csproj : warning NU1903: Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability, https://github.com/advisories/GHSA-2m69-gcr7-jv3q
+  KineticReports.Core -> C:\Repositories\kinetic-reports\src\Core\KineticReports.Core\bin\Debug\net10.0\KineticReports.Core.dll
+  KineticReports.Samples.Plugins -> C:\Repositories\kinetic-reports\src\Plugins\KineticReports.Samples.Plugins\bin\Debug\net10.0\KineticReports.Samples.Plugins.dll
+  KineticReports.Viewer.Blazor -> C:\Repositories\kinetic-reports\src\Viewer\KineticReports.Viewer.Blazor\bin\Debug\net10.0\KineticReports.Viewer.Blazor.dll
+  KineticReports.Samples.Blazor -> C:\Repositories\kinetic-reports\src\Samples\KineticReports.Samples.Blazor\bin\Debug\net10.0\KineticReports.Samples.Blazor.dll
+  KineticReports.Rendering.Skia.Tests -> C:\Repositories\kinetic-reports\tests\unit-tests\KineticReports.Rendering.Skia.Tests\bin\Debug\net10.0\KineticReports.Rendering.Skia.Tests.dll
+Test run for C:\Repositories\kinetic-reports\tests\unit-tests\KineticReports.Rendering.Skia.Tests\bin\Debug\net10.0\KineticReports.Rendering.Skia.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.18]     KineticReports.Rendering.Skia.Tests.PdfReportDocumentExporterTests.ExportAsync_WithEmbeddedContentBlockImage_ReturnsPdf [FAIL]
+  Failed KineticReports.Rendering.Skia.Tests.PdfReportDocumentExporterTests.ExportAsync_WithEmbeddedContentBlockImage_ReturnsPdf [36 ms]
+  Error Message:
+   System.ArgumentException : Destination is too short. (Parameter 'destination')
+  Stack Trace:
+     at KineticReports.Core.Rendering.Skia.SkiaImageCache.Decode(ImageReference image) in C:\Repositories\kinetic-reports\src\Core\KineticReports.Core\Rendering\Skia\SkiaImageCache.cs:line 45
+   at KineticReports.Core.Rendering.Skia.SkiaImageCache.GetOrCreate(ImageReference image) in C:\Repositories\kinetic-reports\src\Core\KineticReports.Core\Rendering\Skia\SkiaImageCache.cs:line 28
+   at KineticReports.Core.Rendering.Skia.SkiaGraphicsContext.DrawImage(Rect destinationBounds, ImageReference image, ImageStretch stretch) in C:\Repositories\kinetic-reports\src\Core\KineticReports.Core\Rendering\Skia\SkiaGraphicsContext.cs:line 112
+   at KineticReports.Core.Rendering.ReportDocumentRenderer.RenderContentBlock(ContentBlock content, IGraphicsContext context, Int32 pageNumber) in C:\Repositories\kinetic-reports\src\Core\KineticReports.Core\Rendering\ReportDocumentRenderer.cs:line 134
+   at KineticReports.Core.Rendering.ReportDocumentRenderer.RenderElement(LayoutBlock element, IGraphicsContext context, Int32 pageNumber) in C:\Repositories\kinetic-reports\src\Core\KineticReports.Core\Rendering\ReportDocumentRenderer.cs:line 68
+   at KineticReports.Core.Rendering.ReportDocumentRenderer.RenderPage(PageBlock page, IGraphicsContext context, RenderOptions options) in C:\Repositories\kinetic-reports\src\Core\KineticReports.Core\Rendering\ReportDocumentRenderer.cs:line 36
+   at KineticReports.Core.Rendering.Skia.SkiaRenderer.RenderPdf(ReportDocument reportDocument, Stream output, CancellationToken ct) in C:\Repositories\kinetic-reports\src\Core\KineticReports.Core\Rendering\Skia\SkiaRenderer.cs:line 75
+   at KineticReports.Core.Rendering.Skia.SkiaRenderer.<>c__DisplayClass3_0.<RenderAsync>b__0() in C:\Repositories\kinetic-reports\src\Core\KineticReports.Core\Rendering\Skia\SkiaRenderer.cs:line 54
+   at System.Threading.ExecutionContext.RunFromThreadPoolDispatchLoop(Thread threadPoolThread, ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunFromThreadPoolDispatchLoop(Thread threadPoolThread, ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at KineticReports.Core.Export.Document.PdfReportDocumentExporter.ExportAsync(ReportDocument reportDocument, CancellationToken cancellationToken) in C:\Repositories\kinetic-reports\src\Core\KineticReports.Core\Export\Document\PdfReportDocumentExporter.cs:line 32
+   at KineticReports.Rendering.Skia.Tests.PdfReportDocumentExporterTests.ExportAsync_WithEmbeddedContentBlockImage_ReturnsPdf() in C:\Repositories\kinetic-reports\tests\unit-tests\KineticReports.Rendering.Skia.Tests\PdfReportDocumentExporterTests.cs:line 53
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 36 ms - KineticReports.Rendering.Skia.Tests.dll (net10.0)
