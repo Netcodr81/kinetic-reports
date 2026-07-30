@@ -48,10 +48,6 @@
                         disabled="@(ReportDocument is null)" title="Download HTML" aria-label="Download HTML">
                     <i class="fa-brands fa-html5"></i>
                 </button>
-                @if (ToolbarActions is not null)
-                {
-                    @ToolbarActions
-                }
             </div>
         </div>
 
@@ -137,12 +133,6 @@
     /// </summary>
     [Parameter]
     public string? PageBackgroundColor { get; set; }
-
-    /// <summary>
-    /// Optional additional toolbar content appended to the right toolbar group.
-    /// </summary>
-    [Parameter]
-    public RenderFragment? ToolbarActions { get; set; }
 
     /// <summary>
     /// Selects the built-in color theme for the viewer.

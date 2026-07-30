@@ -1,3 +1,5 @@
+using KineticReports.Core.Layout;
+
 namespace KineticReports.Viewer.Mvc;
 
 /// <summary>
@@ -21,9 +23,9 @@ public sealed class KineticReportViewModel
     public string HtmlContent { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets print-friendly full document markup encoded in base64.
+    /// Gets or sets the report document rendered by the viewer.
     /// </summary>
-    public string PrintMarkupBase64 { get; set; } = string.Empty;
+    public ReportDocument? ReportDocument { get; set; }
 
     /// <summary>
     /// Gets or sets the known page count for pager controls.
@@ -40,23 +42,5 @@ public sealed class KineticReportViewModel
     /// </summary>
     public string ViewerStyle { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Gets or sets optional HTML export URL.
-    /// </summary>
-    public string? ExportHtmlUrl { get; set; }
 
-    /// <summary>
-    /// Gets or sets optional PDF export URL.
-    /// </summary>
-    public string? ExportPdfUrl { get; set; }
-
-    /// <summary>
-    /// Gets or sets whether toolbar actions should be shown.
-    /// </summary>
-    public bool ShowToolbar { get; set; } = true;
-
-    /// <summary>
-    /// Gets or sets trace entries captured while rendering.
-    /// </summary>
-    public IReadOnlyList<string> Trace { get; set; } = [];
 }
